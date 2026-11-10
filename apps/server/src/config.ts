@@ -16,6 +16,15 @@ export interface Config {
   autoTags: AutoTagConfig;
 }
 
+/** Loads apps/server/.env into process.env if it exists (npm workspace scripts run from apps/server). */
+export function loadDotEnv(path = '.env'): void {
+  try {
+    process.loadEnvFile(path);
+  } catch {
+    // no .env file — rely on the real environment
+  }
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const production = env.NODE_ENV === 'production';
   const jwtSecret = env.JWT_SECRET ?? (production ? '' : 'dev-only-secret-do-not-use-in-prod');

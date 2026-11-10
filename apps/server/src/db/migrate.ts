@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '../config';
+import { loadConfig, loadDotEnv } from '../config';
 import { createPool, type Db } from './pool';
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), 'migrations');
@@ -31,6 +31,7 @@ export async function migrate(db: Db): Promise<string[]> {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  loadDotEnv();
   const db = createPool(loadConfig().databaseUrl);
   migrate(db)
     .then((a) => console.log(a.length ? `applied: ${a.join(', ')}` : 'up to date'))

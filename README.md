@@ -12,23 +12,39 @@ tools/            Extractor that pulls copy/seed data out of the prototype so no
 
 ## Run it
 
-Requirements: Node 22, PostgreSQL 16.
+Requirements: Node 22+, PostgreSQL 16, git.
 
-```bash
-npm install
-createdb myna && createdb myna_test        # or use DATABASE_URL / TEST_DATABASE_URL
-cp apps/server/.env.example apps/server/.env
-npm run db:seed                            # migrates + loads the prototype's posts, boards and badges
-ALLOW_DEV_LOGIN=1 DEV_EXPOSE_EMAIL_CODES=1 npm run server   # http://localhost:4000
-npm run mobile                             # Expo dev server; press i / a / w
-```
+1. Create the database user and databases (psql / "SQL Shell" on Windows, as the `postgres` superuser):
 
-Point a device at your machine with `EXPO_PUBLIC_API_URL=http://<lan-ip>:4000 npm run mobile`.
-With `DEV_EXPOSE_EMAIL_CODES=1` the login screen fills in the e-mail code for you. The seeded demo account is
-`干饭鉴黄师 @foodjudge_007` (dev login: `POST /auth/dev {"handle":"foodjudge_007"}`).
+   ```sql
+   CREATE USER myna WITH PASSWORD 'myna' CREATEDB;
+   CREATE DATABASE myna OWNER myna;
+   CREATE DATABASE myna_test OWNER myna;
+   ```
 
-Expo Go cannot load Apple sign-in or SecureStore natively in every case; use a development build
-(`npx expo run:ios` / `run:android` or `eas build --profile development`).
+2. Install, configure, seed:
+
+   ```bash
+   npm install
+   cp apps/server/.env.example apps/server/.env      # Windows: copy apps\server\.env.example apps\server\.env
+   cp apps/mobile/.env.example apps/mobile/.env
+   npm run db:seed
+   ```
+
+3. Start the API (terminal 1) and the app (terminal 2):
+
+   ```bash
+   npm run server      # http://localhost:4000
+   npm run mobile      # press w for the browser, or scan the QR code with Expo Go
+   ```
+
+Both `.env` files are loaded automatically. The server example enables dev conveniences
+(`ALLOW_DEV_LOGIN`, `DEV_EXPOSE_EMAIL_CODES`): the login screen fills in the e-mail code for you.
+For a real phone, set `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` to your computer's LAN IP
+(e.g. `http://192.168.1.23:4000`) and keep phone and computer on the same Wi-Fi.
+The seeded demo account is `干饭鉴黄师 @foodjudge_007` (dev login: `POST /auth/dev {"handle":"foodjudge_007"}`).
+
+Apple sign-in needs a development build (`npx expo run:ios` or `eas build --profile development`).
 
 ## Checks
 

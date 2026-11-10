@@ -4,7 +4,7 @@
  */
 import { CATEGORY_EMOJI, categoryFromZh, type Category, type Distribution, type Locale } from '@myna/shared';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from '../config';
+import { loadConfig, loadDotEnv } from '../config';
 import { seasonOf } from '../lib/season';
 import { migrate } from './migrate';
 import { createPool, withTx, type Db, type Tx } from './pool';
@@ -192,6 +192,7 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  loadDotEnv();
   const cfg = loadConfig();
   if (process.env.NODE_ENV === 'production') throw new Error('refusing to seed a production database');
   const db = createPool(cfg.databaseUrl);

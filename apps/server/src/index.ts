@@ -1,8 +1,9 @@
 import { buildApp } from './app';
-import { loadConfig } from './config';
+import { loadConfig, loadDotEnv } from './config';
 import { migrate } from './db/migrate';
 import { createPool } from './db/pool';
 
+loadDotEnv();
 const config = loadConfig();
 const db = createPool(config.databaseUrl);
 await migrate(db);
