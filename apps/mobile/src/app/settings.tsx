@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { registerForPush } from '../lib/push';
 import { brand } from '../lib/theme';
 import { PageHeader } from '../components/headers';
@@ -66,9 +66,20 @@ export default function Settings() {
   const qc = useQueryClient();
   const [langOpen, setLangOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedback, setFeedback] = useState('');
+  const sendFeedback = async () => {
+    try {
+      await api('POST', '/feedback', { body: feedback.trim(), appVersion: Constants.expoConfig?.version, platform: Platform.OS });
+      setFeedback('');
+      setFeedbackOpen(false);
+      toast(t('feedback_sent'));
+    } catch {
+      toast(t('error_generic'));
+    }
+  };
 
   const visibility: Visibility = me?.settings.visibility ?? 'everyone';
-  const soon = () => toast(t('coming_soon'));
 
   const clearCache = async () => {
     qc.clear();
@@ -103,6 +114,9 @@ export default function Settings() {
                   @{me.handle} · {t('rep')} {me.reputation}
                 </T>
               </View>
+              <Pressable onPress={() => router.push('/me/edit')} accessibilityRole="button" accessibilityLabel={t('edit_profile')} hitSlop={6} style={{ marginRight: 12 }}>
+                <T style={{ fontSize: 16 }}>✏️</T>
+              </Pressable>
               <Pressable onPress={signOut} accessibilityRole="button">
                 <T style={{ color: '#C92A1A', fontWeight: '700' }}>{t('logout')}</T>
               </Pressable>
@@ -191,9 +205,9 @@ export default function Settings() {
         </Group>
 
         <Group title={t('grp_support')}>
-          <Row title={t('terms')} onPress={soon} />
-          <Row title={t('privacy')} onPress={soon} />
-          <Row title={t('feedback')} onPress={soon} />
+          <Row title={t('terms')} onPress={() => router.push('/legal/terms')} />
+          <Row title={t('privacy')} onPress={() => router.push('/legal/privacy')} />
+          <Row title={t('feedback')} onPress={() => setFeedbackOpen(true)} />
           <Row title={t('version')} value={`v${Constants.expoConfig?.version ?? '0.8.0'}`} last />
         </Group>
 
@@ -221,6 +235,19 @@ export default function Settings() {
             {appLang === l && <T style={{ color: '#FF5A3C', fontWeight: '900' }}>✓</T>}
           </Pressable>
         ))}
+      </Sheet>
+
+      <Sheet visible={feedbackOpen} title={t('feedback')} onClose={() => setFeedbackOpen(false)}>
+        <TextInput
+          value={feedback}
+          onChangeText={setFeedback}
+          placeholder={t('feedback_ph')}
+          placeholderTextColor={colors.faint}
+          multiline
+          maxLength={2000}
+          style={{ borderWidth: 1.5, borderColor: colors.line, borderRadius: 12, padding: 12, minHeight: 120, textAlignVertical: 'top', color: colors.ink, backgroundColor: colors.card, marginVertical: 10, fontSize: 14 }}
+        />
+        <Button label={t('send')} onPress={sendFeedback} disabled={!feedback.trim()} />
       </Sheet>
 
       <Sheet visible={confirmDelete} title={t('delete_title')} onClose={() => setConfirmDelete(false)}>

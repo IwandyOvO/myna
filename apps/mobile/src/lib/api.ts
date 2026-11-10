@@ -33,6 +33,24 @@ export class ApiFailure extends Error {
 }
 
 let token: string | null = null;
+
+/** Connectivity as seen by our own requests: a network failure flips it off, any response flips it back on. */
+let online = true;
+const listeners = new Set<(online: boolean) => void>();
+function setOnline(v: boolean) {
+  if (v === online) return;
+  online = v;
+  listeners.forEach((l) => l(v));
+}
+export const connectivity = {
+  get online() {
+    return online;
+  },
+  subscribe(fn: (online: boolean) => void) {
+    listeners.add(fn);
+    return () => void listeners.delete(fn);
+  },
+};
 let locale = 'en';
 let onUnauthorized: (() => void) | null = null;
 
@@ -67,10 +85,12 @@ export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
+    setOnline(false);
     throw new ApiFailure(0, 'network_error');
   } finally {
     clearTimeout(timer);
   }
+  setOnline(true);
   if (res.status === 204) return undefined as T;
   const data = (await res.json().catch(() => ({}))) as T & ApiError;
   if (!res.ok) {

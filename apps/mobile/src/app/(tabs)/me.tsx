@@ -42,14 +42,14 @@ export default function MeTab() {
       <TabHeader title={t('nav_me')} right={<T muted onPress={() => router.push('/settings')}>⚙️</T>} />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
         <Card style={{ padding: 18 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+          <Pressable onPress={() => router.push('/me/edit')} accessibilityRole="button" accessibilityLabel={t('edit_profile')} style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
             <View style={[s.ava, { backgroundColor: colors.soft }]}>
               <Text style={{ fontSize: 36 }}>{me?.avatar ?? '🐦'}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <T style={{ fontSize: 19, fontWeight: '900' }}>{me?.nickname ?? '…'}</T>
               <T muted style={{ fontSize: 12, marginTop: 3 }}>
-                @{me?.handle}
+                @{me?.handle} · ✏️ {t('edit_profile')}
               </T>
             </View>
             <View style={{ alignItems: 'center' }}>
@@ -58,7 +58,7 @@ export default function MeTab() {
                 {t('rep')}
               </T>
             </View>
-          </View>
+          </Pressable>
           <T muted style={{ fontSize: 11.5, marginTop: 10 }}>
             {t('rep_note')}
           </T>

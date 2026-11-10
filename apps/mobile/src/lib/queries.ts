@@ -21,10 +21,23 @@ export function useFeed(category: Category | undefined, langs: Locale[], q: stri
 export const usePost = (id: string) => useQuery({ queryKey: ['post', id], queryFn: () => api<PostCard>('GET', `/posts/${id}`) });
 
 export const useComments = (postId: string, tier: Tier | null) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: ['comments', postId, tier ?? 'all'],
-    queryFn: () => api<Page<Comment>>('GET', `/posts/${postId}/comments${qs({ tier })}`),
+    queryFn: ({ pageParam }) => api<Page<Comment>>('GET', `/posts/${postId}/comments${qs({ tier, cursor: pageParam })}`),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { nickname?: string; avatar?: string }) => api<Me>('PUT', '/me/profile', p),
+    onSuccess: (me) => {
+      qc.setQueryData(['me'], me);
+      for (const k of ['feed', 'comments', 'profile', 'post']) qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
+}
 
 export const useNearby = (coords: { lat: number; lng: number } | null, radiusKm: number | null) =>
   useQuery({

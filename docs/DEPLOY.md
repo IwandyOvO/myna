@@ -39,7 +39,9 @@ npx eas-cli@latest build --profile production --platform all
 npx eas-cli@latest submit --platform ios
 ```
 
-Set `EXPO_PUBLIC_API_URL` to the deployed API in `eas.json` (per profile) before building.
+Set `EXPO_PUBLIC_API_URL` to the deployed API in `apps/mobile/eas.json` (per profile; `api.myna.example` is a placeholder) before building.
+The `development` profile needs `npx expo install expo-dev-client` first — it is left out on purpose because, once installed,
+`npx expo start` opens development builds instead of Expo Go.
 
 ## Before submitting to the App Store
 

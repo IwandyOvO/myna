@@ -179,6 +179,15 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
     return demo;
   });
 
+  // The demo account's own posts (spec §8 shows it as an active poster).
+  await withTx(db, async (tx) => {
+    const now = Date.now();
+    await insertPost(tx, { author: demoUserId, category: 'snacks', title: '711 新出的芝士玉米味薯片，值得囤吗？', body: '今天在 7-Eleven 看到的，$3.49 一包，芝士味很浓，有点咸。',
+      emoji: '🌽', lang: 'zh', blind: false, createdAt: new Date(now - 26 * 3_600_000) }, [6, 14, 38, 61, 33], [6, 14, 38, 61, 33]);
+    await insertPost(tx, { author: demoUserId, category: 'food', title: '学校门口新开的麻辣烫，排队值吗？', body: '自选称重，一碗大概 $14，汤底是骨汤，辣度可以选。',
+      emoji: '🍲', lang: 'zh', blind: true, createdAt: new Date(now - 5 * 3_600_000) }, [3, 5, 12, 20, 16], [3, 5, 12, 20, 16]);
+  });
+
   // Give the demo account a rating history through the real code path (not the blind post, so it stays locked).
   const pick = async (title: string) => (await db.query<{ id: string }>('SELECT id FROM posts WHERE title = $1', [title])).rows[0]!.id;
   const history: [string, 1 | 2 | 3 | 4 | 5, string][] = [

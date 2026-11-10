@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DrawerHost } from '../components/Drawer';
+import { OfflineBanner } from '../components/OfflineBanner';
 import { CrashScreen } from '../components/CrashScreen';
 
 export { CrashScreen as ErrorBoundary };
@@ -29,6 +30,7 @@ function Shell() {
           <Stack.Screen name="login" options={{ presentation: 'modal' }} />
         </Stack>
       </DrawerHost>
+      <OfflineBanner />
     </View>
   );
 }

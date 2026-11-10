@@ -24,6 +24,7 @@ export default function PostDetail() {
   const post = usePost(id);
   const [filter, setFilter] = useState<Tier | null>(null);
   const comments = useComments(id, filter);
+  const commentItems = comments.data?.pages.flatMap((pg) => pg.items) ?? [];
   const report = useReport();
   const block = useBlock();
   const fav = useFavorite(id);
@@ -166,12 +167,15 @@ export default function PostDetail() {
         <View style={{ paddingHorizontal: 16 }}>
           {comments.isPending ? (
             <Loading />
-          ) : !comments.data?.items.length ? (
+          ) : !commentItems.length ? (
             <Empty emoji="💬" text={t('no_comments_tier')} />
           ) : (
-            comments.data.items.map((c) => (
-              <CommentThread key={c.id} c={c} category={p.category} actions={commentActions} />
-            ))
+            commentItems.map((c) => <CommentThread key={c.id} c={c} category={p.category} actions={commentActions} />)
+          )}
+          {comments.hasNextPage && (
+            <View style={{ paddingVertical: 14 }}>
+              <Button variant="ghost" label={t('load_more')} onPress={() => comments.fetchNextPage()} loading={comments.isFetchingNextPage} />
+            </View>
           )}
         </View>
       </ScrollView>

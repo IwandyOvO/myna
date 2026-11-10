@@ -107,6 +107,16 @@ export default function Login() {
           <View style={[s.rule, { backgroundColor: colors.line }]} />
         </View>
         <SocialButtons onDone={done} />
+        <T muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 6, lineHeight: 18 }}>
+          {t('agree_prefix')}{' '}
+          <T style={{ fontSize: 11.5, color: colors.ink, fontWeight: '700' }} onPress={() => router.push('/legal/terms')}>
+            {t('terms')}
+          </T>{' '}
+          {t('and')}{' '}
+          <T style={{ fontSize: 11.5, color: colors.ink, fontWeight: '700' }} onPress={() => router.push('/legal/privacy')}>
+            {t('privacy')}
+          </T>
+        </T>
         {__DEV__ && (
           <T muted style={{ fontSize: 11, textAlign: 'center', marginTop: 8 }}>
             API: {API_URL}

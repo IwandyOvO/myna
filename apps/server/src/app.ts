@@ -333,6 +333,12 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     await users.updateSettings(db, userId, s);
     return users.getMe(db, userId);
   });
+  app.put('/me/profile', async (req) => {
+    const userId = await requireUser(req);
+    const b = z.object({ nickname: z.string().max(60).optional(), avatar: z.string().max(16).optional() }).parse(req.body);
+    await users.updateProfile(db, userId, b);
+    return users.getMe(db, userId);
+  });
   app.get('/me/posts', async (req) => ({ items: await posts.myPosts(db, tagCfg, await requireUser(req)) }));
   app.get('/me/ratings', async (req) => ({ items: await posts.myRatedPosts(db, tagCfg, await requireUser(req)) }));
   app.get('/me/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings, config.blindHours) }));
@@ -449,6 +455,15 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get('/seasons/last', async () => {
     const season = previousSeason();
     return { season, awards: await seasonAwards(db, season) };
+  });
+
+  // ---- feedback ----------------------------------------------------------------------------
+  app.post('/feedback', limit(10), async (req, reply) => {
+    const me = await viewer(req);
+    const b = z.object({ body: z.string().trim().min(1).max(2000), appVersion: z.string().max(20).optional(), platform: z.string().max(20).optional() }).parse(req.body);
+    await db.query('INSERT INTO feedback (user_id, body, app_version, platform) VALUES ($1, $2, $3, $4)', [me, b.body, b.appVersion ?? null, b.platform ?? null]);
+    reply.status(201);
+    return { ok: true };
   });
 
   // ---- moderation (App Store 1.2) ------------------------------------------------------

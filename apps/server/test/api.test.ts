@@ -262,13 +262,14 @@ describe('me, badges, settings, moderation', () => {
     const me = (await call('GET', '/me', { token: demoToken })).body;
     expect(me).toMatchObject({ nickname: '干饭鉴黄师', handle: 'foodjudge_007', reputation: 92 });
     expect(me.stats.ratings).toBe(4);
+    expect(me.stats.posts).toBe(2);
     const rated = (await call<{ items: PostCard[] }>('GET', '/me/ratings', { token: demoToken })).body.items;
     expect(rated).toHaveLength(4);
   });
-  it('badge wall has 11 badges with the 3 seeded unlocks', async () => {
+  it('badge wall has 11 badges: 3 seeded unlocks + first steps (demo has posts)', async () => {
     const b = (await call('GET', '/me/badges', { token: demoToken })).body.items;
     expect(b).toHaveLength(11);
-    expect(b.filter((x: { unlockedAt: string | null }) => x.unlockedAt).map((x: { key: string }) => x.key).sort()).toEqual(['early_taster', 'flop_spotter', 'golden_tongue']);
+    expect(b.filter((x: { unlockedAt: string | null }) => x.unlockedAt).map((x: { key: string }) => x.key).sort()).toEqual(['early_taster', 'first_steps', 'flop_spotter', 'golden_tongue']);
   });
   it('first post unlocks "first steps" automatically', async () => {
     const t = await newUserToken('badge@example.com');
@@ -558,7 +559,7 @@ describe('rating visibility, comment reports, challenge, leaderboard', () => {
 
   it('leaderboard ranks by badges then reputation and marks me', async () => {
     const lb = (await call('GET', '/leaderboard', { token: demoToken })).body.items;
-    expect(lb[0]).toMatchObject({ rank: 1, badges: 3, isMe: true });
+    expect(lb[0]).toMatchObject({ rank: 1, badges: 4, isMe: true });
     expect(lb[0].user.handle).toBe('foodjudge_007');
     for (let i = 1; i < lb.length; i++) expect(lb[i].badges).toBeLessThanOrEqual(lb[i - 1].badges);
   });
@@ -720,5 +721,43 @@ describe('production hardening', () => {
     const prod = loadConfig({ NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(40), ALLOW_DEV_LOGIN: '1', DEV_EXPOSE_EMAIL_CODES: '1' } as NodeJS.ProcessEnv);
     expect(prod.allowDevLogin).toBe(false);
     expect(prod.exposeEmailCodes).toBe(false);
+  });
+});
+
+describe('feedback', () => {
+  it('stores feedback from signed-in and anonymous users; rejects empty', async () => {
+    expect((await call('POST', '/feedback', { token: demoToken, body: { body: '很好用！', appVersion: '0.8.0', platform: 'ios' } })).status).toBe(201);
+    expect((await call('POST', '/feedback', { body: { body: 'anonymous idea' } })).status).toBe(201);
+    expect((await call('POST', '/feedback', { body: { body: '   ' } })).status).toBe(400);
+    const rows = (await db.query('SELECT body, user_id IS NOT NULL AS signed FROM feedback ORDER BY created_at')).rows;
+    expect(rows).toEqual([{ body: '很好用！', signed: true }, { body: 'anonymous idea', signed: false }]);
+  });
+});
+
+describe('profile editing', () => {
+  it('changes nickname and avatar, validates them, keeps the handle', async () => {
+    const t = await newUserToken('rename@example.com');
+    const before = (await call('GET', '/me', { token: t })).body;
+    const after = (await call('PUT', '/me/profile', { token: t, body: { nickname: '  新名字  ', avatar: '🦜' } })).body;
+    expect(after).toMatchObject({ nickname: '新名字', avatar: '🦜', handle: before.handle });
+    expect((await call('PUT', '/me/profile', { token: t, body: { nickname: '' } })).status).toBe(400);
+    expect((await call('PUT', '/me/profile', { token: t, body: { nickname: 'x'.repeat(25) } })).status).toBe(400);
+    expect((await call('PUT', '/me/profile', { token: t, body: { avatar: '🦜🦜🦜' } })).status).toBe(400);
+    expect((await call('PUT', '/me/profile', { body: { nickname: 'anon' } })).status).toBe(401);
+  });
+
+  it('comments page through with a cursor', async () => {
+    const p = await postByTitle('螺蛳粉味薯片');
+    for (let i = 0; i < 22; i++) {
+      const t = await newUserToken(`pager${i}@example.com`);
+      await call('POST', `/posts/${p.id}/ratings`, { token: t, body: { tier: 3, reason: `第${i}条` } });
+    }
+    const first = (await call<{ items: Comment[]; nextCursor: string }>('GET', `/posts/${p.id}/comments`)).body;
+    expect(first.items).toHaveLength(20);
+    expect(first.nextCursor).toBeTruthy();
+    const second = (await call<{ items: Comment[]; nextCursor: string | null }>('GET', `/posts/${p.id}/comments?cursor=${first.nextCursor}`)).body;
+    expect(second.items.length).toBeGreaterThan(0);
+    const ids = new Set(first.items.map((c) => c.id));
+    expect(second.items.some((c) => ids.has(c.id))).toBe(false);
   });
 });

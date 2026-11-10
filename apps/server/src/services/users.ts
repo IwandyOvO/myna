@@ -171,3 +171,12 @@ export async function addReputation(db: Queryable, userId: string, delta: number
     [userId, delta, reason],
   );
 }
+
+/** Edit nickname / avatar emoji. Handles stay fixed (they are how people find and mention you). */
+export async function updateProfile(db: Queryable, userId: string, p: { nickname?: string; avatar?: string }): Promise<void> {
+  const nickname = p.nickname?.trim();
+  if (nickname !== undefined && (nickname.length < 1 || [...nickname].length > 24)) throw badRequest('invalid_nickname');
+  const avatar = p.avatar?.trim();
+  if (avatar !== undefined && (avatar.length < 1 || [...avatar].length > 2)) throw badRequest('invalid_avatar');
+  await db.query('UPDATE users SET nickname = coalesce($2, nickname), avatar = coalesce($3, avatar) WHERE id = $1', [userId, nickname ?? null, avatar ?? null]);
+}
