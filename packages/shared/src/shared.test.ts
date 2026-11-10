@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, autoTags, average, categoryName,
-  moveVote, placeholderFor, resolveLocale, scaleFor, scaleForBoard, translate,
+  moveVote, placeholderFor, resolveLocale, scaleFor, scaleForBoard, timeAgo, translate,
 } from './index';
 import { OVERRIDES } from './i18n/overrides';
 
@@ -61,6 +61,14 @@ describe('i18n', () => {
   it('translate fills vars and falls back', () => {
     expect(translate('zh', 'cta_edit_fmt', { x: 2 })).toBe('修改评价（还可改 2 次）');
     expect(translate('ko', 'no_such_key')).toBe('no_such_key');
+  });
+  it('timeAgo needs no Intl.RelativeTimeFormat (absent on Hermes)', () => {
+    const now = new Date('2026-11-10T12:00:00Z');
+    expect(timeAgo('zh', '2026-11-10T07:00:00Z', now)).toBe('5 小时前');
+    expect(timeAgo('en', '2026-11-10T11:58:30Z', now)).toBe('1 min ago');
+    expect(timeAgo('ja', '2026-11-07T12:00:00Z', now)).toBe('3日前');
+    expect(timeAgo('it', '2026-11-10T11:59:59Z', now)).toBe('adesso');
+    expect(timeAgo('fr', '2026-01-02T00:00:00Z', now)).toBe('2026-01-02');
   });
   it('resolveLocale', () => {
     expect(resolveLocale('zh-Hans-CN')).toBe('zh');

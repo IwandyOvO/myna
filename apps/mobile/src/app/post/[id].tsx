@@ -1,4 +1,4 @@
-import { categoryName, scaleFor, type ReportReason, type Tier } from '@myna/shared';
+import { categoryName, scaleFor, timeAgo, type ReportReason, type Tier } from '@myna/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -10,15 +10,6 @@ import { Button, Card, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T, useTo
 import { useAuth } from '../../lib/auth';
 import { useBlock, useComments, useLike, usePost, useReport } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
-
-function timeAgo(iso: string, locale: string): string {
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
-  if (diff < 3600) return rtf.format(-Math.max(1, Math.round(diff / 60)), 'minute');
-  if (diff < 86400) return rtf.format(-Math.round(diff / 3600), 'hour');
-  if (diff < 86400 * 30) return rtf.format(-Math.round(diff / 86400), 'day');
-  return new Date(iso).toLocaleDateString(locale);
-}
 
 /** §5.2 detail page — also the target of every board row. */
 export default function PostDetail() {
@@ -77,7 +68,7 @@ export default function PostDetail() {
           <T style={{ fontSize: 20, fontWeight: '900', lineHeight: 27 }}>{p.title}</T>
           {!!p.body && <T style={{ fontSize: 14.5, lineHeight: 22, marginTop: 8, color: colors.body }}>{p.body}</T>}
           <T muted style={{ fontSize: 12, marginTop: 10 }}>
-            {p.author.avatar} {p.author.nickname} · {timeAgo(p.createdAt, locale)}
+            {p.author.avatar} {p.author.nickname} · {timeAgo(locale, p.createdAt)}
             {p.placeName ? ` · 📍${p.placeName}` : ''}
           </T>
 

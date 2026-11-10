@@ -7,6 +7,10 @@ import type { Locale } from '../locales';
  */
 export const OVERRIDES: Record<Locale, Record<string, string>> = {
   zh: {
+    ago_now: '刚刚',
+    ago_min: '{n} 分钟前',
+    ago_hour: '{n} 小时前',
+    ago_day: '{n} 天前',
     back: '返回',
     blind_sub: '评价前隐藏均分与分布，防从众',
     scale_hint: '将使用这套量表：',
@@ -51,6 +55,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '已解锁 {x}/{y}',
   },
   en: {
+    ago_now: 'just now',
+    ago_min: '{n} min ago',
+    ago_hour: '{n} hr ago',
+    ago_day: '{n} days ago',
     back: 'Back',
     blind_sub: 'Average and breakdown stay hidden until you rate',
     scale_hint: 'This post will use:',
@@ -95,6 +103,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} unlocked',
   },
   es: {
+    ago_now: 'ahora mismo',
+    ago_min: 'hace {n} min',
+    ago_hour: 'hace {n} h',
+    ago_day: 'hace {n} días',
     back: 'Volver',
     blind_sub: 'La media y el desglose se ocultan hasta que valores',
     scale_hint: 'Esta publicación usará:',
@@ -139,6 +151,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} desbloqueadas',
   },
   fr: {
+    ago_now: 'à l’instant',
+    ago_min: 'il y a {n} min',
+    ago_hour: 'il y a {n} h',
+    ago_day: 'il y a {n} j',
     back: 'Retour',
     blind_sub: 'Moyenne et répartition masquées jusqu’à votre note',
     scale_hint: 'Ce post utilisera :',
@@ -183,6 +199,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} débloqués',
   },
   ja: {
+    ago_now: 'たった今',
+    ago_min: '{n}分前',
+    ago_hour: '{n}時間前',
+    ago_day: '{n}日前',
     back: '戻る',
     blind_sub: '評価するまで平均と分布は非表示',
     scale_hint: 'この投稿の評価スケール：',
@@ -227,6 +247,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} 獲得',
   },
   ko: {
+    ago_now: '방금',
+    ago_min: '{n}분 전',
+    ago_hour: '{n}시간 전',
+    ago_day: '{n}일 전',
     back: '뒤로',
     blind_sub: '평가하기 전까지 평균과 분포가 숨겨져요',
     scale_hint: '이 게시물의 평가 척도:',
@@ -271,6 +295,10 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} 획득',
   },
   it: {
+    ago_now: 'adesso',
+    ago_min: '{n} min fa',
+    ago_hour: '{n} h fa',
+    ago_day: '{n} giorni fa',
     back: 'Indietro',
     blind_sub: 'Media e distribuzione restano nascoste finché non voti',
     scale_hint: 'Questo post userà:',
