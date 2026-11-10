@@ -3,5 +3,7 @@
   "compilerOptions": {
     "strict": true
   },
-  "include": ["src", "expo-env.d.ts"]
+  "include": [
+    "src"
+  ]
 }

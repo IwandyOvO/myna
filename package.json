@@ -2,8 +2,12 @@
   "name": "myna",
   "version": "0.8.0",
   "private": true,
-  "workspaces": ["packages/*", "apps/*"],
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
+    "dev": "node tools/dev.mjs",
     "test": "npm run test -w @myna/shared && npm run test -w @myna/server",
     "typecheck": "npm run typecheck -w @myna/shared && npm run typecheck -w @myna/server && npm run typecheck -w @myna/mobile",
     "db:migrate": "npm run db:migrate -w @myna/server",

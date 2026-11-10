@@ -8,3 +8,4 @@ web-build/
 apps/mobile/ios/
 apps/mobile/android/
 apps/server/uploads/
+apps/server/dev.log

@@ -31,12 +31,16 @@ Requirements: Node 22+, PostgreSQL 16, git.
    npm run db:seed
    ```
 
-3. Start the API (terminal 1) and the app (terminal 2):
+3. Start everything from one terminal:
 
    ```bash
-   npm run server      # http://localhost:4000
-   npm run mobile      # press w for the browser, or scan the QR code with Expo Go
+   npm run dev         # API on :4000 + Expo; press w for the browser, or scan the QR code with Expo Go
    ```
+
+   `npm run dev -- -c` also clears the bundler cache. The API's full log is in `apps/server/dev.log`;
+   the terminal only shows `[api] ready` and errors. (`npm run server` / `npm run mobile` still start them separately.)
+
+   **After pulling new code:** `git pull` then `npm install`, then `npm run dev` again.
 
 Both `.env` files are loaded automatically. The server example enables dev conveniences
 (`ALLOW_DEV_LOGIN`, `DEV_EXPOSE_EMAIL_CODES`): the login screen fills in the e-mail code for you.
