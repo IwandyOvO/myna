@@ -3,7 +3,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { registerForPush } from '../lib/push';
+import { brand } from '../lib/theme';
 import { PageHeader } from '../components/headers';
 import { Button, Card, Seg, Sheet, T, useToast } from '../components/ui';
 import { api } from '../lib/api';
@@ -23,7 +25,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function Row({ title, sub, value, onPress, children, last, danger }: { title: string; sub?: string; value?: string; onPress?: () => void; children?: ReactNode; last?: boolean; danger?: boolean }) {
+function Row({ title, sub, value, onPress, children, last, danger, right }: { title: string; sub?: string; value?: string; onPress?: () => void; children?: ReactNode; last?: boolean; danger?: boolean; right?: ReactNode }) {
   const { colors } = useSettings();
   const style = [s.row, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.line }];
   // A disabled Pressable swallows taps meant for its children (e.g. a Seg) on web, so rows without a handler are plain Views.
@@ -39,6 +41,7 @@ function Row({ title, sub, value, onPress, children, last, danger }: { title: st
           )}
         </View>
         {!!value && <T muted style={{ fontSize: 13 }}>{value}</T>}
+        {right}
         {onPress && <Text style={{ color: colors.faint, fontSize: 17, marginLeft: 6 }}>›</Text>}
       </View>
       {children && <View style={{ marginTop: 10 }}>{children}</View>}
@@ -136,6 +139,37 @@ export default function Settings() {
             />
           </Row>
         </Group>
+
+        {signedIn && me && (
+          <Group title={t('push')}>
+            {(
+              [
+                ['notifySocial', t('notif_social'), t('notif_social_sub')],
+                ['notifyRank', t('notif_rank'), t('notif_rank_sub')],
+              ] as const
+            ).map(([key, title, sub], i) => (
+              <Row
+                key={key}
+                title={title}
+                sub={sub}
+                last={i === 1}
+                right={
+                  <Switch
+                    value={me.settings[key]}
+                    trackColor={{ true: brand.red }}
+                    onValueChange={async (v) => {
+                      sync.mutate({ [key]: v });
+                      if (v) {
+                        const r = await registerForPush();
+                        if (r === 'denied') toast(t('push_denied'));
+                      }
+                    }}
+                  />
+                }
+              />
+            ))}
+          </Group>
+        )}
 
         <Group title={t('grp_privacy')}>
           {signedIn && (

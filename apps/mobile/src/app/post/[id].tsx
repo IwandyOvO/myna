@@ -1,15 +1,16 @@
-import { categoryName, scaleFor, timeAgo, type ReportReason, type Tier } from '@myna/shared';
+import { categoryName, scaleFor, timeAgo, type Comment, type ReportReason, type Tier } from '@myna/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { mediaUrl } from '../../lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../../components/headers';
-import { Pills, ScoreBlock, TierBadge } from '../../components/post';
+import { CommentThread } from '../../components/comments';
+import { Pills, ScoreBlock } from '../../components/post';
 import { RateSheet } from '../../components/RateSheet';
 import { Button, Card, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T, useToast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
-import { useBlock, useComments, useFavorite, useLike, usePost, useReport } from '../../lib/queries';
+import { useBlock, useComments, useDeleteReply, useFavorite, usePost, useReply, useReport } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
 
 /** §5.2 detail page — also the target of every board row. */
@@ -23,13 +24,34 @@ export default function PostDetail() {
   const post = usePost(id);
   const [filter, setFilter] = useState<Tier | null>(null);
   const comments = useComments(id, filter);
-  const like = useLike();
   const report = useReport();
   const block = useBlock();
   const fav = useFavorite(id);
   const [rateOpen, setRateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean } | null>(null);
+  const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean; isReply: boolean } | null>(null);
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const sendReply = useReply();
+  const deleteReply = useDeleteReply();
+  const commentActions = {
+    onMenu: (c: Comment) => setCommentMenu({ id: c.id, authorId: c.author.id, mine: c.mine, isReply: !!c.parentId }),
+    onReply: (c: Comment) => (signedIn ? setReplyTo({ id: c.id, name: c.author.nickname }) : router.push('/login')),
+  };
+  const submitReply = () => {
+    if (!replyTo || !replyText.trim()) return;
+    sendReply.mutate(
+      { commentId: replyTo.id, body: replyText.trim() },
+      {
+        onSuccess: () => {
+          setReplyText('');
+          setReplyTo(null);
+          toast(t('reply_sent'));
+        },
+        onError: () => toast(t('error_generic')),
+      },
+    );
+  };
 
   if (post.isPending) return <View style={{ flex: 1, backgroundColor: colors.bg }}><PageHeader title="" /><Loading /></View>;
   if (post.isError || !post.data) return <View style={{ flex: 1, backgroundColor: colors.bg }}><PageHeader title="" /><ErrorView onRetry={() => post.refetch()} /></View>;
@@ -88,7 +110,11 @@ export default function PostDetail() {
             >
               <Text style={{ fontSize: 22, color: p.favorited ? '#FFB020' : colors.faint }}>{p.favorited ? '★' : '☆'}</Text>
             </Pressable>
-            <T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>⋯</T>
+            {!mine && (
+              <T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>
+                ⋯
+              </T>
+            )}
           </View>
         }
       />
@@ -144,45 +170,53 @@ export default function PostDetail() {
             <Empty emoji="💬" text={t('no_comments_tier')} />
           ) : (
             comments.data.items.map((c) => (
-              <View key={c.id} style={[s.comment, { borderBottomColor: colors.line }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                  <Text style={{ fontSize: 19 }} onPress={() => router.push(`/user/${c.author.id}`)}>{c.author.avatar}</Text>
-                  <T style={{ fontSize: 13, fontWeight: '800', flexShrink: 1 }} numberOfLines={1} onPress={() => router.push(`/user/${c.author.id}`)}>
-                    {c.mine ? `${c.author.nickname} (${t('my_name')})` : c.author.nickname}
-                  </T>
-                  <TierBadge category={p.category} tier={c.tier} locale={locale} />
-                  <Pressable
-                    onPress={() => setCommentMenu({ id: c.id, authorId: c.author.id, mine: c.mine })}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('report')}
-                    hitSlop={8}
-                    style={{ marginLeft: 'auto', paddingHorizontal: 6, paddingVertical: 4 }}
-                  >
-                    <T style={{ fontSize: 14, color: colors.faint }}>⋯</T>
-                  </Pressable>
-                  <Pressable
-                    style={{ paddingVertical: 4, paddingLeft: 4 }}
-                    accessibilityRole="button"
-                    onPress={() => (signedIn ? like.mutate({ commentId: c.id, like: !c.likedByMe }) : router.push('/login'))}
-                  >
-                    <T style={{ fontSize: 12, color: c.likedByMe ? '#FF5A3C' : colors.faint }}>
-                      {c.likedByMe ? '♥' : '♡'} {c.likeCount}
-                    </T>
-                  </Pressable>
-                </View>
-                {!!c.body && <T style={{ fontSize: 14, lineHeight: 22, marginTop: 7, color: colors.body }}>{c.body}</T>}
-                {c.edited && <T style={{ fontSize: 11, color: colors.faint, marginTop: 4 }}>{t('edited')}</T>}
-              </View>
+              <CommentThread key={c.id} c={c} category={p.category} actions={commentActions} />
             ))
           )}
         </View>
       </ScrollView>
-      <View style={[s.cta, { bottom: 16 + insets.bottom }]}>
-        <Button label={cta} onPress={onCta} disabled={!!mr && mr.editsLeft <= 0} />
-      </View>
+      {replyTo ? (
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.replyWrap}>
+          <View style={[s.replyBar, { backgroundColor: colors.card, borderTopColor: colors.line, paddingBottom: 10 + insets.bottom }]}>
+            <TextInput
+              value={replyText}
+              onChangeText={setReplyText}
+              placeholder={t('reply_to_fmt', { name: replyTo.name })}
+              placeholderTextColor={colors.faint}
+              autoFocus
+              multiline
+              maxLength={500}
+              style={[s.replyInput, { backgroundColor: colors.soft, color: colors.ink }]}
+            />
+            <Pressable onPress={submitReply} disabled={!replyText.trim() || sendReply.isPending} accessibilityRole="button" accessibilityLabel={t('send')} style={[s.send, { opacity: replyText.trim() ? 1 : 0.4 }]}>
+              <Text style={{ color: '#fff', fontWeight: '900' }}>{t('send')}</Text>
+            </Pressable>
+            <Pressable onPress={() => setReplyTo(null)} accessibilityRole="button" accessibilityLabel={t('close')} hitSlop={8}>
+              <T muted style={{ fontSize: 16 }}>✕</T>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={[s.cta, { bottom: 16 + insets.bottom }]}>
+          <Button label={cta} onPress={onCta} disabled={!!mr && mr.editsLeft <= 0} />
+        </View>
+      )}
       <RateSheet post={p} visible={rateOpen} onClose={() => setRateOpen(false)} />
-      <Sheet visible={menuOpen || !!commentMenu} title={t('report_title')} onClose={closeMenus}>
-        {(['spam', 'abuse', 'illegal', 'other'] as const).map((r) => (
+      <Sheet visible={menuOpen || !!commentMenu} title={commentMenu?.mine ? '' : t('report_title')} onClose={closeMenus}>
+        {commentMenu?.mine && commentMenu.isReply && (
+          <Pressable
+            onPress={() => {
+              const id = commentMenu.id;
+              closeMenus();
+              deleteReply.mutate(id, { onSuccess: () => toast(t('delete_ok')) });
+            }}
+            accessibilityRole="button"
+            style={[s.menuRow, { borderBottomColor: colors.line }]}
+          >
+            <T style={{ fontSize: 15, color: '#C92A1A', fontWeight: '700' }}>🗑 {t('draft_delete')}</T>
+          </Pressable>
+        )}
+        {!target.mine && (['spam', 'abuse', 'illegal', 'other'] as const).map((r) => (
           <Pressable key={r} onPress={() => doReport(r)} accessibilityRole="button" style={[s.menuRow, { borderBottomColor: colors.line }]}>
             <T style={{ fontSize: 15 }}>{t(`report_${r}`)}</T>
           </Pressable>
@@ -203,4 +237,8 @@ const s = StyleSheet.create({
   comment: { paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
   cta: { position: 'absolute', left: 16, right: 16 },
   menuRow: { paddingVertical: 15, borderBottomWidth: StyleSheet.hairlineWidth },
+  replyWrap: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+  replyBar: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, paddingHorizontal: 14, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  replyInput: { flex: 1, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9, fontSize: 14, maxHeight: 110 },
+  send: { backgroundColor: '#FF5A3C', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 9 },
 });

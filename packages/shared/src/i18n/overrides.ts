@@ -7,6 +7,7 @@ import type { Locale } from '../locales';
  */
 export const OVERRIDES: Record<Locale, Record<string, string>> = {
   zh: {
+    send: '发送',
     notif_reply_t: '{name} 回复了你',
     notif_like_t: '{name} 赞了你的评论',
     notif_follow_t: '{name} 关注了你',
@@ -100,6 +101,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '已解锁 {x}/{y}',
   },
   en: {
+    send: 'Send',
     notif_reply_t: '{name} replied to you',
     notif_like_t: '{name} liked your comment',
     notif_follow_t: '{name} followed you',
@@ -193,6 +195,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} unlocked',
   },
   es: {
+    send: 'Enviar',
     notif_reply_t: '{name} te respondió',
     notif_like_t: 'A {name} le gustó tu comentario',
     notif_follow_t: '{name} te sigue',
@@ -286,6 +289,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} desbloqueadas',
   },
   fr: {
+    send: 'Envoyer',
     notif_reply_t: '{name} vous a répondu',
     notif_like_t: '{name} a aimé votre commentaire',
     notif_follow_t: '{name} vous suit',
@@ -379,6 +383,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} débloqués',
   },
   ja: {
+    send: '送信',
     notif_reply_t: '{name}さんが返信しました',
     notif_like_t: '{name}さんがあなたのコメントにいいねしました',
     notif_follow_t: '{name}さんがあなたをフォローしました',
@@ -472,6 +477,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} 獲得',
   },
   ko: {
+    send: '보내기',
     notif_reply_t: '{name}님이 답글을 남겼어요',
     notif_like_t: '{name}님이 내 댓글을 좋아해요',
     notif_follow_t: '{name}님이 나를 팔로우해요',
@@ -565,6 +571,7 @@ export const OVERRIDES: Record<Locale, Record<string, string>> = {
     unlocked_fmt: '{x}/{y} 획득',
   },
   it: {
+    send: 'Invia',
     notif_reply_t: '{name} ti ha risposto',
     notif_like_t: 'A {name} piace il tuo commento',
     notif_follow_t: '{name} ha iniziato a seguirti',

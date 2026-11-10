@@ -2,6 +2,7 @@ import type { AuthResponse, Me } from '@myna/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, apiSession } from './api';
+import { registerForPush, unregisterPush } from './push';
 import { secrets } from './storage';
 
 const TOKEN_KEY = 'myna.token';
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [signedIn, setSignedIn] = useState(false);
 
   const signOut = useCallback(async () => {
+    await unregisterPush();
     apiSession.setToken(null);
     await secrets.set(TOKEN_KEY, null);
     setSignedIn(false);
@@ -50,6 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [qc],
   );
+
+  // Register this device for push once signed in (asks for permission the first time).
+  useEffect(() => {
+    if (ready && signedIn) void registerForPush();
+  }, [ready, signedIn]);
 
   const meQuery = useQuery({ queryKey: ['me'], queryFn: () => api<Me>('GET', '/me'), enabled: ready && signedIn });
 

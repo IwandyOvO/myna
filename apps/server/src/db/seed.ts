@@ -141,7 +141,8 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
         dist, dist,
       );
       for (const c of p.comments) {
-        await tx.query('INSERT INTO comments (post_id, user_id, tier_snapshot, body, like_count) VALUES ($1,$2,$3,$4,$5)', [
+        await tx.query(`INSERT INTO comments (post_id, user_id, tier_snapshot, body, like_count, created_at)
+         SELECT $1, $2, $3, $4, $5, p.created_at + random() * (now() - p.created_at) FROM posts p WHERE p.id = $1`, [
           id, await userFor(c.name, c.avatar), c.tier + 1, c.text, c.likes,
         ]);
       }
@@ -167,7 +168,8 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
           const texts = dir === 'best' ? pool.good : pool.bad;
           for (const [j, text] of texts.entries()) {
             const tier = dir === 'best' ? (j === 0 ? 5 : 4) : j === 0 ? 1 : 2;
-            await tx.query('INSERT INTO comments (post_id, user_id, tier_snapshot, body, like_count) VALUES ($1,$2,$3,$4,$5)', [
+            await tx.query(`INSERT INTO comments (post_id, user_id, tier_snapshot, body, like_count, created_at)
+         SELECT $1, $2, $3, $4, $5, p.created_at + random() * (now() - p.created_at) FROM posts p WHERE p.id = $1`, [
               id, poolUsers[(i + j) % poolUsers.length], tier, text, 80 - j * 23 - i,
             ]);
           }

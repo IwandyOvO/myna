@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -10,12 +10,14 @@ import { CrashScreen } from '../components/CrashScreen';
 export { CrashScreen as ErrorBoundary };
 import { ToastProvider } from '../components/ui';
 import { apiSession } from '../lib/api';
+import { onNotificationTap } from '../lib/push';
 import { AuthProvider } from '../lib/auth';
 import { SettingsProvider, useSettings } from '../lib/settings';
 
 function Shell() {
   const { colors, isDark, locale, ready } = useSettings();
   useEffect(() => apiSession.setLocale(locale), [locale]);
+  useEffect(() => (ready ? onNotificationTap((url) => router.push(url as never)) : undefined), [ready]);
   if (!ready) return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>

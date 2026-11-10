@@ -1,5 +1,5 @@
 import type {
-  Draft, DraftPayload, LeaderboardRow, LikeReceived, UserProfile, WeeklyChallenge,
+  Draft, DraftPayload, LeaderboardRow, LikeReceived, Notification, UserProfile, WeeklyChallenge,
   Badge, Board, BoardCategory, BoardDirection, BoardPeriod, Category, Comment, CreatePostInput, Locale,
   Me, Page, PostCard, ReportReason, Tier, UserSummary, Weekly,
 } from '@myna/shared';
@@ -56,7 +56,7 @@ export const useBlocks = () => useMine<{ items: UserSummary[] }>('blocks', '/me/
 /** After any write that changes a post, refresh everything that may show it. */
 function refreshPost(qc: QueryClient, post: PostCard) {
   qc.setQueryData(['post', post.id], post);
-  for (const k of ['feed', 'comments', 'my-ratings', 'my-posts', 'nearby', 'search', 'me', 'weekly', 'badges', 'board', 'challenge', 'leaderboard', 'history']) qc.invalidateQueries({ queryKey: [k] });
+  for (const k of ['feed', 'comments', 'my-ratings', 'my-posts', 'nearby', 'search', 'me', 'weekly', 'badges', 'board', 'challenge', 'leaderboard', 'history', 'notifications', 'unread']) qc.invalidateQueries({ queryKey: [k] });
 }
 
 export function useRate(postId: string) {
@@ -98,7 +98,8 @@ export const useReport = () =>
 export function useUpdateProfileSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (s: { locale?: Locale | null; contentLangs?: Locale[]; visibility?: Me['settings']['visibility'] }) => api<Me>('PUT', '/me/settings', s),
+    mutationFn: (s: { locale?: Locale | null; contentLangs?: Locale[]; visibility?: Me['settings']['visibility']; notifySocial?: boolean; notifyRank?: boolean }) =>
+      api<Me>('PUT', '/me/settings', s),
     onSuccess: (me) => qc.setQueryData(['me'], me),
   });
 }
@@ -154,3 +155,50 @@ export function useFollow(userId: string) {
 
 export const useChallenge = () => useMine<WeeklyChallenge>('challenge', '/me/challenge');
 export const useLeaderboard = () => useQuery({ queryKey: ['leaderboard'], queryFn: () => api<{ items: LeaderboardRow[] }>('GET', '/leaderboard') });
+
+// ---- replies, notifications, seasons --------------------------------------------------------
+export const useReplies = (commentId: string, enabled: boolean) =>
+  useQuery({ queryKey: ['replies', commentId], queryFn: () => api<{ items: Comment[] }>('GET', `/comments/${commentId}/replies`), enabled });
+
+export function useReply() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { commentId: string; body: string }) => api<{ items: Comment[]; threadId: string }>('POST', `/comments/${v.commentId}/replies`, { body: v.body }),
+    onSuccess: (r) => {
+      qc.setQueryData(['replies', r.threadId], { items: r.items });
+      qc.invalidateQueries({ queryKey: ['comments'] });
+    },
+  });
+}
+
+export function useDeleteReply() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api('DELETE', `/comments/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['comments'] });
+      qc.invalidateQueries({ queryKey: ['replies'] });
+    },
+  });
+}
+
+export const useNotifications = () => useMine<{ items: Notification[]; unread: number }>('notifications', '/notifications');
+
+export function useUnread() {
+  const { signedIn } = useAuth();
+  return useQuery({ queryKey: ['unread'], queryFn: () => api<{ unread: number }>('GET', '/notifications/unread'), enabled: signedIn, refetchInterval: 60_000 });
+}
+
+export function useMarkAllRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api('POST', '/notifications/read-all'),
+    onSuccess: () => {
+      qc.setQueryData(['unread'], { unread: 0 });
+      qc.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}
+
+export interface SeasonAwardRow { category: string; rank: number; avg: number; total: number; post_id: string; title: string; emoji: string }
+export const useLastSeason = () => useQuery({ queryKey: ['last-season'], queryFn: () => api<{ season: string; awards: SeasonAwardRow[] }>('GET', '/seasons/last') });

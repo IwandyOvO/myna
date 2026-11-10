@@ -65,6 +65,13 @@
             "backgroundColor": "#16171B"
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF5A3C"
+        }
       ]
     ],
     "experiments": {

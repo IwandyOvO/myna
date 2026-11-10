@@ -38,8 +38,8 @@ function mark({ k = 1, dark = false, shadow = true } = {}) {
 }
 
 /** Single-colour silhouette for Android 13+ themed icons (the system tints it). */
-function monochrome(k) {
-  return `<g transform="translate(512 512) scale(${1.08 * k}) translate(-584 -540)" fill="#000">
+function monochrome(k, fill = '#000') {
+  return `<g transform="translate(512 512) scale(${1.08 * k}) translate(-584 -540)" fill="${fill}">
     <path d="${BODY}" mask="url(#eyeHole)"/><circle cx="659" cy="437" r="21"/>
     <path d="${BEAK_TOP}"/><path d="${BEAK_BOTTOM}"/><circle cx="930" cy="404" r="27"/>
   </g>`;
@@ -55,6 +55,8 @@ const assets = {
   'android-icon-background.png': { svg: svg(BG), size: 1024 },
   'android-icon-foreground.png': { svg: svg(mark({ k: ANDROID_K })), size: 1024, transparent: true },
   'android-icon-monochrome.png': { svg: svg(monochrome(ANDROID_K)), size: 1024, transparent: true },
+  // Android status-bar icon: white silhouette on transparent (the system tints it).
+  'notification-icon.png': { svg: svg(monochrome(0.9, '#fff')), size: 96, transparent: true },
   'splash-icon.png': { svg: svg(mark({ shadow: false })), size: 1024, transparent: true },
   'splash-icon-dark.png': { svg: svg(mark({ dark: true })), size: 1024, transparent: true },
   'favicon.png': { svg: svg(`<clipPath id="r"><rect width="1024" height="1024" rx="230"/></clipPath><g clip-path="url(#r)">${BG}${mark()}</g>`), size: 48, transparent: true },

@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
-import { useUpdateProfileSettings } from '../lib/queries';
+import { useUnread, useUpdateProfileSettings } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
 import { useDrawer } from './Drawer';
@@ -30,6 +30,7 @@ export function HomeTopBar({ query, onQuery }: { query: string; onQuery: (q: str
   const { colors, t, contentLangs, update } = useSettings();
   const { signedIn } = useAuth();
   const sync = useUpdateProfileSettings();
+  const unread = useUnread();
   const { open } = useDrawer();
   const toast = useToast();
   const insets = useSafeAreaInsets();
@@ -63,7 +64,7 @@ export function HomeTopBar({ query, onQuery }: { query: string; onQuery: (q: str
       <RoundButton label={t('content_langs')} onPress={() => setLangOpen(true)} badge={contentLangs.length < LOCALES.length ? contentLangs.length : undefined}>
         <Text style={{ fontSize: 17 }}>🌐</Text>
       </RoundButton>
-      <RoundButton label="🔔" onPress={() => toast(t('notif_empty'))}>
+      <RoundButton label={t('notif_title')} onPress={() => router.push(signedIn ? '/notifications' : '/login')} badge={unread.data?.unread || undefined}>
         <Text style={{ fontSize: 17 }}>🔔</Text>
       </RoundButton>
       <Sheet visible={langOpen} title={t('content_lang_t')} onClose={() => setLangOpen(false)}>

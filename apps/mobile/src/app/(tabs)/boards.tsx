@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { TabHeader } from '../../components/headers';
 import { AvgBadge } from '../../components/post';
-import { Chip, Empty, ErrorView, Loading, Seg, T } from '../../components/ui';
-import { useBoard } from '../../lib/queries';
+import { Chip, Empty, ErrorView, Loading, Seg, Sheet, T } from '../../components/ui';
+import { useBoard, useLastSeason } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
 import { brand } from '../../lib/theme';
 
@@ -18,6 +18,9 @@ export default function Boards() {
   const [cat, setCat] = useState<BoardCategory>('drinks');
   const [dir, setDir] = useState<BoardDirection>('best');
   const q = useBoard(period, cat, dir);
+  const last = useLastSeason();
+  const [lastOpen, setLastOpen] = useState(false);
+  const lastRows = last.data?.awards.filter((a) => a.category === cat) ?? [];
   const b = q.data;
 
   return (
@@ -35,6 +38,11 @@ export default function Boards() {
           {b?.period === 'monthly' ? `${t('month_meta_a')}${b.daysToSettle}${t('month_meta_b')}` : t('all_meta')}
           {b ? ` · ${t('board_min_fmt', { n: b.minRatings })}` : ''}
         </T>
+        {period === 'monthly' && dir === 'best' && lastRows.length > 0 && (
+          <T style={{ fontSize: 12.5, color: brand.red, fontWeight: '700' }} onPress={() => setLastOpen(true)}>
+            🏆 {t('season_last_fmt', { season: last.data!.season })} ›
+          </T>
+        )}
       </View>
       <FlatList
         data={b?.entries ?? []}
@@ -64,6 +72,26 @@ export default function Boards() {
           </Pressable>
         )}
       />
+      <Sheet visible={lastOpen} title={`${BOARD_EMOJI[cat]} ${t('season_last_fmt', { season: last.data?.season ?? '' })}`} onClose={() => setLastOpen(false)}>
+        <View style={{ gap: 6, paddingBottom: 8 }}>
+          {lastRows.map((a) => (
+            <Pressable
+              key={a.post_id}
+              onPress={() => {
+                setLastOpen(false);
+                router.push(`/post/${a.post_id}`);
+              }}
+              accessibilityRole="button"
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 }}
+            >
+              <Text style={[s.rank, { color: a.rank <= 3 ? brand.red : colors.muted }]}>{a.rank <= 3 ? MEDALS[a.rank - 1] : a.rank}</Text>
+              <Text style={{ fontSize: 20 }}>{a.emoji}</Text>
+              <T style={{ flex: 1, fontWeight: '700' }} numberOfLines={1}>{a.title}</T>
+              <AvgBadge post={{ avg: Number(a.avg), total: a.total, locked: false }} />
+            </Pressable>
+          ))}
+        </View>
+      </Sheet>
     </View>
   );
 }
