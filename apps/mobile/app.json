@@ -18,7 +18,7 @@
     "android": {
       "package": "app.myna.android",
       "adaptiveIcon": {
-        "backgroundColor": "#F6F5F2",
+        "backgroundColor": "#F3F0EA",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -51,6 +51,19 @@
         {
           "photosPermission": "Myna lets you add photos to a post. Location data embedded in photos is removed before upload.",
           "cameraPermission": "Myna uses the camera so you can photograph what you are asking about."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#F6F5F2",
+          "dark": {
+            "image": "./assets/splash-icon-dark.png",
+            "backgroundColor": "#16171B"
+          }
         }
       ]
     ],
