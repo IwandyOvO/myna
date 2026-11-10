@@ -19,7 +19,7 @@
 | §13.3 UGC | `POST /reports`, block/unblock | Report sheet + block author on the detail page. Moderation console not built. |
 | App Store 5.1.1(v) | `DELETE /me` | Erases identity and personal data; anonymous votes stay so averages and boards remain correct. |
 
-Verified: 15 shared unit tests, 41 server integration tests on PostgreSQL 16, typecheck of all three packages,
+Verified (phase 1–2): 15 shared unit tests, 41 server integration tests on PostgreSQL 16, typecheck of all three packages,
 and two scripted Playwright walkthroughs of the web build against the real API (browse → filter → blind post locked →
 log in → rate → unlocked → edit → drawer → settings in EN + dark → boards → publish → me; then favourite → profile/follow →
 history → draft autosave/resume → likes → challenge/leaderboard → comment report). Native iOS/Android builds
@@ -39,11 +39,32 @@ have **not** been run in this environment.
 | §13.3 | Comments are reportable too (⋯ on each comment), plus block author | detail page |
 | — | Route error boundary: friendly retry / go-home page instead of a red screen | `components/CrashScreen.tsx` |
 
+## Phase 3: replies, notifications, seasons, production readiness (done)
+
+| Area | What | Where |
+|---|---|---|
+| §4.6 replies | Reply to any comment or reply (threads stay one level deep), first 3 inline + "View all N", delete your own reply | `POST/GET /comments/:id/replies`, `DELETE /comments/:id`, `components/comments.tsx` |
+| Notifications | Reply / like / follow / badge / season entries; never for yourself or from blocked users; likes and follows notify once; 🔔 unread badge + inbox | `services/notify.ts`, `GET /notifications`, `app/notifications.tsx` |
+| Push | Expo push tokens registered after sign-in, removed on sign-out; tap opens the right screen; per-type switches (Activity / Charts & badges); dead tokens pruned | `lib/push.ts`, `POST/DELETE /me/push-tokens`, `ExpoPusher` |
+| §6 seasons | Previous month's best-board Top 20 frozen into `season_awards` (hourly, idempotent), authors notified, "Chart Maker"/"Monthly Champion" badges awarded from it; "Last season" sheet on Rankings | `services/seasons.ts`, `GET /seasons/last` |
+| Badges | Unlock immediately after posting/rating and notify | `unlockBadges()` |
+| Profile | Edit nickname and avatar | `PUT /me/profile`, `app/me/edit.tsx` |
+| Comments | Paged with "Load more comments" | `useComments` (infinite) |
+| Legal & support | Terms / Privacy pages (draft — legal review needed), consent line on login, Send Feedback | `lib/legal.ts`, `POST /feedback` |
+| Resilience | Offline banner, crash fallback page, request timeouts | `OfflineBanner`, `CrashScreen` |
+| Server hardening | Rate limits (300/min, sign-in 10/min, uploads 30/min), helmet headers, 256 KB body limit, CORS origins, trust-proxy, token redaction in logs, `/ready`, graceful shutdown | `app.ts`, `index.ts` |
+| Deploy | Dockerfile (API + shared deps only; production boot verified locally), docker-compose, `eas.json`, `docs/DEPLOY.md` | repo root |
+
+Verified at this point: 15 shared unit tests, 53 server integration tests, typecheck of all packages, and 30 end-to-end steps
+across `e2e/01-core`, `02-community`, `03-replies-notifications` (web build against the real API). Not verified here: a
+Docker image build (no Docker daemon in this environment), push delivery to a real device (needs an EAS project id and a
+physical phone), and native builds.
+
 ## Deferred (spec phase 2/3, or needs credentials)
 
 - §7 system share import (iOS Share Extension / Android `ACTION_SEND`). Link Finder currently offers only the honest manual search; it never guesses.
 - Production object storage + CDN, thumbnails, and image moderation (uploads themselves are done).
-- Comment replies (§4.6), push notifications, season-end badge awards (§6) and the limited challenge's reward badge.
+- The limited challenge's reward badge; a moderation console for `reports`/`feedback`; data export ("Download my data").
 - Real e-mail delivery (`ConsoleMailer` → SES/Postmark), push notifications, Redis, rate limiting, moderation console.
 - Social sign-in needs real client IDs; unconfigured providers show "not set up yet" in the app and 501 on the API.
 

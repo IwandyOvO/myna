@@ -65,4 +65,6 @@ and the §14 operating parameters (`BOARD_MIN_RATINGS`, `TAG_*`).
 
 Mobile: `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_GOOGLE_{IOS,ANDROID,WEB}_CLIENT_ID`, `EXPO_PUBLIC_FACEBOOK_APP_ID`.
 
-See `docs/IMPLEMENTATION.md` for what is done, what is deferred, and the decisions that need product sign-off.
+- `docs/IMPLEMENTATION.md` — what is done, what is deferred, product decisions.
+- `docs/DEPLOY.md` — production deployment (Docker, PostgreSQL, EAS builds) and what accounts you need.
+- `e2e/README.md` — end-to-end walkthrough scripts.
