@@ -25,6 +25,10 @@ export type Visibility = 'everyone' | 'following' | 'only_me';
 export interface UserSettings {
   contentLangs: Locale[];
   visibility: Visibility;
+  /** Push/notify for replies, likes and follows. */
+  notifySocial: boolean;
+  /** Push/notify for badges and chart (season) results. */
+  notifyRank: boolean;
 }
 
 export interface AuthResponse {
@@ -71,8 +75,13 @@ export interface PostCard {
 export interface Comment {
   id: string;
   author: UserSummary;
-  /** null when the post is locked for the viewer (blind) so tiers do not leak. */
+  /** null for replies, and when the post is locked for the viewer (blind) so tiers do not leak. */
   tier: Tier | null;
+  /** Set on replies: the comment this replies to. */
+  parentId: string | null;
+  /** On top-level comments: total replies and the first few (oldest first). */
+  replyCount: number;
+  replies: Comment[];
   body: string;
   likeCount: number;
   likedByMe: boolean;
@@ -197,4 +206,18 @@ export interface LeaderboardRow {
   badges: number;
   reputation: number;
   isMe: boolean;
+}
+
+export interface Notification {
+  id: string;
+  type: 'reply' | 'like' | 'follow' | 'badge' | 'season';
+  actor: UserSummary | null;
+  postId: string | null;
+  postTitle: string | null;
+  /** reply/like: { text }; badge: { badge, icon }; season: { season, board, rank, title } */
+  data: Record<string, string | number>;
+  read: boolean;
+  /** In-app route to open. */
+  url: string;
+  createdAt: string;
 }

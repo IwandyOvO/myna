@@ -14,7 +14,10 @@ import { withTx, type Db } from './db/pool';
 import { HttpError, badRequest, notFound, unauthorized } from './lib/errors';
 import { sniffImage, stripMetadata } from './lib/images';
 import { LocalDiskStorage, UPLOAD_PATH, type Storage } from './lib/storage';
-import { badgeWall, leaderboard, weekly, weeklyChallenge } from './services/badges';
+import { badgeWall, leaderboard, pickLang, unlockBadges, weekly, weeklyChallenge } from './services/badges';
+import * as notifications from './services/notify';
+import { ExpoPusher, NoopPusher, type NotifyInput, type Pusher } from './services/notify';
+import { previousSeason, seasonAwards, settleSeason } from './services/seasons';
 import { getBoard } from './services/boards';
 import * as posts from './services/posts';
 import * as community from './services/social';
@@ -27,6 +30,7 @@ export interface AppDeps {
   mailer?: Mailer;
   social?: SocialVerifier;
   storage?: Storage;
+  pusher?: Pusher;
 }
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -47,6 +51,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const mailer = deps.mailer ?? new ConsoleMailer();
   const social = deps.social ?? createSocialVerifier(config);
   const storage = deps.storage ?? new LocalDiskStorage(config.uploadDir);
+  const pusher = deps.pusher ?? (process.env.NODE_ENV === 'test' ? new NoopPusher() : new ExpoPusher(process.env.EXPO_ACCESS_TOKEN));
   const tagCfg = { tags: config.autoTags, blindHours: config.blindHours };
 
   const app = Fastify({ logger: process.env.NODE_ENV !== 'test' && { level: 'info' } });
@@ -76,6 +81,21 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return id;
   }
   const reqLocale = (req: FastifyRequest): Locale => resolveLocale(req.headers['accept-language']?.split(',')[0]);
+
+  const send = (n: NotifyInput) => notifications.notify(db, pusher, n, (e) => app.log.warn({ err: e }, 'notify failed'));
+
+  /** Unlock newly earned badges after an action and tell the user (never fails the action). */
+  async function checkBadges(userId: string) {
+    try {
+      const { fresh } = await unlockBadges(db, userId, config.boardMinRatings, config.blindHours);
+      if (!fresh.length) return;
+      const loc = (await db.query<{ locale: string | null }>('SELECT locale FROM users WHERE id = $1', [userId])).rows[0]?.locale;
+      const l = isLocale(loc) ? loc : 'en';
+      for (const b of fresh) await send({ userId, type: 'badge', data: { badge: pickLang(b.name, l), icon: b.icon, key: b.key } });
+    } catch (e) {
+      app.log.warn({ err: e }, 'badge check failed');
+    }
+  }
 
   async function issue(provider: AuthProvider, identity: Parameters<typeof users.findOrCreateUser>[2], req: FastifyRequest) {
     const userId = await withTx(db, (tx) => users.findOrCreateUser(tx, provider, identity, reqLocale(req)));
@@ -162,6 +182,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       .parse(req.body);
     for (const u of body.imageUrls ?? []) if (!(await storage.exists(u))) throw badRequest('unknown_image');
     const id = await withTx(db, (tx) => posts.createPost(tx, userId, body));
+    await checkBadges(userId);
     reply.status(201);
     return posts.getPost(db, tagCfg, userId, id);
   });
@@ -201,6 +222,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const { id } = z.object({ id: uuid }).parse(req.params);
     const b = rateBody.parse(req.body);
     await rate(db, userId, id, { tier: b.tier as 1 | 2 | 3 | 4 | 5, reason: b.reason });
+    await checkBadges(userId);
     reply.status(201);
     return posts.getPost(db, tagCfg, userId, id);
   });
@@ -221,7 +243,31 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.put('/comments/:id/like', async (req) => {
     const userId = await requireUser(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
-    return { likeCount: await posts.setCommentLike(db, userId, id, true) };
+    const likeCount = await posts.setCommentLike(db, userId, id, true);
+    const c = (await db.query<{ user_id: string; post_id: string; body: string }>('SELECT user_id, post_id, body FROM comments WHERE id = $1', [id])).rows[0];
+    if (c) await send({ userId: c.user_id, type: 'like', actorId: userId, postId: c.post_id, commentId: id, data: { text: c.body.slice(0, 80) } });
+    return { likeCount };
+  });
+
+  // ---- replies (§4.6) ----------------------------------------------------------------------
+  app.post('/comments/:id/replies', async (req, reply) => {
+    const userId = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const { body } = z.object({ body: z.string().min(1).max(500) }).parse(req.body);
+    const r = await posts.createReply(db, userId, id, body);
+    await send({ userId: r.recipientId, type: 'reply', actorId: userId, postId: r.postId, commentId: r.id, data: { text: r.text.slice(0, 80) } });
+    reply.status(201);
+    return { items: await posts.listReplies(db, userId, r.threadId), threadId: r.threadId };
+  });
+  app.get('/comments/:id/replies', async (req) => {
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    return { items: await posts.listReplies(db, await viewer(req), id) };
+  });
+  app.delete('/comments/:id', async (req, reply) => {
+    const userId = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    await posts.deleteReply(db, userId, id);
+    reply.status(204);
   });
   app.delete('/comments/:id/like', async (req) => {
     const userId = await requireUser(req);
@@ -247,7 +293,13 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.put('/me/settings', async (req) => {
     const userId = await requireUser(req);
     const s = z
-      .object({ locale: locale.nullable().optional(), contentLangs: z.array(locale).optional(), visibility: z.enum(['everyone', 'following', 'only_me']).optional() })
+      .object({
+        locale: locale.nullable().optional(),
+        contentLangs: z.array(locale).optional(),
+        visibility: z.enum(['everyone', 'following', 'only_me']).optional(),
+        notifySocial: z.boolean().optional(),
+        notifyRank: z.boolean().optional(),
+      })
       .parse(req.body);
     await users.updateSettings(db, userId, s);
     return users.getMe(db, userId);
@@ -333,6 +385,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const me = await requireUser(req);
     const { id } = z.object({ id: z.string() }).parse(req.params);
     await community.setFollow(db, me, id, true);
+    await send({ userId: id, type: 'follow', actorId: me });
     return { following: true };
   });
   app.delete('/users/:id/follow', async (req) => {
@@ -340,6 +393,33 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const { id } = z.object({ id: z.string() }).parse(req.params);
     await community.setFollow(db, me, id, false);
     return { following: false };
+  });
+
+  // ---- notifications & push --------------------------------------------------------------
+  app.get('/notifications', async (req) => notifications.listNotifications(db, await requireUser(req)));
+  app.get('/notifications/unread', async (req) => ({ unread: await notifications.unreadCount(db, await requireUser(req)) }));
+  app.post('/notifications/read-all', async (req) => {
+    await notifications.markAllRead(db, await requireUser(req));
+    return { ok: true };
+  });
+  app.post('/me/push-tokens', async (req, reply) => {
+    const me = await requireUser(req);
+    const b = z.object({ token: z.string().min(10).max(200), platform: z.enum(['ios', 'android', 'web', 'unknown']).default('unknown') }).parse(req.body);
+    await notifications.registerPushToken(db, me, b.token, b.platform);
+    reply.status(201);
+    return { ok: true };
+  });
+  app.delete('/me/push-tokens', async (req) => {
+    const me = await requireUser(req);
+    const b = z.object({ token: z.string().min(10).max(200) }).parse(req.body);
+    await notifications.removePushToken(db, me, b.token);
+    return { ok: true };
+  });
+
+  // ---- seasons (§6) ------------------------------------------------------------------------
+  app.get('/seasons/last', async () => {
+    const season = previousSeason();
+    return { season, awards: await seasonAwards(db, season) };
   });
 
   // ---- moderation (App Store 1.2) ------------------------------------------------------
@@ -353,5 +433,24 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return { ok: true };
   });
 
+  /** Settles the previous month if nobody has yet, then notifies the authors (safe to call repeatedly). */
+  app.decorate('runSeasonJob', async (now = new Date()) => {
+    const season = previousSeason(now);
+    const awards = await settleSeason(db, season, config.boardMinRatings, config.blindHours);
+    if (!awards) return null;
+    for (const a of awards) {
+      await send({ userId: a.authorId, type: 'season', postId: a.postId, data: { season, category: a.category, rank: a.rank, title: a.title } });
+    }
+    for (const author of new Set(awards.map((a) => a.authorId))) await checkBadges(author);
+    app.log.info({ season, awards: awards.length }, 'season settled');
+    return awards;
+  });
+
   return app;
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    runSeasonJob: (now?: Date) => Promise<import('./services/seasons').SeasonAward[] | null>;
+  }
 }

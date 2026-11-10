@@ -96,23 +96,31 @@ export async function getMe(db: Queryable, userId: string): Promise<Me> {
     reputation: row.reputation,
     locale: isLocale(row.locale) ? row.locale : null,
     stats: { posts: row.posts, ratings: row.ratings, likes: Number(row.likes) },
-    settings: { contentLangs: (row.content_langs as string[]).filter(isLocale), visibility: row.visibility as Visibility },
+    settings: {
+      contentLangs: (row.content_langs as string[]).filter(isLocale),
+      visibility: row.visibility as Visibility,
+      notifySocial: row.notify_social,
+      notifyRank: row.notify_rank,
+    },
   };
 }
 
 export async function updateSettings(
   db: Queryable,
   userId: string,
-  s: { locale?: Locale | null; contentLangs?: Locale[]; visibility?: Visibility },
+  s: { locale?: Locale | null; contentLangs?: Locale[]; visibility?: Visibility; notifySocial?: boolean; notifyRank?: boolean },
 ): Promise<void> {
   if (s.contentLangs && s.contentLangs.length === 0) throw badRequest('keep_one_lang');
   await db.query(
     `UPDATE users SET
        locale = CASE WHEN $2::boolean THEN $3 ELSE locale END,
        content_langs = coalesce($4, content_langs),
-       visibility = coalesce($5, visibility)
+       visibility = coalesce($5, visibility),
+       notify_social = coalesce($6, notify_social),
+       notify_rank = coalesce($7, notify_rank)
      WHERE id = $1`,
-    [userId, s.locale !== undefined, s.locale ?? null, s.contentLangs ? [...new Set(s.contentLangs)].filter((l) => LOCALES.includes(l)) : null, s.visibility ?? null],
+    [userId, s.locale !== undefined, s.locale ?? null, s.contentLangs ? [...new Set(s.contentLangs)].filter((l) => LOCALES.includes(l)) : null, s.visibility ?? null,
+      s.notifySocial ?? null, s.notifyRank ?? null],
   );
 }
 
@@ -130,7 +138,7 @@ export async function deleteAccount(db: Queryable, userId: string): Promise<void
        avatar_url = NULL, deleted_at = now() WHERE id = $1`,
     [userId],
   );
-  for (const t of ['favorites', 'views', 'drafts', 'blocks', 'user_badges', 'reputation_events']) await db.query(`DELETE FROM ${t} WHERE user_id = $1`, [userId]);
+  for (const t of ['favorites', 'views', 'drafts', 'blocks', 'user_badges', 'reputation_events', 'push_tokens', 'notifications']) await db.query(`DELETE FROM ${t} WHERE user_id = $1`, [userId]);
   await db.query('DELETE FROM follows WHERE follower_id = $1 OR followee_id = $1', [userId]);
 }
 

@@ -32,8 +32,12 @@ export async function computeMetrics(db: Queryable, userId: string, boardMinRati
     cursor.setUTCDate(cursor.getUTCDate() - 1);
   }
 
-  let top20 = 0;
-  let top1 = 0;
+  // Settled seasons (season_awards) plus the live monthly board.
+  const awards = (await db.query<{ top20: number; top1: number }>(
+    `SELECT count(*) AS top20, count(*) FILTER (WHERE rank = 1) AS top1 FROM season_awards WHERE author_id = $1`, [userId],
+  )).rows[0]!;
+  let top20 = Number(awards.top20);
+  let top1 = Number(awards.top1);
   const mine = new Set((await db.query<{ id: string }>('SELECT id FROM posts WHERE author_id = $1', [userId])).rows.map((r) => r.id));
   for (const category of BOARD_CATEGORIES) {
     const b = await getBoard(db, { period: 'monthly', category, direction: 'best', minRatings: boardMinRatings, blindHours });
@@ -67,17 +71,32 @@ export async function computeMetrics(db: Queryable, userId: string, boardMinRati
   };
 }
 
-const pickLang = (m: Record<string, string>, l: Locale) => m[l] ?? m.en ?? m.zh ?? '';
+export const pickLang = (m: Record<string, string>, l: Locale) => m[l] ?? m.en ?? m.zh ?? '';
 
-/** Badge wall for a user; unlocks any badge whose target is now met (idempotent). */
-export async function badgeWall(db: Queryable, userId: string, locale: Locale, boardMinRatings: number, blindHours: number): Promise<Badge[]> {
+export interface UnlockedBadge {
+  key: string;
+  icon: string;
+  name: Record<string, string>;
+}
+
+/** Unlocks every badge whose target is now met; returns only the newly unlocked ones (idempotent). */
+export async function unlockBadges(db: Queryable, userId: string, boardMinRatings: number, blindHours: number): Promise<{ fresh: UnlockedBadge[]; metrics: Record<Metric, number> }> {
   const metrics = await computeMetrics(db, userId, boardMinRatings, blindHours);
   const defs = (await db.query('SELECT * FROM badges ORDER BY sort, id')).rows;
+  const fresh: UnlockedBadge[] = [];
   for (const b of defs) {
     if ((metrics[b.rule.metric as Metric] ?? 0) >= b.rule.target) {
-      await db.query('INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [userId, b.id]);
+      const r = await db.query('INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [userId, b.id]);
+      if (r.rowCount) fresh.push({ key: b.key, icon: b.icon, name: b.name_i18n });
     }
   }
+  return { fresh, metrics };
+}
+
+/** Badge wall for a user (also unlocks anything newly earned). */
+export async function badgeWall(db: Queryable, userId: string, locale: Locale, boardMinRatings: number, blindHours: number): Promise<Badge[]> {
+  const { metrics } = await unlockBadges(db, userId, boardMinRatings, blindHours);
+  const defs = (await db.query('SELECT * FROM badges ORDER BY sort, id')).rows;
   const unlocked = new Map(
     (await db.query<{ badge_id: number; unlocked_at: Date }>('SELECT badge_id, unlocked_at FROM user_badges WHERE user_id = $1', [userId])).rows.map((r) => [
       r.badge_id,

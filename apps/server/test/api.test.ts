@@ -13,6 +13,7 @@ import { seed, synthDistribution } from '../src/db/seed';
 import { HttpError } from '../src/lib/errors';
 import { clearBoardCache } from '../src/services/boards';
 import { LocalDiskStorage } from '../src/lib/storage';
+import type { PushMessage } from '../src/services/notify';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -21,6 +22,9 @@ const url = process.env.TEST_DATABASE_URL ?? 'postgres://myna:myna@localhost:543
 let db: Db;
 let app: FastifyInstance;
 let demoToken: string;
+const pushed: PushMessage[] = [];
+const deadTokens = new Set<string>();
+const pusher = { send: async (m: PushMessage[]) => { pushed.push(...m); return m.map((x) => x.to).filter((t) => deadTokens.has(t)); } };
 
 const social: SocialVerifier = {
   google: async (t) => {
@@ -58,7 +62,7 @@ beforeAll(async () => {
   db = createPool(url);
   await seed(db);
   const config = { ...loadConfig({ NODE_ENV: 'test', ALLOW_DEV_LOGIN: '1', DEV_EXPOSE_EMAIL_CODES: '1' } as NodeJS.ProcessEnv), databaseUrl: url };
-  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} }, storage: new LocalDiskStorage(mkdtempSync(join(tmpdir(), 'myna-uploads-'))) });
+  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} }, storage: new LocalDiskStorage(mkdtempSync(join(tmpdir(), 'myna-uploads-'))), pusher });
   await app.ready();
   demoToken = (await call('POST', '/auth/dev', { body: { handle: 'foodjudge_007' } })).body.token;
 });
@@ -275,7 +279,7 @@ describe('me, badges, settings, moderation', () => {
   it('settings: content languages must keep at least one', async () => {
     const t = await newUserToken('settings@example.com');
     const ok = await call('PUT', '/me/settings', { token: t, body: { contentLangs: ['en', 'es'], visibility: 'only_me', locale: 'fr' } });
-    expect(ok.body.settings).toEqual({ contentLangs: ['en', 'es'], visibility: 'only_me' });
+    expect(ok.body.settings).toEqual({ contentLangs: ['en', 'es'], visibility: 'only_me', notifySocial: true, notifyRank: true });
     expect(ok.body.locale).toBe('fr');
     expect((await call('PUT', '/me/settings', { token: t, body: { contentLangs: [] } })).status).toBe(400);
   });
@@ -557,5 +561,134 @@ describe('rating visibility, comment reports, challenge, leaderboard', () => {
     expect(lb[0]).toMatchObject({ rank: 1, badges: 3, isMe: true });
     expect(lb[0].user.handle).toBe('foodjudge_007');
     for (let i = 1; i < lb.length; i++) expect(lb[i].badges).toBeLessThanOrEqual(lb[i - 1].badges);
+  });
+});
+
+describe('replies (§4.6)', () => {
+  it('reply threads: create, preview under the comment, full list, reply-to-reply joins the thread, delete own', async () => {
+    const a = await newUserToken('thread-a@example.com');
+    const b = await newUserToken('thread-b@example.com');
+    const p = await postByTitle('食堂新出的黄焖鸡', a);
+    await call('POST', `/posts/${p.id}/ratings`, { token: a, body: { tier: 4, reason: '下饭' } });
+    const top = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: a })).body.items.find((c) => c.mine)!;
+    expect(top).toMatchObject({ replyCount: 0, replies: [], parentId: null });
+
+    const r1 = await call('POST', `/comments/${top.id}/replies`, { token: b, body: { body: '同意！' } });
+    expect(r1.status).toBe(201);
+    const replyId = r1.body.items[0].id;
+    await call('POST', `/comments/${replyId}/replies`, { token: a, body: { body: '谢谢' } }); // reply to a reply
+    for (const n of [1, 2, 3]) await call('POST', `/comments/${top.id}/replies`, { token: b, body: { body: `第${n}条` } });
+
+    const again = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: a })).body.items.find((c) => c.id === top.id)!;
+    expect(again.replyCount).toBe(5);
+    expect(again.replies.map((r) => r.body)).toEqual(['同意！', '谢谢', '第1条']); // first 3, oldest first
+    expect(again.replies.every((r) => r.tier === null && r.parentId === top.id)).toBe(true);
+    const all = (await call<{ items: Comment[] }>('GET', `/comments/${top.id}/replies`)).body.items;
+    expect(all).toHaveLength(5);
+
+    expect((await call('DELETE', `/comments/${replyId}`, { token: a })).status).toBe(404); // not mine
+    expect((await call('DELETE', `/comments/${top.id}`, { token: a })).status).toBe(404); // rating comments can't be deleted this way
+    expect((await call('DELETE', `/comments/${replyId}`, { token: b })).status).toBe(204);
+    expect((await call<{ items: Comment[] }>('GET', `/comments/${top.id}/replies`)).body.items).toHaveLength(4);
+    expect((await call('POST', `/comments/${top.id}/replies`, { token: b, body: { body: '   ' } })).status).toBe(400);
+    expect((await call('POST', `/comments/${top.id}/replies`, { body: { body: 'anon' } })).status).toBe(401);
+  });
+
+  it('tier filter still applies to top-level comments only', async () => {
+    const p = await postByTitle('螺蛳粉味薯片');
+    const t1 = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments?tier=1`)).body.items;
+    expect(t1.every((c) => c.tier === 1 && c.parentId === null)).toBe(true);
+  });
+});
+
+describe('notifications & push', () => {
+  it('reply, like and follow notify the recipient (in-app + push), once, in their language', async () => {
+    const author = await newUserToken('notif-author@example.com');
+    const fan = await newUserToken('notif-fan@example.com');
+    await call('PUT', '/me/settings', { token: author, body: { locale: 'zh' } });
+    await call('POST', '/me/push-tokens', { token: author, body: { token: 'ExponentPushToken[author-device]', platform: 'ios' } });
+    const authorId = (await call('GET', '/me', { token: author })).body.id;
+    const p = await postByTitle('0糖乌龙茶气泡水', author);
+    await call('POST', `/posts/${p.id}/ratings`, { token: author, body: { tier: 5, reason: '冰箱常备' } });
+    const c = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: author })).body.items.find((x) => x.mine)!;
+    pushed.length = 0;
+
+    await call('POST', `/comments/${c.id}/replies`, { token: fan, body: { body: '我也是' } });
+    await call('PUT', `/comments/${c.id}/like`, { token: fan });
+    await call('DELETE', `/comments/${c.id}/like`, { token: fan });
+    await call('PUT', `/comments/${c.id}/like`, { token: fan }); // toggling doesn't notify twice
+    await call('PUT', `/users/${authorId}/follow`, { token: fan });
+
+    const box = (await call('GET', '/notifications', { token: author })).body;
+    expect(box.items.map((n: { type: string }) => n.type)).toEqual(['follow', 'like', 'reply']);
+    expect(box.unread).toBe(3);
+    expect(box.items[2]).toMatchObject({ postId: p.id, url: `/post/${p.id}`, data: { text: '我也是' } });
+    expect(box.items[0].url).toMatch(/^\/user\//);
+    expect(pushed.map((m) => m.title)).toEqual(['notif-fan 回复了你', 'notif-fan 赞了你的评论', 'notif-fan 关注了你']);
+    expect(pushed.every((m) => m.to === 'ExponentPushToken[author-device]')).toBe(true);
+
+    await call('POST', '/notifications/read-all', { token: author });
+    expect((await call('GET', '/notifications/unread', { token: author })).body.unread).toBe(0);
+  });
+
+  it('no notifications for your own actions or from people you blocked; preferences stop pushes', async () => {
+    const me = await newUserToken('notif-self@example.com');
+    const troll = await newUserToken('notif-troll@example.com');
+    const trollId = (await call('GET', '/me', { token: troll })).body.id;
+    await call('POST', '/me/push-tokens', { token: me, body: { token: 'ExponentPushToken[self-device]' } });
+    const p = await postByTitle('食堂新出的黄焖鸡', me);
+    await call('POST', `/posts/${p.id}/ratings`, { token: me, body: { tier: 3, reason: 'ok' } });
+    const c = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: me })).body.items.find((x) => x.mine)!;
+    await call('POST', `/comments/${c.id}/replies`, { token: me, body: { body: 'self reply' } });
+    await call('PUT', `/me/blocks/${trollId}`, { token: me });
+    await call('POST', `/comments/${c.id}/replies`, { token: troll, body: { body: 'spam' } });
+    expect((await call('GET', '/notifications', { token: me })).body.items.filter((n: { type: string }) => n.type !== 'badge')).toHaveLength(0);
+
+    await call('DELETE', `/me/blocks/${trollId}`, { token: me });
+    await call('PUT', '/me/settings', { token: me, body: { notifySocial: false } });
+    pushed.length = 0;
+    await call('POST', `/comments/${c.id}/replies`, { token: troll, body: { body: 'hi' } });
+    expect((await call('GET', '/notifications', { token: me })).body.items.some((n: { type: string }) => n.type === 'reply')).toBe(true); // still in the inbox
+    expect(pushed).toHaveLength(0); // but not pushed
+    expect((await call('GET', '/me', { token: me })).body.settings).toMatchObject({ notifySocial: false, notifyRank: true });
+  });
+
+  it('earning a badge notifies; dead push tokens are removed', async () => {
+    const t = await newUserToken('notif-badge@example.com');
+    await call('POST', '/me/push-tokens', { token: t, body: { token: 'ExponentPushToken[dead-device]' } });
+    deadTokens.add('ExponentPushToken[dead-device]');
+    await call('POST', '/posts', { token: t, body: { category: 'drinks', title: 'First post!', lang: 'en' } });
+    const box = (await call('GET', '/notifications', { token: t })).body.items;
+    expect(box[0]).toMatchObject({ type: 'badge', url: '/achievements', data: { key: 'first_steps' } });
+    const left = await db.query("SELECT 1 FROM push_tokens WHERE token = 'ExponentPushToken[dead-device]'");
+    expect(left.rowCount).toBe(0);
+  });
+});
+
+describe('season settlement (§6)', () => {
+  it('freezes last month\'s Top 20, notifies authors, unlocks chart badges, and runs only once', async () => {
+    const author = await newUserToken('season-author@example.com');
+    const created = await call<PostCard>('POST', '/posts', { token: author, body: { category: 'food', title: 'Season champion noodles', lang: 'en' } });
+    // Last month: this post had a perfect score with plenty of ratings.
+    const last = await db.query(`SELECT to_char((date_trunc('month', now() AT TIME ZONE 'UTC') - interval '1 day'), 'YYYY-MM') AS s`);
+    const season = last.rows[0].s as string;
+    await db.query("DELETE FROM season_settlements WHERE season = $1", [season]); // the server may have settled an empty month at startup
+    await db.query('INSERT INTO post_season_stats (post_id, season, c5) VALUES ($1, $2, 500)', [created.body.id, season]);
+
+    const awards = await app.runSeasonJob();
+    expect(awards).not.toBeNull();
+    const mine = awards!.find((a) => a.postId === created.body.id)!;
+    expect(mine).toMatchObject({ category: 'food', rank: 1 });
+    expect(await app.runSeasonJob()).toBeNull(); // idempotent
+
+    const box = (await call('GET', '/notifications', { token: author })).body.items;
+    const seasonNote = box.find((n: { type: string }) => n.type === 'season');
+    expect(seasonNote).toMatchObject({ postId: created.body.id, data: { season, category: 'food', rank: 1 } });
+    const badges = (await call('GET', '/me/badges', { token: author })).body.items;
+    expect(badges.find((b: { key: string }) => b.key === 'chart_maker').unlockedAt).not.toBeNull();
+    expect(badges.find((b: { key: string }) => b.key === 'monthly_champion').unlockedAt).not.toBeNull();
+    const pub = (await call('GET', '/seasons/last')).body;
+    expect(pub.season).toBe(season);
+    expect(pub.awards.find((a: { post_id: string }) => a.post_id === created.body.id).rank).toBe(1);
   });
 });

@@ -143,9 +143,38 @@ export async function createPost(db: Queryable, authorId: string, input: CreateP
   return id;
 }
 
-export async function listComments(
-  db: Queryable, viewer: string | null, postId: string, tier: Tier | undefined, cursor: string | undefined, blindHours: number,
-): Promise<Page<Comment>> {
+const REPLY_PREVIEW = 3;
+const MAX_REPLY = 500;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toComment(c: any, locked: boolean, replies: Comment[] = []): Comment {
+  return {
+    id: c.id,
+    author: c.author,
+    tier: locked || c.parent_id ? null : c.tier_snapshot,
+    parentId: c.parent_id ?? null,
+    replyCount: Number(c.reply_count ?? 0),
+    replies,
+    body: c.body,
+    likeCount: c.like_count,
+    likedByMe: c.liked,
+    edited: c.edited,
+    mine: c.mine,
+    createdAt: c.created_at.toISOString(),
+  };
+}
+
+/** Columns + visibility rules shared by comment and reply queries. $1 = viewer. */
+const COMMENT_COLS = `c.id, c.parent_id, c.tier_snapshot, c.body, c.like_count, c.edited, c.created_at, ${userSummarySql('u')} AS author,
+  (c.user_id = $1::uuid) AS mine,
+  EXISTS (SELECT 1 FROM comment_likes l WHERE l.comment_id = c.id AND l.user_id = $1::uuid) AS liked`;
+const COMMENT_VISIBLE = `c.status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = c.user_id)`;
+/** Visible replies (blocked authors hidden); `c` here is the parent. */
+const REPLY_COUNT = `(SELECT count(*) FROM comments r WHERE r.parent_id = c.id AND r.status = 'active'
+  AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = r.user_id))`;
+
+async function postLock(db: Queryable, viewer: string | null, postId: string, blindHours: number): Promise<boolean> {
   const post = (
     await db.query<{ blind: boolean; rated: boolean }>(
       `SELECT (p.blind AND p.created_at > now() - $3 * interval '1 hour') AS blind,
@@ -155,16 +184,19 @@ export async function listComments(
     )
   ).rows[0];
   if (!post) throw notFound('post_not_found');
-  const locked = post.blind && !post.rated;
+  return post.blind && !post.rated;
+}
+
+export async function listComments(
+  db: Queryable, viewer: string | null, postId: string, tier: Tier | undefined, cursor: string | undefined, blindHours: number,
+): Promise<Page<Comment>> {
+  const locked = await postLock(db, viewer, postId, blindHours);
   const offset = cursor ? Number.parseInt(cursor, 10) || 0 : 0;
   const rows = (
     await db.query(
-      `SELECT c.id, c.tier_snapshot, c.body, c.like_count, c.edited, c.created_at, ${userSummarySql('u')} AS author,
-              (c.user_id = $1::uuid) AS mine,
-              EXISTS (SELECT 1 FROM comment_likes l WHERE l.comment_id = c.id AND l.user_id = $1::uuid) AS liked
+      `SELECT ${COMMENT_COLS}, ${REPLY_COUNT} AS reply_count
        FROM comments c JOIN users u ON u.id = c.user_id
-       WHERE c.post_id = $2 AND c.status = 'active' AND ($3::int IS NULL OR c.tier_snapshot = $3)
-         AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = c.user_id)
+       WHERE c.post_id = $2 AND c.parent_id IS NULL AND ${COMMENT_VISIBLE} AND ($3::int IS NULL OR c.tier_snapshot = $3)
          -- §5.8 "who can see my ratings": everyone / people the author follows / only the author.
          -- Hidden ratings still count in the averages; only the comment is withheld.
          AND (c.user_id = $1::uuid OR u.visibility = 'everyone'
@@ -174,21 +206,62 @@ export async function listComments(
       // Tier filtering would reveal tiers on a locked blind post, so it is ignored there.
       [viewer, postId, locked ? null : (tier ?? null), offset],
     )
-  ).rows;
+  ).rows.slice(0, PAGE + 1);
+  const page = rows.slice(0, PAGE);
+  // First few replies of every comment on this page, oldest first.
+  const replyRows = page.length
+    ? (
+        await db.query(
+          `SELECT * FROM (
+             SELECT ${COMMENT_COLS}, row_number() OVER (PARTITION BY c.parent_id ORDER BY c.created_at) AS rn
+             FROM comments c JOIN users u ON u.id = c.user_id
+             WHERE c.parent_id = ANY($2::uuid[]) AND ${COMMENT_VISIBLE}) x
+           WHERE rn <= ${REPLY_PREVIEW} ORDER BY created_at`,
+          [viewer, page.map((c) => c.id)],
+        )
+      ).rows
+    : [];
   return {
-    items: rows.slice(0, PAGE).map((c) => ({
-      id: c.id,
-      author: c.author,
-      tier: locked ? null : c.tier_snapshot,
-      body: c.body,
-      likeCount: c.like_count,
-      likedByMe: c.liked,
-      edited: c.edited,
-      mine: c.mine,
-      createdAt: c.created_at.toISOString(),
-    })),
+    items: page.map((c) => toComment(c, locked, replyRows.filter((r) => r.parent_id === c.id).map((r) => toComment(r, locked)))),
     nextCursor: rows.length > PAGE ? String(offset + PAGE) : null,
   };
+}
+
+export async function listReplies(db: Queryable, viewer: string | null, commentId: string): Promise<Comment[]> {
+  const rows = (
+    await db.query(
+      `SELECT ${COMMENT_COLS} FROM comments c JOIN users u ON u.id = c.user_id
+       WHERE c.parent_id = $2 AND ${COMMENT_VISIBLE} ORDER BY c.created_at LIMIT 500`,
+      [viewer, commentId],
+    )
+  ).rows;
+  return rows.map((r) => toComment(r, false));
+}
+
+/** §4.6 reply to a top-level comment (replies to replies attach to the same thread). */
+export async function createReply(db: Queryable, userId: string, commentId: string, body: string) {
+  const text = body.trim().slice(0, MAX_REPLY);
+  if (!text) throw badRequest('empty_reply');
+  const target = (
+    await db.query<{ id: string; parent_id: string | null; post_id: string; user_id: string }>(
+      `SELECT c.id, c.parent_id, c.post_id, c.user_id FROM comments c JOIN posts p ON p.id = c.post_id AND p.status = 'active'
+       WHERE c.id = $1 AND c.status = 'active'`,
+      [commentId],
+    )
+  ).rows[0];
+  if (!target) throw notFound('comment_not_found');
+  const threadId = target.parent_id ?? target.id;
+  const r = await db.query<{ id: string }>(
+    'INSERT INTO comments (post_id, user_id, parent_id, body) VALUES ($1, $2, $3, $4) RETURNING id',
+    [target.post_id, userId, threadId, text],
+  );
+  return { id: r.rows[0]!.id, postId: target.post_id, threadId, recipientId: target.user_id, text };
+}
+
+/** Authors can delete their own replies. Rating comments are changed through the rating itself. */
+export async function deleteReply(db: Queryable, userId: string, commentId: string): Promise<void> {
+  const r = await db.query("UPDATE comments SET status = 'removed' WHERE id = $1 AND user_id = $2 AND parent_id IS NOT NULL AND status = 'active'", [commentId, userId]);
+  if (!r.rowCount) throw notFound('reply_not_found');
 }
 
 export async function setCommentLike(db: Queryable, userId: string, commentId: string, liked: boolean): Promise<number> {
