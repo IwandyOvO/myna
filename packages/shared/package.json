@@ -1,0 +1,12 @@
+{
+  "name": "@myna/shared",
+  "version": "0.8.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}

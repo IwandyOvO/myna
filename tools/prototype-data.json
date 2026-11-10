@@ -1,0 +1,3756 @@
+{
+ "STR": {
+  "zh": {
+   "nav_home": "首页",
+   "nav_rank": "榜单",
+   "nav_me": "我的",
+   "search_ph": "搜搜好不好吃、值不值得去…",
+   "feed_end": "— 到底啦，点底部 + 发一条你想问的 —",
+   "rank_title": "🏆 榜单",
+   "month": "月榜",
+   "alltime": "总榜",
+   "best20": "🌟 最佳 Top 20",
+   "worst20": "📉 踩雷 Top 20",
+   "month_meta_a": "📅 本月榜单 · ",
+   "month_meta_b": " 天后结算 · 结算后 Top 20 发放赛季徽章",
+   "all_meta": "📚 总榜 · 历史累计数据，不随月份清零",
+   "reviews_unit": " 条评价",
+   "history_suffix": " · 历史累计",
+   "pub_head": "发布提问",
+   "type_product": "📦 产品",
+   "type_event": "📅 事件",
+   "scale_hint_p": "将使用产品量表：屎 → 顶级",
+   "scale_hint_e": "将使用事件量表：别去 → 必冲",
+   "pub_cat": "类别",
+   "pub_title_l": "标题 *",
+   "pub_desc_l": "描述",
+   "pub_cover_l": "封面图（可选）",
+   "upload_label": "📷 点击上传图片，或在下方选个 emoji 当封面",
+   "uploaded_label": "✅ 已选择封面图（发布后展示）",
+   "blind": "🔒 盲评模式",
+   "blind_sub": "24 小时内隐藏实时评分，防从众",
+   "loc_add": "添加所在位置",
+   "loc_none": "不显示位置",
+   "publish": "发布",
+   "title_ph": "比如：新出的 XX 味汽水，好喝吗？",
+   "desc_ph": "补充一点背景：在哪看到的、多少钱、纠结在哪…",
+   "need_title": "先写个标题吧",
+   "published": "发布成功",
+   "default_desc": "刚发现的，大家觉得怎么样？来听听大家怎么说！",
+   "just_now": "刚刚",
+   "rep": "信誉分",
+   "rep_note": "评价越接近最终共识，信誉越高",
+   "stat_posts": "发布",
+   "stat_rates": "评价",
+   "stat_likes": "获赞",
+   "ach_title": "我的成就",
+   "ach_note": "🏆 每月上新赛季限定徽章，错过等一年",
+   "me_posts": "我的发布",
+   "me_rates": "我的评价",
+   "post_avg": "帖子均分",
+   "settings": "设置",
+   "grp_general": "通用",
+   "grp_account": "账户",
+   "grp_data": "数据与隐私",
+   "grp_about": "关于",
+   "app_lang": "App 语言",
+   "app_lang_sub": "默认跟随系统语言，也可手动指定",
+   "follow_system": "跟随系统",
+   "content_lang_t": "只看我看得懂的内容",
+   "content_lang_sub": "多选 — 信息流只显示所选语言的帖子",
+   "appearance": "外观",
+   "light": "浅色",
+   "dark": "深色",
+   "push": "推送通知",
+   "push_reply": "有人回复我的评价",
+   "push_rank": "我的内容上榜时提醒",
+   "login_t": "登录 / 注册",
+   "login_sub": "登录后同步评价历史、成就与信誉分",
+   "login_email": "邮箱登录",
+   "login_google": "Google 登录",
+   "login_facebook": "Facebook 登录",
+   "login_apple": "Apple 登录",
+   "toast_login": "原型演示：登录功能开发中",
+   "clear_cache": "清除缓存",
+   "cache_cleared": "缓存已清除",
+   "download_data": "下载我的数据",
+   "download_ok": "数据已导出（JSON）",
+   "delete_account": "删除账户",
+   "delete_title": "确定要删除账户吗？",
+   "delete_body": "删除后评价历史、成就与信誉分将无法恢复。此操作不可撤销。",
+   "cancel": "取消",
+   "confirm_delete": "确认删除",
+   "toast_demo": "原型演示",
+   "terms": "用户协议",
+   "privacy": "隐私政策",
+   "feedback": "意见反馈",
+   "version": "版本",
+   "toast_about": "原型演示：该页面开发中",
+   "toast_notif": "原型演示：暂无新消息",
+   "keep_one_lang": "至少保留一种内容语言",
+   "rate_title": "你给几分？",
+   "edit_rate_title": "修改评价",
+   "rate_ph": "说说为什么给这个分…（可选）",
+   "submit_rate": "提交评价",
+   "save_changes": "保存修改",
+   "rate_ok": "评价成功，信誉 +2",
+   "edited": "已编辑",
+   "cta_rate": "我也要评价",
+   "cta_max": "已达修改上限（3 次）",
+   "cta_edit_fmt": "修改评价（还可改 {x} 次）",
+   "edit_ok_fmt": "修改成功（剩余 {x} 次）",
+   "comments_title": "大家怎么说",
+   "filter_all": "全部",
+   "no_score": "暂无评分",
+   "first_rate": "快来抢首评，你的评价将决定它的初始口碑",
+   "first_rate_card": "快来抢首评",
+   "locked_badge": "🔒 评价后可见",
+   "locked_title": "🔒 评价后可见 — 先评一次，解锁大家的真实均分",
+   "blind_ing": "共 {n} 条评价 · 盲评进行中",
+   "reviews_count": "共 {n} 条评价",
+   "verdict_good": "口碑优秀",
+   "verdict_mid": "褒贬不一",
+   "verdict_bad": "谨慎尝试",
+   "blind_tag": "🔒 盲评中",
+   "potential_tag": "🌱 潜力新品",
+   "warn_tag": "⚠️ 踩雷预警",
+   "type_product_tag": "产品",
+   "type_event_tag": "事件",
+   "no_comments_tier": "这个档位下还没有评论",
+   "synth_desc_best": "{cat}类最佳榜上榜项目",
+   "synth_desc_worst": "{cat}类踩雷榜上榜项目",
+   "badge_unlocked": "已解锁 · ",
+   "badge_locked": "未解锁",
+   "badge_progress": "当前进度",
+   "badge_cond_s": "解锁条件",
+   "empty_search": "没有找到相关帖子，换个关键词试试",
+   "empty_lang": "该语言下暂无内容，换个语言看看",
+   "my_name": "我",
+   "nav_settings": "设置",
+   "ach_entry": "成就",
+   "my_badges": "我的徽章",
+   "all_badges": "全部",
+   "nav_discover": "附近",
+   "nav_scan": "链接识品",
+   "my_likes_t": "收到的赞",
+   "liked_comment": "赞了你的评论",
+   "liked_post": "赞了你的帖子",
+   "loc_locating": "定位中…",
+   "loc_failed": "定位失败，请手动选择城市",
+   "loc_relocate": "重新定位",
+   "loc_manual": "手动选择城市",
+   "loc_clear": "清除位置",
+   "app_name": "应用名称",
+   "slogan": "Myna · 听听大家怎么说"
+  },
+  "en": {
+   "nav_home": "Home",
+   "nav_rank": "Rankings",
+   "nav_me": "Me",
+   "search_ph": "Search: tasty? worth it?…",
+   "feed_end": "— That's all — tap + to ask something —",
+   "rank_title": "🏆 Rankings",
+   "month": "Monthly",
+   "alltime": "All-time",
+   "best20": "🌟 Best Top 20",
+   "worst20": "📉 Worst Top 20",
+   "month_meta_a": "📅 Monthly chart · settles in ",
+   "month_meta_b": " days · Top 20 earn season badges",
+   "all_meta": "📚 All-time chart · lifetime totals, never reset",
+   "reviews_unit": " ratings",
+   "history_suffix": " · all-time",
+   "pub_head": "Ask a Question",
+   "type_product": "📦 Product",
+   "type_event": "📅 Event",
+   "scale_hint_p": "Uses the product scale: Terrible → Top tier",
+   "scale_hint_e": "Uses the event scale: Skip it → Must go",
+   "pub_cat": "Category",
+   "pub_title_l": "Title *",
+   "pub_desc_l": "Description",
+   "pub_cover_l": "Cover image (optional)",
+   "upload_label": "📷 Tap to upload, or pick an emoji below",
+   "uploaded_label": "✅ Cover image selected",
+   "blind": "🔒 Blind rating",
+   "blind_sub": "Scores hidden for 24h to avoid herd votes",
+   "loc_add": "Add location",
+   "loc_none": "Don't show location",
+   "publish": "Post",
+   "title_ph": "e.g. Is the new XX soda any good?",
+   "desc_ph": "Add context: where you saw it, price, your dilemma…",
+   "need_title": "Add a title first",
+   "published": "Posted!",
+   "default_desc": "Just spotted this — what does everyone think?",
+   "just_now": "just now",
+   "rep": "Reputation",
+   "rep_note": "Ratings closer to the final consensus earn more reputation",
+   "stat_posts": "Posts",
+   "stat_rates": "Ratings",
+   "stat_likes": "Likes",
+   "ach_title": "My Achievements",
+   "ach_note": "🏆 New season badges drop monthly — miss them and wait a year",
+   "me_posts": "My Posts",
+   "me_rates": "My Ratings",
+   "post_avg": "Post average",
+   "settings": "Settings",
+   "grp_general": "General",
+   "grp_account": "Account",
+   "grp_data": "Data & Privacy",
+   "grp_about": "About",
+   "app_lang": "App Language",
+   "app_lang_sub": "Follows your system language by default",
+   "follow_system": "Follow system",
+   "content_lang_t": "Only languages I read",
+   "content_lang_sub": "Multi-select — your feed shows posts in these languages only",
+   "appearance": "Appearance",
+   "light": "Light",
+   "dark": "Dark",
+   "push": "Push notifications",
+   "push_reply": "Replies to my ratings",
+   "push_rank": "When my posts hit the charts",
+   "login_t": "Log in / Sign up",
+   "login_sub": "Sync your ratings, badges and reputation",
+   "login_email": "Continue with Email",
+   "login_google": "Continue with Google",
+   "login_facebook": "Continue with Facebook",
+   "login_apple": "Continue with Apple",
+   "toast_login": "Prototype: sign-in coming soon",
+   "clear_cache": "Clear cache",
+   "cache_cleared": "Cache cleared",
+   "download_data": "Download my data",
+   "download_ok": "Data exported (JSON)",
+   "delete_account": "Delete account",
+   "delete_title": "Delete your account?",
+   "delete_body": "Your ratings, badges and reputation will be permanently deleted. This can't be undone.",
+   "cancel": "Cancel",
+   "confirm_delete": "Delete",
+   "toast_demo": "Prototype demo",
+   "terms": "Terms of Service",
+   "privacy": "Privacy Policy",
+   "feedback": "Send Feedback",
+   "version": "Version",
+   "toast_about": "Prototype: page coming soon",
+   "toast_notif": "Prototype: no new messages",
+   "keep_one_lang": "Keep at least one content language",
+   "rate_title": "Your rating?",
+   "edit_rate_title": "Edit rating",
+   "rate_ph": "Why this score? (optional)",
+   "submit_rate": "Submit rating",
+   "save_changes": "Save changes",
+   "rate_ok": "Rated! Reputation +2",
+   "edited": "Edited",
+   "cta_rate": "Rate it too",
+   "cta_max": "Edit limit reached (3)",
+   "cta_edit_fmt": "Edit rating · {x} left",
+   "edit_ok_fmt": "Updated · {x} edits left",
+   "comments_title": "What people say",
+   "filter_all": "All",
+   "no_score": "No ratings yet",
+   "first_rate": "Be the first to rate — your take sets the tone",
+   "first_rate_card": "Be the first to rate",
+   "locked_badge": "🔒 Rate first",
+   "locked_title": "🔒 Hidden — rate once to reveal the real average",
+   "blind_ing": "{n} ratings · blind rating in progress",
+   "reviews_count": "{n} ratings",
+   "verdict_good": "Loved it",
+   "verdict_mid": "Mixed reviews",
+   "verdict_bad": "Proceed with caution",
+   "blind_tag": "🔒 Blind",
+   "potential_tag": "🌱 Hidden gem",
+   "warn_tag": "⚠️ Flop alert",
+   "type_product_tag": "Product",
+   "type_event_tag": "Event",
+   "no_comments_tier": "No comments in this tier yet",
+   "synth_desc_best": "{cat} chart topper · Best list",
+   "synth_desc_worst": "{cat} chart entry · Worst list",
+   "badge_unlocked": "Unlocked · ",
+   "badge_locked": "Locked",
+   "badge_progress": "Progress",
+   "badge_cond_s": "How to unlock",
+   "empty_search": "No posts found — try another keyword",
+   "empty_lang": "No posts in this language yet — try another one",
+   "my_name": "Me",
+   "nav_settings": "Settings",
+   "ach_entry": "Achievements",
+   "my_badges": "My Badges",
+   "all_badges": "All",
+   "nav_discover": "Nearby",
+   "nav_scan": "Link Finder",
+   "my_likes_t": "Likes Received",
+   "liked_comment": "liked your comment",
+   "liked_post": "liked your post",
+   "loc_locating": "Locating…",
+   "loc_failed": "Couldn't get your location — please pick a city",
+   "loc_relocate": "Locate again",
+   "loc_manual": "Pick a city manually",
+   "loc_clear": "Clear location",
+   "app_name": "App name",
+   "slogan": "Myna — hear what everyone's saying"
+  },
+  "es": {
+   "nav_home": "Inicio",
+   "nav_rank": "Listas",
+   "nav_me": "Yo",
+   "search_ph": "Busca: ¿está bueno?, ¿vale la pena?…",
+   "feed_end": "— Eso es todo — toca + para preguntar —",
+   "rank_title": "🏆 Listas",
+   "month": "Mensual",
+   "alltime": "Histórico",
+   "best20": "🌟 Mejores Top 20",
+   "worst20": "📉 Peores Top 20",
+   "month_meta_a": "📅 Lista del mes · cierra en ",
+   "month_meta_b": " días · el Top 20 gana insignias de temporada",
+   "all_meta": "📚 Lista histórica · datos acumulados, no se reinicia",
+   "reviews_unit": " valoraciones",
+   "history_suffix": " · histórico",
+   "pub_head": "Publicar pregunta",
+   "type_product": "📦 Producto",
+   "type_event": "📅 Evento",
+   "scale_hint_p": "Se usará la escala de producto: Pésimo → De primera",
+   "scale_hint_e": "Se usará la escala de evento: No vayas → ¡Imperdible!",
+   "pub_cat": "Categoría",
+   "pub_title_l": "Título *",
+   "pub_desc_l": "Descripción",
+   "pub_cover_l": "Portada (opcional)",
+   "upload_label": "📷 Toca para subir una imagen o elige un emoji",
+   "uploaded_label": "✅ Portada seleccionada",
+   "blind": "🔒 Valoración ciega",
+   "blind_sub": "La nota se oculta 24 h para evitar el efecto manada",
+   "loc_add": "Añadir ubicación",
+   "loc_none": "No mostrar ubicación",
+   "publish": "Publicar",
+   "title_ph": "Ej.: ¿Está bueno el nuevo refresco de XX?",
+   "desc_ph": "Añade contexto: dónde lo viste, cuánto cuesta…",
+   "title_ph_p": "Ej.: ¿está bueno el nuevo XX?",
+   "title_ph_e": "Ej.: ¿vale la pena ir a este evento?",
+   "desc_ph_p": "Añade contexto: dónde lo viste, cuánto cuesta, tu duda…",
+   "desc_ph_e": "Añade contexto: cuándo es, dónde, quién va, tu duda…",
+   "need_title": "Escribe un título primero",
+   "published": "¡Publicado!",
+   "default_desc": "Lo acabo de ver, ¿qué opinan?",
+   "just_now": "ahora",
+   "rep": "Reputación",
+   "rep_note": "Cuanto más cerca del consenso final, más reputación",
+   "stat_posts": "Publicaciones",
+   "stat_rates": "Valoraciones",
+   "stat_likes": "Me gusta",
+   "ach_title": "Mis logros",
+   "ach_note": "🏆 Cada mes llegan insignias de temporada — si te las pierdes, espera un año",
+   "me_posts": "Mis publicaciones",
+   "me_rates": "Mis valoraciones",
+   "post_avg": "Nota del post",
+   "settings": "Ajustes",
+   "grp_general": "General",
+   "grp_account": "Cuenta",
+   "grp_data": "Datos y privacidad",
+   "grp_about": "Acerca de",
+   "app_lang": "Idioma de la app",
+   "app_lang_sub": "Por defecto sigue el idioma del sistema",
+   "follow_system": "Seguir sistema",
+   "content_lang_t": "Solo idiomas que entiendo",
+   "content_lang_sub": "Selección múltiple: el feed muestra solo esos idiomas",
+   "appearance": "Apariencia",
+   "light": "Claro",
+   "dark": "Oscuro",
+   "push": "Notificaciones push",
+   "push_reply": "Respuestas a mis valoraciones",
+   "push_rank": "Cuando mi contenido entra en la lista",
+   "login_t": "Iniciar sesión / Registrarse",
+   "login_sub": "Sincroniza valoraciones, insignias y reputación",
+   "login_email": "Continuar con correo",
+   "login_google": "Continuar con Google",
+   "login_facebook": "Continuar con Facebook",
+   "login_apple": "Continuar con Apple",
+   "toast_login": "Prototipo: inicio de sesión en desarrollo",
+   "clear_cache": "Borrar caché",
+   "cache_cleared": "Caché borrada",
+   "download_data": "Descargar mis datos",
+   "download_ok": "Datos exportados (JSON)",
+   "delete_account": "Eliminar cuenta",
+   "delete_title": "¿Eliminar tu cuenta?",
+   "delete_body": "Tus valoraciones, insignias y reputación se borrarán para siempre. No se puede deshacer.",
+   "cancel": "Cancelar",
+   "confirm_delete": "Eliminar",
+   "toast_demo": "Prototipo",
+   "terms": "Términos del servicio",
+   "privacy": "Política de privacidad",
+   "feedback": "Enviar comentarios",
+   "version": "Versión",
+   "toast_about": "Prototipo: página en desarrollo",
+   "toast_notif": "Prototipo: no hay mensajes nuevos",
+   "keep_one_lang": "Mantén al menos un idioma de contenido",
+   "rate_title": "¿Qué nota le das?",
+   "edit_rate_title": "Editar valoración",
+   "rate_ph": "¿Por qué esta nota? (opcional)",
+   "submit_rate": "Enviar valoración",
+   "save_changes": "Guardar cambios",
+   "rate_ok": "¡Valorado! Reputación +2",
+   "edited": "Editado",
+   "cta_rate": "Yo también quiero valorar",
+   "cta_max": "Límite de ediciones alcanzado (3)",
+   "cta_edit_fmt": "Editar valoración · te quedan {x}",
+   "edit_ok_fmt": "Actualizado · te quedan {x}",
+   "comments_title": "Lo que dice la gente",
+   "filter_all": "Todo",
+   "no_score": "Sin nota aún",
+   "first_rate": "Sé el primero en valorar: tu opinión marca el inicio",
+   "first_rate_card": "Sé el primero en valorar",
+   "locked_badge": "🔒 Valora para ver",
+   "locked_title": "🔒 Oculto: valora una vez para ver la media real",
+   "blind_ing": "{n} valoraciones · valoración ciega en curso",
+   "reviews_count": "{n} valoraciones",
+   "verdict_good": "Muy querido",
+   "verdict_mid": "Opiniones mixtas",
+   "verdict_bad": "Con precaución",
+   "blind_tag": "🔒 Ciega",
+   "potential_tag": "🌱 Prometedor",
+   "warn_tag": "⚠️ Peligro",
+   "type_product_tag": "Producto",
+   "type_event_tag": "Evento",
+   "no_comments_tier": "Aún no hay comentarios en este nivel",
+   "synth_desc_best": "Destacado de la lista de mejores de {cat}",
+   "synth_desc_worst": "Destacado de la lista de peores de {cat}",
+   "badge_unlocked": "Desbloqueado · ",
+   "badge_locked": "Bloqueado",
+   "badge_progress": "Progreso",
+   "badge_cond_s": "Cómo desbloquearlo",
+   "empty_search": "No se encontraron publicaciones — prueba otra palabra",
+   "empty_lang": "Aún no hay publicaciones en este idioma — prueba con otro",
+   "my_name": "Yo",
+   "nav_settings": "Ajustes",
+   "ach_entry": "Logros",
+   "my_badges": "Mis insignias",
+   "all_badges": "Todas",
+   "nav_discover": "Cerca",
+   "nav_scan": "Por enlace",
+   "my_likes_t": "Me gusta recibidos",
+   "liked_comment": "le gustó tu comentario",
+   "liked_post": "le gustó tu publicación",
+   "loc_locating": "Localizando…",
+   "loc_failed": "No se pudo obtener tu ubicación: elige una ciudad",
+   "loc_relocate": "Localizar de nuevo",
+   "loc_manual": "Elegir una ciudad",
+   "loc_clear": "Quitar ubicación",
+   "app_name": "Nombre de la app",
+   "slogan": "Myna — escucha lo que todo el mundo dice"
+  },
+  "fr": {
+   "nav_home": "Accueil",
+   "nav_rank": "Classements",
+   "nav_me": "Moi",
+   "search_ph": "Chercher : bon ? ça vaut le coup ?…",
+   "feed_end": "— C'est tout — touchez + pour poser une question —",
+   "rank_title": "🏆 Classements",
+   "month": "Mensuel",
+   "alltime": "Historique",
+   "best20": "🌟 Top 20 des meilleurs",
+   "worst20": "📉 Top 20 des pires",
+   "month_meta_a": "📅 Classement du mois · clôture dans ",
+   "month_meta_b": " jours · le Top 20 gagne des badges de saison",
+   "all_meta": "📚 Classement historique · totaux cumulés, jamais réinitialisés",
+   "reviews_unit": " avis",
+   "history_suffix": " · historique",
+   "pub_head": "Poser une question",
+   "type_product": "📦 Produit",
+   "type_event": "📅 Événement",
+   "scale_hint_p": "Échelle produit : Nul → Excellent",
+   "scale_hint_e": "Échelle événement : N'y va pas → À ne pas manquer",
+   "pub_cat": "Catégorie",
+   "pub_title_l": "Titre *",
+   "pub_desc_l": "Description",
+   "pub_cover_l": "Image de couverture (optionnel)",
+   "upload_label": "📷 Touchez pour ajouter une image ou choisissez un emoji",
+   "uploaded_label": "✅ Couverture sélectionnée",
+   "blind": "🔒 Note à l'aveugle",
+   "blind_sub": "La note reste cachée 24 h pour éviter l'effet de groupe",
+   "loc_add": "Ajouter un lieu",
+   "loc_none": "Ne pas afficher le lieu",
+   "publish": "Publier",
+   "title_ph": "Ex. : le nouveau soda XX est-il bon ?",
+   "desc_ph": "Ajoutez du contexte : où vu, prix, hésitation…",
+   "title_ph_p": "Ex. : le nouveau XX, il est bien ?",
+   "title_ph_e": "Ex. : cet événement, j'y vais ?",
+   "desc_ph_p": "Ajoutez du contexte : où vu, prix, hésitation…",
+   "desc_ph_e": "Ajoutez du contexte : quand, où, qui y va, hésitation…",
+   "need_title": "Ajoutez d'abord un titre",
+   "published": "Publié !",
+   "default_desc": "Je viens de le voir — qu'en pensez-vous ?",
+   "just_now": "à l'instant",
+   "rep": "Réputation",
+   "rep_note": "Plus votre note est proche du consensus final, plus votre réputation monte",
+   "stat_posts": "Publications",
+   "stat_rates": "Avis",
+   "stat_likes": "J'aime",
+   "ach_title": "Mes badges",
+   "ach_note": "🏆 De nouveaux badges de saison chaque mois — manqués, c'est un an d'attente",
+   "me_posts": "Mes publications",
+   "me_rates": "Mes avis",
+   "post_avg": "Note du post",
+   "settings": "Réglages",
+   "grp_general": "Général",
+   "grp_account": "Compte",
+   "grp_data": "Données et confidentialité",
+   "grp_about": "À propos",
+   "app_lang": "Langue de l'app",
+   "app_lang_sub": "Suit la langue du système par défaut",
+   "follow_system": "Suivre le système",
+   "content_lang_t": "Que les langues que je lis",
+   "content_lang_sub": "Sélection multiple : le fil n'affiche que ces langues",
+   "appearance": "Apparence",
+   "light": "Clair",
+   "dark": "Sombre",
+   "push": "Notifications push",
+   "push_reply": "Réponses à mes avis",
+   "push_rank": "Quand mon contenu entre au classement",
+   "login_t": "Se connecter / S'inscrire",
+   "login_sub": "Synchronisez avis, badges et réputation",
+   "login_email": "Continuer avec l'e-mail",
+   "login_google": "Continuer avec Google",
+   "login_facebook": "Continuer avec Facebook",
+   "login_apple": "Continuer avec Apple",
+   "toast_login": "Prototype : connexion en cours de développement",
+   "clear_cache": "Vider le cache",
+   "cache_cleared": "Cache vidé",
+   "download_data": "Télécharger mes données",
+   "download_ok": "Données exportées (JSON)",
+   "delete_account": "Supprimer le compte",
+   "delete_title": "Supprimer votre compte ?",
+   "delete_body": "Vos avis, badges et réputation seront définitivement supprimés. Action irréversible.",
+   "cancel": "Annuler",
+   "confirm_delete": "Supprimer",
+   "toast_demo": "Démo du prototype",
+   "terms": "Conditions d'utilisation",
+   "privacy": "Politique de confidentialité",
+   "feedback": "Envoyer un avis",
+   "version": "Version",
+   "toast_about": "Prototype : page en développement",
+   "toast_notif": "Prototype : aucun nouveau message",
+   "keep_one_lang": "Gardez au moins une langue de contenu",
+   "rate_title": "Votre note ?",
+   "edit_rate_title": "Modifier l'avis",
+   "rate_ph": "Pourquoi cette note ? (optionnel)",
+   "submit_rate": "Envoyer l'avis",
+   "save_changes": "Enregistrer",
+   "rate_ok": "Avis envoyé ! Réputation +2",
+   "edited": "Modifié",
+   "cta_rate": "Je note aussi",
+   "cta_max": "Limite de modifications atteinte (3)",
+   "cta_edit_fmt": "Modifier mon avis · {x} restantes",
+   "edit_ok_fmt": "Modifié · {x} restantes",
+   "comments_title": "Ce qu'on en dit",
+   "filter_all": "Tous",
+   "no_score": "Pas encore de note",
+   "first_rate": "Soyez le premier à noter : votre avis donne le ton",
+   "first_rate_card": "Soyez le premier à noter",
+   "locked_badge": "🔒 Notez pour révéler",
+   "locked_title": "🔒 Masqué — notez une fois pour révéler la vraie moyenne",
+   "blind_ing": "{n} avis · notation à l'aveugle en cours",
+   "reviews_count": "{n} avis",
+   "verdict_good": "Adoré",
+   "verdict_mid": "Avis partagés",
+   "verdict_bad": "À essayer avec prudence",
+   "blind_tag": "🔒 Aveugle",
+   "potential_tag": "🌱 Pépite",
+   "warn_tag": "⚠️ À éviter",
+   "type_product_tag": "Produit",
+   "type_event_tag": "Événement",
+   "no_comments_tier": "Aucun commentaire dans ce niveau",
+   "synth_desc_best": "En tête du classement des meilleurs · {cat}",
+   "synth_desc_worst": "Au classement des pires · {cat}",
+   "badge_unlocked": "Débloqué · ",
+   "badge_locked": "Verrouillé",
+   "badge_progress": "Progression",
+   "badge_cond_s": "Pour le débloquer",
+   "empty_search": "Aucune publication trouvée — essayez un autre mot-clé",
+   "empty_lang": "Aucun contenu dans cette langue pour le moment — essayez-en une autre",
+   "my_name": "Moi",
+   "nav_settings": "Réglages",
+   "ach_entry": "Badges",
+   "my_badges": "Mes badges",
+   "all_badges": "Tous",
+   "nav_discover": "À proximité",
+   "nav_scan": "Par lien",
+   "my_likes_t": "J'aime reçus",
+   "liked_comment": "a aimé votre commentaire",
+   "liked_post": "a aimé votre publication",
+   "loc_locating": "Localisation…",
+   "loc_failed": "Localisation impossible — choisissez une ville",
+   "loc_relocate": "Relocaliser",
+   "loc_manual": "Choisir une ville",
+   "loc_clear": "Effacer le lieu",
+   "app_name": "Nom de l'app",
+   "slogan": "Myna — écoutez ce que tout le monde dit"
+  },
+  "ja": {
+   "nav_home": "ホーム",
+   "nav_rank": "ランキング",
+   "nav_me": "マイページ",
+   "search_ph": "おいしい？行く価値ある？で検索…",
+   "feed_end": "— ここまで！＋から質問してみよう —",
+   "rank_title": "🏆 ランキング",
+   "month": "月間",
+   "alltime": "総合",
+   "best20": "🌟 ベスト Top 20",
+   "worst20": "📉 ワースト Top 20",
+   "month_meta_a": "📅 今月のランキング · 集計まであと ",
+   "month_meta_b": " 日 · Top 20 にはシーズンバッジ",
+   "all_meta": "📚 総合ランキング · 累計データ（リセットなし）",
+   "reviews_unit": " 件の評価",
+   "history_suffix": " · 累計",
+   "pub_head": "質問を投稿",
+   "type_product": "📦 商品",
+   "type_event": "📅 イベント",
+   "scale_hint_p": "商品スケールで評価されます：最悪 → 神レベル",
+   "scale_hint_e": "イベントスケールで評価されます：行かない → 絶対行くべき",
+   "pub_cat": "カテゴリ",
+   "pub_title_l": "タイトル *",
+   "pub_desc_l": "説明",
+   "pub_cover_l": "カバー画像（任意）",
+   "upload_label": "📷 タップで画像を追加、または絵文字を選んでね",
+   "uploaded_label": "✅ カバー画像を設定しました",
+   "blind": "🔒 ブラインド評価",
+   "blind_sub": "24時間はスコア非表示（同調防止）",
+   "loc_add": "場所を追加",
+   "loc_none": "場所を表示しない",
+   "publish": "投稿する",
+   "title_ph": "例：新しいXX味ソーダ、おいしい？",
+   "desc_ph": "背景を追加：どこで見た？いくら？迷ってる点は…",
+   "title_ph_p": "例：新しいXX、いい？",
+   "title_ph_e": "例：このイベント、行く？",
+   "desc_ph_p": "背景を追加：どこで見た？いくら？迷ってる点は…",
+   "desc_ph_e": "背景を追加：いつ、どこで、誰と、迷ってる点は…",
+   "need_title": "タイトルを入れてね",
+   "published": "投稿しました！",
+   "default_desc": "見つけたばかり！みんなはどう思う？",
+   "just_now": "たった今",
+   "rep": "信頼スコア",
+   "rep_note": "最終的な総意に近い評価ほどスコアUP",
+   "stat_posts": "投稿",
+   "stat_rates": "評価",
+   "stat_likes": "いいね",
+   "ach_title": "私の実績",
+   "ach_note": "🏆 毎月シーズン限定バッジが登場、逃すと1年待ち",
+   "me_posts": "私の投稿",
+   "me_rates": "私の評価",
+   "post_avg": "投稿の平均",
+   "settings": "設定",
+   "grp_general": "一般",
+   "grp_account": "アカウント",
+   "grp_data": "データとプライバシー",
+   "grp_about": "情報",
+   "app_lang": "アプリの言語",
+   "app_lang_sub": "デフォルトはシステム言語に連動",
+   "follow_system": "システムに従う",
+   "content_lang_t": "読める言語だけ表示",
+   "content_lang_sub": "複数選択OK — フィードは選んだ言語だけ表示",
+   "appearance": "外観",
+   "light": "ライト",
+   "dark": "ダーク",
+   "push": "プッシュ通知",
+   "push_reply": "私の評価への返信",
+   "push_rank": "自分の投稿がランクインしたら",
+   "login_t": "ログイン / 新規登録",
+   "login_sub": "評価履歴・バッジ・信頼スコアを同期",
+   "login_email": "メールで続ける",
+   "login_google": "Google で続ける",
+   "login_facebook": "Facebook で続ける",
+   "login_apple": "Apple で続ける",
+   "toast_login": "プロトタイプ：ログイン機能は開発中です",
+   "clear_cache": "キャッシュを削除",
+   "cache_cleared": "キャッシュを削除しました",
+   "download_data": "データをダウンロード",
+   "download_ok": "データを書き出しました（JSON）",
+   "delete_account": "アカウントを削除",
+   "delete_title": "アカウントを削除しますか？",
+   "delete_body": "評価履歴・バッジ・信頼スコアは完全に削除され、元に戻せません。",
+   "cancel": "キャンセル",
+   "confirm_delete": "削除する",
+   "toast_demo": "プロトタイプです",
+   "terms": "利用規約",
+   "privacy": "プライバシーポリシー",
+   "feedback": "フィードバック",
+   "version": "バージョン",
+   "toast_about": "プロトタイプ：ページは開発中です",
+   "toast_notif": "プロトタイプ：新しい通知はありません",
+   "keep_one_lang": "最低1つは言語を選んでね",
+   "rate_title": "何点つける？",
+   "edit_rate_title": "評価を編集",
+   "rate_ph": "この点数の理由は？（任意）",
+   "submit_rate": "評価する",
+   "save_changes": "変更を保存",
+   "rate_ok": "評価完了！信頼 +2",
+   "edited": "編集済み",
+   "cta_rate": "私も評価する",
+   "cta_max": "編集上限（3回）に達しました",
+   "cta_edit_fmt": "評価を編集 · あと{x}回",
+   "edit_ok_fmt": "変更しました · あと{x}回編集できます",
+   "comments_title": "みんなの声",
+   "filter_all": "すべて",
+   "no_score": "まだ評価なし",
+   "first_rate": "最初の評価をどうぞ — あなたの意見が基準になります",
+   "first_rate_card": "最初の評価者になろう",
+   "locked_badge": "🔒 評価すると表示",
+   "locked_title": "🔒 非表示中 — 評価すると本当の平均が見られます",
+   "blind_ing": "{n} 件の評価 · ブラインド評価中",
+   "reviews_count": "{n} 件の評価",
+   "verdict_good": "大好評",
+   "verdict_mid": "賛否あり",
+   "verdict_bad": "要注意",
+   "blind_tag": "🔒 ブラインド",
+   "potential_tag": "🌱 注目株",
+   "warn_tag": "⚠️ 地雷注意",
+   "type_product_tag": "商品",
+   "type_event_tag": "イベント",
+   "no_comments_tier": "この評価帯にはまだコメントがありません",
+   "synth_desc_best": "{cat}のベストランキング掲載中",
+   "synth_desc_worst": "{cat}のワーストランキング掲載中",
+   "badge_unlocked": "獲得済み · ",
+   "badge_locked": "未獲得",
+   "badge_progress": "進捗",
+   "badge_cond_s": "獲得条件",
+   "empty_search": "投稿が見つかりません — キーワードを変えてみて",
+   "empty_lang": "この言語の投稿はまだありません — 他の言語も見てみて",
+   "my_name": "私",
+   "nav_settings": "設定",
+   "ach_entry": "実績",
+   "my_badges": "私のバッジ",
+   "all_badges": "すべて",
+   "nav_discover": "近く",
+   "nav_scan": "リンク識品",
+   "my_likes_t": "もらったいいね",
+   "liked_comment": "あなたのコメントにいいねしました",
+   "liked_post": "あなたの投稿にいいねしました",
+   "loc_locating": "位置情報を取得中…",
+   "loc_failed": "位置情報を取得できませんでした。都市を選んでください",
+   "loc_relocate": "もう一度取得",
+   "loc_manual": "都市を手動で選ぶ",
+   "loc_clear": "場所を消す",
+   "app_name": "アプリ名",
+   "slogan": "Myna — みんなの声を聞こう"
+  },
+  "ko": {
+   "nav_home": "홈",
+   "nav_rank": "랭킹",
+   "nav_me": "마이",
+   "search_ph": "맛있어? 갈 만해? 검색해 보세요…",
+   "feed_end": "— 끝! +를 눌러 질문해 보세요 —",
+   "rank_title": "🏆 랭킹",
+   "month": "월간",
+   "alltime": "전체",
+   "best20": "🌟 베스트 Top 20",
+   "worst20": "📉 워스트 Top 20",
+   "month_meta_a": "📅 이번 달 랭킹 · 마감까지 ",
+   "month_meta_b": "일 · Top 20은 시즌 배지 획득",
+   "all_meta": "📚 전체 랭킹 · 누적 데이터, 초기화 없음",
+   "reviews_unit": "개 평가",
+   "history_suffix": " · 누적",
+   "pub_head": "질문 올리기",
+   "type_product": "📦 제품",
+   "type_event": "📅 이벤트",
+   "scale_hint_p": "제품 척도로 평가돼요: 최악 → 최고",
+   "scale_hint_e": "이벤트 척도로 평가돼요: 가지 마 → 무조건 가야 해",
+   "pub_cat": "카테고리",
+   "pub_title_l": "제목 *",
+   "pub_desc_l": "설명",
+   "pub_cover_l": "커버 이미지 (선택)",
+   "upload_label": "📷 눌러서 이미지를 올리거나 아래 이모지를 골라요",
+   "uploaded_label": "✅ 커버 이미지를 골랐어요",
+   "blind": "🔒 블라인드 평가",
+   "blind_sub": "24시간 동안 점수 숨김 (눈치 방지)",
+   "loc_add": "위치 추가",
+   "loc_none": "위치 표시 안 함",
+   "publish": "게시하기",
+   "title_ph": "예: 새로 나온 XX맛 탄산, 맛있어요?",
+   "desc_ph": "배경을 적어 주세요: 어디서 봤는지, 가격, 고민되는 점…",
+   "title_ph_p": "예: 새로 나온 XX, 괜찮아요?",
+   "title_ph_e": "예: 이 행사, 갈까요?",
+   "desc_ph_p": "배경을 적어 주세요: 어디서 봤는지, 가격, 고민되는 점…",
+   "desc_ph_e": "배경을 적어 주세요: 언제, 어디서, 누가 가는지, 고민되는 점…",
+   "need_title": "제목부터 적어 주세요",
+   "published": "게시했어요!",
+   "default_desc": "방금 발견했어요 — 다들 어떻게 생각해요?",
+   "just_now": "방금",
+   "rep": "신뢰 점수",
+   "rep_note": "최종 합의에 가까울수록 점수가 올라요",
+   "stat_posts": "게시물",
+   "stat_rates": "평가",
+   "stat_likes": "좋아요",
+   "ach_title": "내 업적",
+   "ach_note": "🏆 매달 시즌 한정 배지가 나와요 — 놓치면 1년 대기",
+   "me_posts": "내 게시물",
+   "me_rates": "내 평가",
+   "post_avg": "게시물 평균",
+   "settings": "설정",
+   "grp_general": "일반",
+   "grp_account": "계정",
+   "grp_data": "데이터 및 개인정보",
+   "grp_about": "정보",
+   "app_lang": "앱 언어",
+   "app_lang_sub": "기본값은 시스템 언어를 따라요",
+   "follow_system": "시스템 설정",
+   "content_lang_t": "읽을 수 있는 언어만 보기",
+   "content_lang_sub": "여러 개 선택 가능 — 피드에는 선택한 언어만 보여요",
+   "appearance": "화면 모드",
+   "light": "라이트",
+   "dark": "다크",
+   "push": "푸시 알림",
+   "push_reply": "내 평가에 답글이 달리면",
+   "push_rank": "내 콘텐츠가 랭킹에 오르면",
+   "login_t": "로그인 / 회원가입",
+   "login_sub": "평가 기록, 배지, 신뢰 점수를 동기화해요",
+   "login_email": "이메일로 계속하기",
+   "login_google": "Google로 계속하기",
+   "login_facebook": "Facebook으로 계속하기",
+   "login_apple": "Apple로 계속하기",
+   "toast_login": "프로토타입: 로그인 기능 준비 중이에요",
+   "clear_cache": "캐시 지우기",
+   "cache_cleared": "캐시를 지웠어요",
+   "download_data": "내 데이터 다운로드",
+   "download_ok": "데이터를 내보냈어요 (JSON)",
+   "delete_account": "계정 삭제",
+   "delete_title": "계정을 삭제할까요?",
+   "delete_body": "평가 기록, 배지, 신뢰 점수가 영구 삭제되며 되돌릴 수 없어요.",
+   "cancel": "취소",
+   "confirm_delete": "삭제",
+   "toast_demo": "프로토타입이에요",
+   "terms": "이용약관",
+   "privacy": "개인정보 처리방침",
+   "feedback": "피드백 보내기",
+   "version": "버전",
+   "toast_about": "프로토타입: 페이지 준비 중이에요",
+   "toast_notif": "프로토타입: 새 알림이 없어요",
+   "keep_one_lang": "언어를 최소 하나는 선택해 주세요",
+   "rate_title": "몇 점 줄래요?",
+   "edit_rate_title": "평가 수정",
+   "rate_ph": "이 점수를 준 이유는? (선택)",
+   "submit_rate": "평가하기",
+   "save_changes": "수정 저장",
+   "rate_ok": "평가 완료! 신뢰 +2",
+   "edited": "수정됨",
+   "cta_rate": "나도 평가하기",
+   "cta_max": "수정 한도(3회)에 도달했어요",
+   "cta_edit_fmt": "평가 수정 · {x}회 남음",
+   "edit_ok_fmt": "수정했어요 · {x}회 남음",
+   "comments_title": "다들 뭐래요?",
+   "filter_all": "전체",
+   "no_score": "아직 평가 없음",
+   "first_rate": "첫 평가를 남겨 보세요 — 당신의 의견이 기준이 돼요",
+   "first_rate_card": "첫 평가자가 되어 보세요",
+   "locked_badge": "🔒 평가하면 공개",
+   "locked_title": "🔒 숨김 중 — 평가하면 진짜 평균을 볼 수 있어요",
+   "blind_ing": "평가 {n}개 · 블라인드 진행 중",
+   "reviews_count": "평가 {n}개",
+   "verdict_good": "호평 일색",
+   "verdict_mid": "호불호 갈림",
+   "verdict_bad": "신중하게",
+   "blind_tag": "🔒 블라인드",
+   "potential_tag": "🌱 숨은 보석",
+   "warn_tag": "⚠️ 지뢰 주의",
+   "type_product_tag": "제품",
+   "type_event_tag": "이벤트",
+   "no_comments_tier": "이 구간에는 아직 댓글이 없어요",
+   "synth_desc_best": "{cat} 베스트 랭킹 등재",
+   "synth_desc_worst": "{cat} 워스트 랭킹 등재",
+   "badge_unlocked": "획득 · ",
+   "badge_locked": "미획득",
+   "badge_progress": "진행도",
+   "badge_cond_s": "획득 조건",
+   "empty_search": "게시물을 못 찾았어요 — 다른 키워드로 시도해 보세요",
+   "empty_lang": "이 언어의 게시물이 아직 없어요 — 다른 언어도 보세요",
+   "my_name": "나",
+   "nav_settings": "설정",
+   "ach_entry": "업적",
+   "my_badges": "내 배지",
+   "all_badges": "전체",
+   "nav_discover": "근처",
+   "nav_scan": "링크 인식",
+   "my_likes_t": "받은 좋아요",
+   "liked_comment": "님이 내 댓글에 좋아요를 눌렀어요",
+   "liked_post": "님이 내 게시물에 좋아요를 눌렀어요",
+   "loc_locating": "위치 확인 중…",
+   "loc_failed": "위치를 가져오지 못했어요. 도시를 직접 선택해 주세요",
+   "loc_relocate": "다시 위치 확인",
+   "loc_manual": "도시 직접 선택",
+   "loc_clear": "위치 지우기",
+   "app_name": "앱 이름",
+   "slogan": "Myna — 다들 뭐라고 하는지 들어보세요"
+  },
+  "it": {
+   "nav_home": "Home",
+   "nav_rank": "Classifiche",
+   "nav_me": "Profilo",
+   "search_ph": "Cerca: buono? ne vale la pena?…",
+   "feed_end": "— Fine — tocca + per chiedere qualcosa —",
+   "rank_title": "🏆 Classifiche",
+   "month": "Mensile",
+   "alltime": "Storico",
+   "best20": "🌟 Migliori Top 20",
+   "worst20": "📉 Peggiori Top 20",
+   "month_meta_a": "📅 Classifica del mese · chiude tra ",
+   "month_meta_b": " giorni · la Top 20 vince badge di stagione",
+   "all_meta": "📚 Classifica storica · totali cumulati, mai azzerati",
+   "reviews_unit": " valutazioni",
+   "history_suffix": " · storico",
+   "pub_head": "Fai una domanda",
+   "type_product": "📦 Prodotto",
+   "type_event": "📅 Evento",
+   "scale_hint_p": "Scala prodotto: Pessimo → Eccellente",
+   "scale_hint_e": "Scala evento: Non andare → Imperdibile",
+   "pub_cat": "Categoria",
+   "pub_title_l": "Titolo *",
+   "pub_desc_l": "Descrizione",
+   "pub_cover_l": "Immagine di copertina (facoltativa)",
+   "upload_label": "📷 Tocca per caricare un'immagine o scegli un'emoji",
+   "uploaded_label": "✅ Copertina selezionata",
+   "blind": "🔒 Valutazione cieca",
+   "blind_sub": "Punteggio nascosto per 24 ore, contro l'effetto gregge",
+   "loc_add": "Aggiungi posizione",
+   "loc_none": "Non mostrare la posizione",
+   "publish": "Pubblica",
+   "title_ph": "Es.: la nuova soda XX è buona?",
+   "desc_ph": "Aggiungi contesto: dove l'hai vista, prezzo, dubbi…",
+   "title_ph_p": "Es.: il nuovo XX è buono?",
+   "title_ph_e": "Es.: questo evento, ci vado?",
+   "desc_ph_p": "Aggiungi contesto: dove l'hai visto, prezzo, dubbi…",
+   "desc_ph_e": "Aggiungi contesto: quando, dove, chi viene, dubbi…",
+   "need_title": "Prima scrivi un titolo",
+   "published": "Pubblicato!",
+   "default_desc": "L'ho appena visto — voi che ne pensate?",
+   "just_now": "adesso",
+   "rep": "Reputazione",
+   "rep_note": "Più la tua valutazione è vicina al consenso finale, più sali",
+   "stat_posts": "Post",
+   "stat_rates": "Valutazioni",
+   "stat_likes": "Mi piace",
+   "ach_title": "I miei badge",
+   "ach_note": "🏆 Ogni mese nuovi badge di stagione — se li perdi, aspetti un anno",
+   "me_posts": "I miei post",
+   "me_rates": "Le mie valutazioni",
+   "post_avg": "Media del post",
+   "settings": "Impostazioni",
+   "grp_general": "Generale",
+   "grp_account": "Account",
+   "grp_data": "Dati e privacy",
+   "grp_about": "Info",
+   "app_lang": "Lingua dell'app",
+   "app_lang_sub": "Per impostazione predefinita segue la lingua del sistema",
+   "follow_system": "Sistema",
+   "content_lang_t": "Solo le lingue che leggo",
+   "content_lang_sub": "Selezione multipla: il feed mostra solo queste lingue",
+   "appearance": "Aspetto",
+   "light": "Chiaro",
+   "dark": "Scuro",
+   "push": "Notifiche push",
+   "push_reply": "Risposte alle mie valutazioni",
+   "push_rank": "Quando i miei contenuti entrano in classifica",
+   "login_t": "Accedi / Registrati",
+   "login_sub": "Sincronizza valutazioni, badge e reputazione",
+   "login_email": "Continua con l'e-mail",
+   "login_google": "Continua con Google",
+   "login_facebook": "Continua con Facebook",
+   "login_apple": "Continua con Apple",
+   "toast_login": "Prototipo: accesso in fase di sviluppo",
+   "clear_cache": "Svuota cache",
+   "cache_cleared": "Cache svuotata",
+   "download_data": "Scarica i miei dati",
+   "download_ok": "Dati esportati (JSON)",
+   "delete_account": "Elimina account",
+   "delete_title": "Eliminare l'account?",
+   "delete_body": "Valutazioni, badge e reputazione verranno eliminati per sempre. Operazione irreversibile.",
+   "cancel": "Annulla",
+   "confirm_delete": "Elimina",
+   "toast_demo": "Demo del prototipo",
+   "terms": "Termini di servizio",
+   "privacy": "Informativa privacy",
+   "feedback": "Invia feedback",
+   "version": "Versione",
+   "toast_about": "Prototipo: pagina in sviluppo",
+   "toast_notif": "Prototipo: nessuna nuova notifica",
+   "keep_one_lang": "Mantieni almeno una lingua per i contenuti",
+   "rate_title": "Che voto dai?",
+   "edit_rate_title": "Modifica valutazione",
+   "rate_ph": "Perché questo voto? (facoltativo)",
+   "submit_rate": "Invia valutazione",
+   "save_changes": "Salva modifiche",
+   "rate_ok": "Valutato! Reputazione +2",
+   "edited": "Modificato",
+   "cta_rate": "Valuto anch'io",
+   "cta_max": "Limite modifiche raggiunto (3)",
+   "cta_edit_fmt": "Modifica · {x} rimaste",
+   "edit_ok_fmt": "Aggiornato · {x} modifiche rimaste",
+   "comments_title": "Cosa dice la gente",
+   "filter_all": "Tutti",
+   "no_score": "Ancora nessuna valutazione",
+   "first_rate": "Valuta per primo: la tua opinione dà il tono",
+   "first_rate_card": "Valuta per primo",
+   "locked_badge": "🔒 Valuta per svelare",
+   "locked_title": "🔒 Nascosto — valuta una volta per vedere la media reale",
+   "blind_ing": "{n} valutazioni · valutazione cieca in corso",
+   "reviews_count": "{n} valutazioni",
+   "verdict_good": "Adorato",
+   "verdict_mid": "Pareri contrastanti",
+   "verdict_bad": "Da provare con cautela",
+   "blind_tag": "🔒 Cieca",
+   "potential_tag": "🌱 Promettente",
+   "warn_tag": "⚠️ Pericolo",
+   "type_product_tag": "Prodotto",
+   "type_event_tag": "Evento",
+   "no_comments_tier": "Nessun commento in questa fascia",
+   "synth_desc_best": "In vetta alla classifica dei migliori · {cat}",
+   "synth_desc_worst": "Nella classifica dei peggiori · {cat}",
+   "badge_unlocked": "Sbloccato · ",
+   "badge_locked": "Bloccato",
+   "badge_progress": "Progresso",
+   "badge_cond_s": "Come sbloccarlo",
+   "empty_search": "Nessun post trovato — prova un'altra parola",
+   "empty_lang": "Nessun contenuto in questa lingua — provane un'altra",
+   "my_name": "Io",
+   "nav_settings": "Impostazioni",
+   "ach_entry": "Badge",
+   "my_badges": "I miei badge",
+   "all_badges": "Tutti",
+   "nav_discover": "Vicinanze",
+   "nav_scan": "Da link",
+   "my_likes_t": "Mi piace ricevuti",
+   "liked_comment": "ha messo Mi piace al tuo commento",
+   "liked_post": "ha messo Mi piace al tuo post",
+   "loc_locating": "Localizzazione…",
+   "loc_failed": "Impossibile ottenere la posizione: scegli una città",
+   "loc_relocate": "Localizza di nuovo",
+   "loc_manual": "Scegli una città",
+   "loc_clear": "Rimuovi posizione",
+   "app_name": "Nome dell'app",
+   "slogan": "Myna — ascolta cosa dicono tutti"
+  }
+ },
+ "XT": {
+  "zh": {
+   "menu_title": "想做点什么？",
+   "menu_scan": "链接识品",
+   "menu_discover": "发现附近",
+   "scan_title": "链接识品",
+   "scan_desc": "粘贴小红书 / Facebook / Instagram 的链接，或整段分享文案——带标题的更容易识别。原型按标题关键词帮你对上大家的评价；识别不出会如实告诉你，不会乱猜。",
+   "scan_ph": "粘贴链接，或整段分享文案（带标题的那种更容易识别）",
+   "paste_btn": "粘贴",
+   "paste_fail": "读取剪贴板失败，请长按输入框粘贴",
+   "scan_start": "开始识别",
+   "scan_need": "先粘贴一个视频链接吧",
+   "load1": "正在打开链接…",
+   "load2": "正在解析视频内容…",
+   "load3": "正在匹配已评价产品…",
+   "scan_results": "识别到这些产品",
+   "src_032": "视频 0:32 提到",
+   "src_pick2": "博主推荐第 2 款",
+   "src_105": "视频 1:05 提到",
+   "view_ratings": "查看评价",
+   "ask_btn": "发起问询",
+   "no_ratings": "暂无评价",
+   "ask_title_fmt": "{name}，好喝吗？",
+   "scan_note": "原型演示：当前用关键词模拟识别；真实版需后端抓取视频做语音+画面识别",
+   "disc_title": "附近",
+   "radius_all": "全城",
+   "disc_empty": "这个范围内还没有内容，放大半径看看",
+   "weekly_title": "本周战报",
+   "weekly_rates": "本周评价",
+   "weekly_beat": "超过的用户",
+   "weekly_most": "最常给",
+   "weekly_goal": "再评 3 条，本周小目标就达成了 💪",
+   "freq_title": "常用功能",
+   "fav_t": "我的收藏",
+   "hist_t": "浏览历史",
+   "draft_t": "草稿箱",
+   "follow_t": "我的关注",
+   "draft_sub": "草稿 · 未发布，点开继续编辑",
+   "chal_title": "限时挑战",
+   "chal_name": "❄️ 冬季限定",
+   "chal_desc": "本周内评价 5 个新品",
+   "chal_reward": "奖励：限定徽章「雪夜品鉴」",
+   "ach_rank_t": "成就达人榜",
+   "grp_privacy": "内容与隐私",
+   "grp_support": "支持与关于",
+   "who_see": "谁可以看我的评价",
+   "see_all": "所有人",
+   "see_follow": "仅关注的人",
+   "see_onlyme": "仅自己",
+   "block_list": "屏蔽名单",
+   "blocked_fmt": "已屏蔽 {n} 人",
+   "lang_tip": "想切换信息流显示的语言？去首页右上角点 🌐 按钮",
+   "unblock": "解除屏蔽",
+   "scan_ex_text": "📄 示例分享文案",
+   "scan_unknown_t": "没能识别出产品 🤔",
+   "scan_unknown_d": "这类短链接本身不带产品信息，原型只能靠标题关键词猜。真实版本会由后端解析视频画面和语音来识别。",
+   "manual_ph": "输入产品名，我帮你查大家的评价",
+   "manual_btn": "查询",
+   "manual_need": "先输入产品名吧",
+   "src_cover": "笔记主图产品",
+   "src_mentioned": "文中提到",
+   "ask_title_food_fmt": "{name}，好吃吗？",
+   "scan_ex_trader": "示例：缺德舅新品文案"
+  },
+  "en": {
+   "menu_title": "What would you like to do?",
+   "menu_scan": "Link Product Finder",
+   "menu_discover": "Discover Nearby",
+   "scan_title": "Link Product Finder",
+   "scan_desc": "Paste a link from Xiaohongshu, Facebook or Instagram — or the whole share text (one with a title is easier to identify). The prototype matches title keywords against community ratings, and honestly tells you when it can't identify anything.",
+   "scan_ph": "Paste a link, or a whole share text (one with a title works best)",
+   "paste_btn": "Paste",
+   "paste_fail": "Couldn't read the clipboard — long-press the field to paste",
+   "scan_start": "Start scanning",
+   "scan_need": "Paste a video link first",
+   "load1": "Opening the link…",
+   "load2": "Analyzing the video…",
+   "load3": "Matching rated products…",
+   "scan_results": "Products found in this video",
+   "src_032": "Mentioned at 0:32",
+   "src_pick2": "Creator's pick #2",
+   "src_105": "Mentioned at 1:05",
+   "view_ratings": "View ratings",
+   "ask_btn": "Ask the community",
+   "no_ratings": "No ratings yet",
+   "ask_title_fmt": "Is {name} any good?",
+   "scan_note": "Prototype: keyword matching for now; the real version needs a backend that parses video audio + frames",
+   "disc_title": "Nearby",
+   "radius_all": "Whole city",
+   "disc_empty": "Nothing in this range yet — try a bigger radius",
+   "weekly_title": "Your week in review",
+   "weekly_rates": "Ratings this week",
+   "weekly_beat": "of users outperformed",
+   "weekly_most": "Most given",
+   "weekly_goal": "3 more ratings to hit this week's goal 💪",
+   "freq_title": "Quick access",
+   "fav_t": "My Favorites",
+   "hist_t": "Browsing History",
+   "draft_t": "Drafts",
+   "follow_t": "Following",
+   "draft_sub": "Draft · not posted — tap to keep editing",
+   "chal_title": "Limited Challenge",
+   "chal_name": "❄️ Winter Special",
+   "chal_desc": "Rate 5 new products this week",
+   "chal_reward": "Reward: limited badge “Snowy Night Taster”",
+   "ach_rank_t": "Badge Leaderboard",
+   "grp_privacy": "Content & Privacy",
+   "grp_support": "Support & About",
+   "who_see": "Who can see my ratings",
+   "see_all": "Everyone",
+   "see_follow": "People I follow",
+   "see_onlyme": "Only me",
+   "block_list": "Blocked users",
+   "blocked_fmt": "{n} blocked",
+   "lang_tip": "Want to switch feed languages? Tap 🌐 at the top right of Home",
+   "unblock": "Unblock",
+   "scan_ex_text": "📄 Sample share text",
+   "scan_unknown_t": "Couldn't identify a product 🤔",
+   "scan_unknown_d": "Short links like this carry no product info — the prototype can only guess from title keywords. The real version will use a backend to analyze the video's frames and audio.",
+   "manual_ph": "Type a product name — I'll look up its ratings",
+   "manual_btn": "Search",
+   "manual_need": "Type a product name first",
+   "src_cover": "Featured in the note's cover photo",
+   "src_mentioned": "Mentioned in the text",
+   "ask_title_food_fmt": "Is {name} tasty?",
+   "scan_ex_trader": "Sample: Trader Joe's haul text"
+  },
+  "es": {
+   "menu_title": "¿Qué quieres hacer?",
+   "menu_scan": "Reconocer por enlace",
+   "menu_discover": "Descubrir cerca",
+   "scan_title": "Reconocer por enlace",
+   "scan_desc": "Pega un enlace de Xiaohongshu, Facebook o Instagram, o el texto completo compartido (con título es más fácil de identificar). El prototipo compara las palabras clave del título con las valoraciones de la comunidad y te dice con honestidad cuando no reconoce nada.",
+   "scan_ph": "Pega un enlace o el texto completo compartido (con título funciona mejor)",
+   "paste_btn": "Pegar",
+   "paste_fail": "No se pudo leer el portapapeles: mantén presionado para pegar",
+   "scan_start": "Empezar a reconocer",
+   "scan_need": "Primero pega un enlace de video",
+   "load1": "Abriendo el enlace…",
+   "load2": "Analizando el video…",
+   "load3": "Buscando productos valorados…",
+   "scan_results": "Productos detectados",
+   "src_032": "Mencionado en 0:32",
+   "src_pick2": "Recomendación n.º 2 del creador",
+   "src_105": "Mencionado en 1:05",
+   "view_ratings": "Ver valoraciones",
+   "ask_btn": "Preguntar",
+   "no_ratings": "Sin valoraciones aún",
+   "ask_title_fmt": "¿{name} está bueno?",
+   "scan_note": "Prototipo: coincidencia por palabras clave; la versión real necesita un backend que analice el audio y la imagen del video",
+   "disc_title": "Cerca de ti",
+   "radius_all": "Toda la ciudad",
+   "disc_empty": "Nada en este radio aún: amplíalo",
+   "weekly_title": "Tu semana",
+   "weekly_rates": "Valoraciones",
+   "weekly_beat": "de usuarios superados",
+   "weekly_most": "Lo más dado",
+   "weekly_goal": "Valora 3 más y cumples la meta semanal 💪",
+   "freq_title": "Accesos rápidos",
+   "fav_t": "Mis favoritos",
+   "hist_t": "Historial",
+   "draft_t": "Borradores",
+   "follow_t": "Siguiendo",
+   "draft_sub": "Borrador · sin publicar, toca para seguir editando",
+   "chal_title": "Desafío limitado",
+   "chal_name": "❄️ Especial de invierno",
+   "chal_desc": "Valora 5 productos nuevos esta semana",
+   "chal_reward": "Recompensa: insignia limitada «Catador nocturno»",
+   "ach_rank_t": "Ranking de insignias",
+   "grp_privacy": "Contenido y privacidad",
+   "grp_support": "Ayuda e información",
+   "who_see": "Quién puede ver mis valoraciones",
+   "see_all": "Todos",
+   "see_follow": "A quienes sigo",
+   "see_onlyme": "Solo yo",
+   "block_list": "Usuarios bloqueados",
+   "blocked_fmt": "{n} bloqueados",
+   "lang_tip": "¿Cambiar los idiomas del feed? Toca 🌐 arriba a la derecha en Inicio",
+   "unblock": "Desbloquear",
+   "scan_ex_text": "📄 Texto de ejemplo",
+   "scan_unknown_t": "No se pudo identificar ningún producto 🤔",
+   "scan_unknown_d": "Estos enlaces cortos no traen información del producto: el prototipo solo puede adivinar por las palabras clave del título. La versión real analizará la imagen y el audio del video desde el servidor.",
+   "manual_ph": "Escribe un producto y busco sus valoraciones",
+   "manual_btn": "Buscar",
+   "manual_need": "Primero escribe un producto",
+   "src_cover": "Producto de la foto principal",
+   "src_mentioned": "Mencionado en el texto",
+   "ask_title_food_fmt": "¿{name} está rico?",
+   "scan_ex_trader": "Ejemplo: texto de Trader Joe's"
+  },
+  "fr": {
+   "menu_title": "Que voulez-vous faire ?",
+   "menu_scan": "Reconnaître un lien",
+   "menu_discover": "Découvrir à proximité",
+   "scan_title": "Reconnaître un lien",
+   "scan_desc": "Collez un lien Xiaohongshu, Facebook ou Instagram, ou tout le texte partagé (avec un titre, c'est plus facile à identifier). Le prototype compare les mots-clés du titre aux avis de la communauté et vous dit honnêtement quand il ne reconnaît rien.",
+   "scan_ph": "Collez un lien ou tout le texte partagé (avec un titre, c'est plus fiable)",
+   "paste_btn": "Coller",
+   "paste_fail": "Presse-papiers illisible — appui long pour coller",
+   "scan_start": "Lancer l'analyse",
+   "scan_need": "Collez d'abord un lien vidéo",
+   "load1": "Ouverture du lien…",
+   "load2": "Analyse de la vidéo…",
+   "load3": "Correspondance avec les produits notés…",
+   "scan_results": "Produits détectés",
+   "src_032": "Mentionné à 0:32",
+   "src_pick2": "Choix n°2 du créateur",
+   "src_105": "Mentionné à 1:05",
+   "view_ratings": "Voir les avis",
+   "ask_btn": "Demander",
+   "no_ratings": "Pas encore d'avis",
+   "ask_title_fmt": "{name}, c'est bon ?",
+   "scan_note": "Prototype : correspondance par mots-clés ; la version réelle nécessitera un backend analysant l'audio et l'image de la vidéo",
+   "disc_title": "À proximité",
+   "radius_all": "Toute la ville",
+   "disc_empty": "Rien dans ce rayon pour l'instant — élargissez-le",
+   "weekly_title": "Votre semaine",
+   "weekly_rates": "Avis cette semaine",
+   "weekly_beat": "des utilisateurs dépassés",
+   "weekly_most": "Le plus donné",
+   "weekly_goal": "Plus que 3 avis pour atteindre l'objectif de la semaine 💪",
+   "freq_title": "Accès rapide",
+   "fav_t": "Mes favoris",
+   "hist_t": "Historique",
+   "draft_t": "Brouillons",
+   "follow_t": "Abonnements",
+   "draft_sub": "Brouillon · non publié, touchez pour continuer",
+   "chal_title": "Défi limité",
+   "chal_name": "❄️ Spécial hiver",
+   "chal_desc": "Notez 5 nouveaux produits cette semaine",
+   "chal_reward": "Récompense : badge limité « Dégustateur des neiges »",
+   "ach_rank_t": "Classement des badges",
+   "grp_privacy": "Contenu et confidentialité",
+   "grp_support": "Aide et à propos",
+   "who_see": "Qui peut voir mes avis",
+   "see_all": "Tout le monde",
+   "see_follow": "Mes abonnements",
+   "see_onlyme": "Moi uniquement",
+   "block_list": "Utilisateurs bloqués",
+   "blocked_fmt": "{n} bloqués",
+   "lang_tip": "Changer les langues du fil ? Touchez 🌐 en haut à droite de l'accueil",
+   "unblock": "Débloquer",
+   "scan_ex_text": "📄 Exemple de texte partagé",
+   "scan_unknown_t": "Aucun produit identifié 🤔",
+   "scan_unknown_d": "Ces liens courts ne contiennent aucune info produit : le prototype ne peut deviner qu'à partir des mots-clés du titre. La version réelle analysera l'image et l'audio de la vidéo côté serveur.",
+   "manual_ph": "Saisissez un produit, je cherche ses avis",
+   "manual_btn": "Rechercher",
+   "manual_need": "Saisissez d'abord un produit",
+   "src_cover": "Produit de la photo principale",
+   "src_mentioned": "Mentionné dans le texte",
+   "ask_title_food_fmt": "{name}, c'est bon ?",
+   "scan_ex_trader": "Exemple : texte Trader Joe's"
+  },
+  "ja": {
+   "menu_title": "何をしますか？",
+   "menu_scan": "リンクで識品",
+   "menu_discover": "近くの発見",
+   "scan_title": "リンクで識品",
+   "scan_desc": "小紅書 / Facebook / Instagram のリンク、またはシェア文まるごとを貼ってください（タイトル付きが識別しやすいです）。プロトタイプはタイトルのキーワードでみんなの評価と照合し、識別できないときは正直にお知らせします。",
+   "scan_ph": "リンク、またはシェア文まるごと貼り付け（タイトル付きが識別しやすい）",
+   "paste_btn": "貼り付け",
+   "paste_fail": "クリップボードを読めませんでした。長押しで貼り付けてください",
+   "scan_start": "識別を開始",
+   "scan_need": "まず動画リンクを貼ってね",
+   "load1": "リンクを開いています…",
+   "load2": "動画を解析中…",
+   "load3": "評価済み商品と照合中…",
+   "scan_results": "見つかった商品",
+   "src_032": "動画 0:32 で紹介",
+   "src_pick2": "投稿者のおすすめ2品目",
+   "src_105": "動画 1:05 で紹介",
+   "view_ratings": "評価を見る",
+   "ask_btn": "みんなに聞く",
+   "no_ratings": "まだ評価なし",
+   "ask_title_fmt": "{name}、おいしい？",
+   "scan_note": "プロトタイプ：現在はキーワードで照合中。本番版ではバックエンドが動画の音声と映像を解析します",
+   "disc_title": "近く",
+   "radius_all": "市内全域",
+   "disc_empty": "この範囲にはまだ投稿がありません。範囲を広げてみて",
+   "weekly_title": "今週の戦績",
+   "weekly_rates": "今週の評価",
+   "weekly_beat": "のユーザーを上回った",
+   "weekly_most": "一番多い評価",
+   "weekly_goal": "あと3件評価で今週の目標達成 💪",
+   "freq_title": "よく使う機能",
+   "fav_t": "お気に入り",
+   "hist_t": "閲覧履歴",
+   "draft_t": "下書き",
+   "follow_t": "フォロー中",
+   "draft_sub": "下書き · 未投稿、タップで編集を続ける",
+   "chal_title": "期間限定チャレンジ",
+   "chal_name": "❄️ 冬限定",
+   "chal_desc": "今週中に新商品を5つ評価",
+   "chal_reward": "報酬：限定バッジ「雪夜テイスター」",
+   "ach_rank_t": "バッジランキング",
+   "grp_privacy": "コンテンツとプライバシー",
+   "grp_support": "サポートと情報",
+   "who_see": "私の評価を見られる人",
+   "see_all": "全員",
+   "see_follow": "フォロー中の人",
+   "see_onlyme": "自分のみ",
+   "block_list": "ブロックリスト",
+   "blocked_fmt": "{n} 人をブロック中",
+   "lang_tip": "フィードの言語を変えるには、ホーム右上の 🌐 をタップ",
+   "unblock": "ブロック解除",
+   "scan_ex_text": "📄 サンプルシェア文",
+   "scan_unknown_t": "商品を識別できませんでした 🤔",
+   "scan_unknown_d": "この種の短縮リンクには商品情報が含まれていないため、プロトタイプはタイトルのキーワードから推測するしかありません。本番版ではバックエンドが動画の映像と音声を解析します。",
+   "manual_ph": "商品名を入力すると、みんなの評価を調べます",
+   "manual_btn": "検索",
+   "manual_need": "まず商品名を入力してね",
+   "src_cover": "投稿のメイン写真の商品",
+   "src_mentioned": "本文で紹介",
+   "ask_title_food_fmt": "{name}、おいしい？",
+   "scan_ex_trader": "サンプル：トレジョ新作の文"
+  },
+  "ko": {
+   "menu_title": "무엇을 할까요?",
+   "menu_scan": "링크 인식",
+   "menu_discover": "주변 발견",
+   "scan_title": "링크 인식",
+   "scan_desc": "샤오홍슈 / Facebook / Instagram 링크나 공유 문구 전체를 붙여 넣어 주세요 (제목이 있으면 더 잘 인식해요). 프로토타입은 제목 키워드로 모두의 평가와 대조하고, 인식하지 못하면 솔직히 알려 드려요.",
+   "scan_ph": "링크나 공유 문구 전체를 붙여 넣어 주세요 (제목이 있으면 더 잘 인식해요)",
+   "paste_btn": "붙여넣기",
+   "paste_fail": "클립보드를 읽지 못했어요. 길게 눌러 붙여 넣어 주세요",
+   "scan_start": "인식 시작",
+   "scan_need": "먼저 영상 링크를 붙여 넣어 주세요",
+   "load1": "링크 여는 중…",
+   "load2": "영상 분석 중…",
+   "load3": "평가된 제품과 대조 중…",
+   "scan_results": "찾은 제품",
+   "src_032": "영상 0:32에 등장",
+   "src_pick2": "크리에이터 추천 2번째",
+   "src_105": "영상 1:05에 등장",
+   "view_ratings": "평가 보기",
+   "ask_btn": "물어보기",
+   "no_ratings": "아직 평가 없음",
+   "ask_title_fmt": "{name}, 맛있어요?",
+   "scan_note": "프로토타입: 지금은 키워드로 대조 중이에요. 실제 버전은 백엔드가 영상 음성과 화면을 분석해요",
+   "disc_title": "근처",
+   "radius_all": "전 지역",
+   "disc_empty": "이 범위에는 아직 게시물이 없어요. 반경을 넓혀 보세요",
+   "weekly_title": "이번 주 전적",
+   "weekly_rates": "이번 주 평가",
+   "weekly_beat": "의 사용자를 앞질렀어요",
+   "weekly_most": "가장 많이 준 평가",
+   "weekly_goal": "3개만 더 평가하면 이번 주 목표 달성 💪",
+   "freq_title": "자주 쓰는 기능",
+   "fav_t": "내 즐겨찾기",
+   "hist_t": "방문 기록",
+   "draft_t": "임시 저장함",
+   "follow_t": "팔로잉",
+   "draft_sub": "임시 저장 · 게시 전, 눌러서 이어 쓰기",
+   "chal_title": "기간 한정 챌린지",
+   "chal_name": "❄️ 겨울 한정",
+   "chal_desc": "이번 주에 신제품 5개 평가하기",
+   "chal_reward": "보상: 한정 배지 '설야 테이스터'",
+   "ach_rank_t": "배지 랭킹",
+   "grp_privacy": "콘텐츠 및 개인정보",
+   "grp_support": "지원 및 정보",
+   "who_see": "내 평가를 볼 수 있는 사람",
+   "see_all": "모두",
+   "see_follow": "팔로잉만",
+   "see_onlyme": "나만",
+   "block_list": "차단 목록",
+   "blocked_fmt": "{n}명 차단됨",
+   "lang_tip": "피드 언어를 바꾸려면 홈 오른쪽 위 🌐를 눌러요",
+   "unblock": "차단 해제",
+   "scan_ex_text": "📄 예시 공유 문구",
+   "scan_unknown_t": "제품을 인식하지 못했어요 🤔",
+   "scan_unknown_d": "이런 단축 링크에는 제품 정보가 없어서 프로토타입은 제목 키워드로만 추측할 수 있어요. 실제 버전에서는 백엔드가 영상 화면과 음성을 분석합니다.",
+   "manual_ph": "제품명을 입력하면 모두의 평가를 찾아 드려요",
+   "manual_btn": "조회",
+   "manual_need": "먼저 제품명을 입력해 주세요",
+   "src_cover": "게시물 대표 사진 속 제품",
+   "src_mentioned": "본문에 등장",
+   "ask_title_food_fmt": "{name}, 맛있어요?",
+   "scan_ex_trader": "예시: 트레이더조 신상 문구"
+  },
+  "it": {
+   "menu_title": "Cosa vuoi fare?",
+   "menu_scan": "Riconosci da link",
+   "menu_discover": "Scopri nelle vicinanze",
+   "scan_title": "Riconosci da link",
+   "scan_desc": "Incolla un link da Xiaohongshu, Facebook o Instagram, o l'intero testo condiviso (con titolo è più facile da identificare). Il prototipo abbina le parole chiave del titolo alle valutazioni della community e ti dice onestamente quando non riconosce nulla.",
+   "scan_ph": "Incolla un link o l'intero testo condiviso (con titolo si riconosce meglio)",
+   "paste_btn": "Incolla",
+   "paste_fail": "Impossibile leggere gli appunti — premi a lungo per incollare",
+   "scan_start": "Avvia il riconoscimento",
+   "scan_need": "Prima incolla un link video",
+   "load1": "Apertura del link…",
+   "load2": "Analisi del video…",
+   "load3": "Abbinamento ai prodotti valutati…",
+   "scan_results": "Prodotti trovati",
+   "src_032": "Citato a 0:32",
+   "src_pick2": "Consiglio n. 2 del creator",
+   "src_105": "Citato a 1:05",
+   "view_ratings": "Vedi valutazioni",
+   "ask_btn": "Chiedi alla community",
+   "no_ratings": "Ancora nessuna valutazione",
+   "ask_title_fmt": "{name} è buono?",
+   "scan_note": "Prototipo: abbinamento per parole chiave; la versione reale richiede un backend che analizzi audio e immagini del video",
+   "disc_title": "Nelle vicinanze",
+   "radius_all": "Tutta la città",
+   "disc_empty": "Niente in questo raggio — allargalo un po'",
+   "weekly_title": "La tua settimana",
+   "weekly_rates": "Valutazioni",
+   "weekly_beat": "degli utenti superati",
+   "weekly_most": "Più assegnato",
+   "weekly_goal": "Altre 3 valutazioni e raggiungi l'obiettivo settimanale 💪",
+   "freq_title": "Accesso rapido",
+   "fav_t": "I miei preferiti",
+   "hist_t": "Cronologia",
+   "draft_t": "Bozze",
+   "follow_t": "Seguiti",
+   "draft_sub": "Bozza · non pubblicata, tocca per continuare",
+   "chal_title": "Sfida a tempo",
+   "chal_name": "❄️ Speciale inverno",
+   "chal_desc": "Valuta 5 nuovi prodotti questa settimana",
+   "chal_reward": "Premio: badge limitato «Assaggiatore delle nevi»",
+   "ach_rank_t": "Classifica badge",
+   "grp_privacy": "Contenuti e privacy",
+   "grp_support": "Supporto e info",
+   "who_see": "Chi può vedere le mie valutazioni",
+   "see_all": "Tutti",
+   "see_follow": "Solo chi seguo",
+   "see_onlyme": "Solo io",
+   "block_list": "Utenti bloccati",
+   "blocked_fmt": "{n} bloccati",
+   "lang_tip": "Vuoi cambiare le lingue del feed? Tocca 🌐 in alto a destra nella Home",
+   "unblock": "Sblocca",
+   "scan_ex_text": "📄 Testo condiviso di esempio",
+   "scan_unknown_t": "Nessun prodotto riconosciuto 🤔",
+   "scan_unknown_d": "Questi link brevi non contengono info sul prodotto: il prototipo può solo indovinare dalle parole chiave del titolo. La versione reale analizzerà immagini e audio del video dal backend.",
+   "manual_ph": "Scrivi un prodotto e cerco le sue valutazioni",
+   "manual_btn": "Cerca",
+   "manual_need": "Prima scrivi un prodotto",
+   "src_cover": "Prodotto della foto principale",
+   "src_mentioned": "Citato nel testo",
+   "ask_title_food_fmt": "{name} è buono?",
+   "scan_ex_trader": "Esempio: testo Trader Joe's"
+  }
+ },
+ "SCALES": {
+  "zh": {
+   "p": [
+    "屎",
+    "不好喝",
+    "一般",
+    "好喝",
+    "顶级"
+   ],
+   "e": [
+    "别去",
+    "不推荐",
+    "看情况",
+    "值得去",
+    "必冲"
+   ]
+  },
+  "en": {
+   "p": [
+    "Terrible",
+    "Bad",
+    "Meh",
+    "Good",
+    "Top tier"
+   ],
+   "e": [
+    "Skip it",
+    "Not worth it",
+    "Depends",
+    "Worth it",
+    "Must go"
+   ]
+  },
+  "es": {
+   "p": [
+    "Pésimo",
+    "Malo",
+    "Regular",
+    "Bueno",
+    "De primera"
+   ],
+   "e": [
+    "No vayas",
+    "No lo recomiendo",
+    "Depende",
+    "Vale la pena",
+    "¡Imperdible!"
+   ]
+  },
+  "fr": {
+   "p": [
+    "Nul",
+    "Mauvais",
+    "Moyen",
+    "Bon",
+    "Excellent"
+   ],
+   "e": [
+    "N'y va pas",
+    "Pas recommandé",
+    "Ça dépend",
+    "Ça vaut le coup",
+    "À ne pas manquer"
+   ]
+  },
+  "ja": {
+   "p": [
+    "最悪",
+    "まずい",
+    "まあまあ",
+    "おいしい",
+    "神レベル"
+   ],
+   "e": [
+    "行かない",
+    "おすすめしない",
+    "場合による",
+    "行く価値あり",
+    "絶対行くべき"
+   ]
+  },
+  "ko": {
+   "p": [
+    "최악",
+    "맛없어",
+    "보통",
+    "맛있어",
+    "최고"
+   ],
+   "e": [
+    "가지 마",
+    "비추천",
+    "상황 봐서",
+    "갈 만해",
+    "무조건 가야 해"
+   ]
+  },
+  "it": {
+   "p": [
+    "Pessimo",
+    "Cattivo",
+    "Nella media",
+    "Buono",
+    "Eccellente"
+   ],
+   "e": [
+    "Non andare",
+    "Sconsigliato",
+    "Dipende",
+    "Ne vale la pena",
+    "Imperdibile"
+   ]
+  }
+ },
+ "CAT_SCALES": {
+  "zh": {
+   "饮料": [
+    [
+     "👎",
+     "一口皱眉"
+    ],
+    [
+     "😖",
+     "差点意思"
+    ],
+    [
+     "😐",
+     "白开水+"
+    ],
+    [
+     "😋",
+     "好喝"
+    ],
+    [
+     "🤩",
+     "吨吨吨"
+    ]
+   ],
+   "零食": [
+    [
+     "👎",
+     "拆开后悔"
+    ],
+    [
+     "😖",
+     "就这？"
+    ],
+    [
+     "😐",
+     "解个馋"
+    ],
+    [
+     "😋",
+     "停不下来"
+    ],
+    [
+     "🤩",
+     "一包炫完"
+    ]
+   ],
+   "电子产品": [
+    [
+     "👎",
+     "到手吃灰"
+    ],
+    [
+     "😖",
+     "智商税"
+    ],
+    [
+     "😐",
+     "能用"
+    ],
+    [
+     "😄",
+     "真香"
+    ],
+    [
+     "🤩",
+     "闭眼入"
+    ]
+   ],
+   "美妆个护": [
+    [
+     "👎",
+     "拔草预警"
+    ],
+    [
+     "😖",
+     "鸡肋"
+    ],
+    [
+     "😐",
+     "无功无过"
+    ],
+    [
+     "😊",
+     "回购款"
+    ],
+    [
+     "🤩",
+     "本命"
+    ]
+   ],
+   "餐饮美食": [
+    [
+     "👎",
+     "味同嚼蜡"
+    ],
+    [
+     "😖",
+     "名不副实"
+    ],
+    [
+     "😐",
+     "填饱肚子"
+    ],
+    [
+     "😋",
+     "下饭"
+    ],
+    [
+     "🤩",
+     "排队也值"
+    ]
+   ],
+   "日用百货": [
+    [
+     "👎",
+     "闲置加一"
+    ],
+    [
+     "😖",
+     "有点拉胯"
+    ],
+    [
+     "😐",
+     "凑合"
+    ],
+    [
+     "😄",
+     "好用"
+    ],
+    [
+     "🤩",
+     "无限回购"
+    ]
+   ],
+   "生活": [
+    [
+     "🙅",
+     "去了后悔"
+    ],
+    [
+     "😒",
+     "浪费时间"
+    ],
+    [
+     "🤔",
+     "看心情"
+    ],
+    [
+     "👍",
+     "值得一去"
+    ],
+    [
+     "🚀",
+     "冲就完了"
+    ]
+   ],
+   "情感": [
+    [
+     "💔",
+     "快跑"
+    ],
+    [
+     "😒",
+     "下头"
+    ],
+    [
+     "🤔",
+     "再观察"
+    ],
+    [
+     "💗",
+     "有点心动"
+    ],
+    [
+     "😍",
+     "锁死"
+    ]
+   ],
+   "职场": [
+    [
+     "👎",
+     "想辞职了"
+    ],
+    [
+     "😖",
+     "内耗"
+    ],
+    [
+     "😐",
+     "混日子"
+    ],
+    [
+     "😄",
+     "有奔头"
+    ],
+    [
+     "🚀",
+     "前途无量"
+    ]
+   ],
+   "家庭": [
+    [
+     "🙅",
+     "能躲就躲"
+    ],
+    [
+     "😖",
+     "压力山大"
+    ],
+    [
+     "😐",
+     "例行公事"
+    ],
+    [
+     "😊",
+     "挺温馨"
+    ],
+    [
+     "🥰",
+     "治愈"
+    ]
+   ],
+   "教育": [
+    [
+     "👎",
+     "学个寂寞"
+    ],
+    [
+     "😖",
+     "催眠"
+    ],
+    [
+     "😐",
+     "中规中矩"
+    ],
+    [
+     "😄",
+     "干货满满"
+    ],
+    [
+     "🤩",
+     "听君一席"
+    ]
+   ]
+  },
+  "en": {
+   "饮料": [
+    [
+     "👎",
+     "Meme-Face Bad"
+    ],
+    [
+     "😖",
+     "Falls Short"
+    ],
+    [
+     "😐",
+     "Meh"
+    ],
+    [
+     "😋",
+     "Tasty"
+    ],
+    [
+     "🤩",
+     "Chug-worthy"
+    ]
+   ],
+   "零食": [
+    [
+     "👎",
+     "Instant Regret"
+    ],
+    [
+     "😖",
+     "That's It?"
+    ],
+    [
+     "😐",
+     "Snackable"
+    ],
+    [
+     "😋",
+     "Can't Stop"
+    ],
+    [
+     "🤩",
+     "Demolished"
+    ]
+   ],
+   "电子产品": [
+    [
+     "👎",
+     "Dust Collector"
+    ],
+    [
+     "😖",
+     "Sucker Tax"
+    ],
+    [
+     "😐",
+     "It Works"
+    ],
+    [
+     "😄",
+     "Actually Great"
+    ],
+    [
+     "🤩",
+     "No-Brainer"
+    ]
+   ],
+   "美妆个护": [
+    [
+     "👎",
+     "De-influenced"
+    ],
+    [
+     "😖",
+     "Pointless"
+    ],
+    [
+     "😐",
+     "Just Fine"
+    ],
+    [
+     "😊",
+     "Repurchase"
+    ],
+    [
+     "🤩",
+     "Holy Grail"
+    ]
+   ],
+   "餐饮美食": [
+    [
+     "👎",
+     "Like Chewing Wax"
+    ],
+    [
+     "😖",
+     "Overhyped"
+    ],
+    [
+     "😐",
+     "Fills You Up"
+    ],
+    [
+     "😋",
+     "Hits the Spot"
+    ],
+    [
+     "🤩",
+     "Worth the Line"
+    ]
+   ],
+   "日用百货": [
+    [
+     "👎",
+     "Clutter +1"
+    ],
+    [
+     "😖",
+     "Kinda Flimsy"
+    ],
+    [
+     "😐",
+     "Usable"
+    ],
+    [
+     "😄",
+     "Handy"
+    ],
+    [
+     "🤩",
+     "Restock Forever"
+    ]
+   ],
+   "生活": [
+    [
+     "🙅",
+     "Instant Regret"
+    ],
+    [
+     "😒",
+     "Waste of Time"
+    ],
+    [
+     "🤔",
+     "Depends"
+    ],
+    [
+     "👍",
+     "Worth It"
+    ],
+    [
+     "🚀",
+     "Just Go"
+    ]
+   ],
+   "情感": [
+    [
+     "💔",
+     "Run"
+    ],
+    [
+     "😒",
+     "The Ick"
+    ],
+    [
+     "🤔",
+     "Keep Watching"
+    ],
+    [
+     "💗",
+     "Butterflies"
+    ],
+    [
+     "😍",
+     "Lock It Down"
+    ]
+   ],
+   "职场": [
+    [
+     "👎",
+     "Want to Quit Already"
+    ],
+    [
+     "😖",
+     "Soul-Draining"
+    ],
+    [
+     "😐",
+     "Paycheck Mode"
+    ],
+    [
+     "😄",
+     "Promising"
+    ],
+    [
+     "🚀",
+     "Sky's the Limit"
+    ]
+   ],
+   "家庭": [
+    [
+     "🙅",
+     "Dodge If Possible"
+    ],
+    [
+     "😖",
+     "Stressful"
+    ],
+    [
+     "😐",
+     "Routine"
+    ],
+    [
+     "😊",
+     "Cozy"
+    ],
+    [
+     "🥰",
+     "Healing"
+    ]
+   ],
+   "教育": [
+    [
+     "👎",
+     "Learned a Whole Lot of Nothing"
+    ],
+    [
+     "😖",
+     "Snoozefest"
+    ],
+    [
+     "😐",
+     "By the Book"
+    ],
+    [
+     "😄",
+     "Packed With Value"
+    ],
+    [
+     "🤩",
+     "Mind-Blown"
+    ]
+   ]
+  }
+ },
+ "CATS_I18N": {
+  "推荐": {
+   "en": "For You",
+   "es": "Para ti",
+   "fr": "Pour toi",
+   "ja": "おすすめ",
+   "ko": "추천",
+   "it": "Per te"
+  },
+  "饮料": {
+   "en": "Drinks",
+   "es": "Bebidas",
+   "fr": "Boissons",
+   "ja": "ドリンク",
+   "ko": "음료",
+   "it": "Bevande"
+  },
+  "食品": {
+   "en": "Food",
+   "es": "Comida",
+   "fr": "Cuisine",
+   "ja": "食べ物",
+   "ko": "음식",
+   "it": "Cibo"
+  },
+  "事件": {
+   "en": "Events",
+   "es": "Eventos",
+   "fr": "Événements",
+   "ja": "イベント",
+   "ko": "이벤트",
+   "it": "Eventi"
+  },
+  "零食": {
+   "en": "Snacks",
+   "es": "Snacks",
+   "fr": "Collations",
+   "ja": "お菓子",
+   "ko": "간식",
+   "it": "Snack"
+  },
+  "电子产品": {
+   "en": "Electronics",
+   "es": "Electrónica",
+   "fr": "Électronique",
+   "ja": "ガジェット",
+   "ko": "전자제품",
+   "it": "Elettronica"
+  },
+  "美妆个护": {
+   "en": "Beauty & Care",
+   "es": "Belleza y cuidado",
+   "fr": "Beauté & soins",
+   "ja": "美容",
+   "ko": "뷰티",
+   "it": "Bellezza"
+  },
+  "餐饮美食": {
+   "en": "Dining",
+   "es": "Restaurantes",
+   "fr": "Restaurants",
+   "ja": "外食",
+   "ko": "맛집",
+   "it": "Ristoranti"
+  },
+  "日用百货": {
+   "en": "Daily Goods",
+   "es": "Hogar",
+   "fr": "Maison",
+   "ja": "日用品",
+   "ko": "생활용품",
+   "it": "Casa"
+  },
+  "生活": {
+   "en": "Life",
+   "es": "Vida",
+   "fr": "Vie",
+   "ja": "ライフ",
+   "ko": "생활",
+   "it": "Vita"
+  },
+  "情感": {
+   "en": "Relationships",
+   "es": "Relaciones",
+   "fr": "Relations",
+   "ja": "恋愛",
+   "ko": "연애",
+   "it": "Relazioni"
+  },
+  "职场": {
+   "en": "Career",
+   "es": "Trabajo",
+   "fr": "Carrière",
+   "ja": "仕事",
+   "ko": "직장",
+   "it": "Lavoro"
+  },
+  "家庭": {
+   "en": "Family",
+   "es": "Familia",
+   "fr": "Famille",
+   "ja": "家族",
+   "ko": "가족",
+   "it": "Famiglia"
+  },
+  "教育": {
+   "en": "Education",
+   "es": "Educación",
+   "fr": "Éducation",
+   "ja": "教育",
+   "ko": "교육",
+   "it": "Istruzione"
+  },
+  "其他": {
+   "en": "Other",
+   "es": "Otros",
+   "fr": "Autre",
+   "ja": "その他",
+   "ko": "기타",
+   "it": "Altro"
+  }
+ },
+ "LOCS": [
+  {
+   "zh": "纽约",
+   "en": "New York",
+   "es": "Nueva York",
+   "fr": "New York",
+   "ja": "ニューヨーク",
+   "ko": "뉴욕",
+   "it": "New York"
+  },
+  {
+   "zh": "洛杉矶",
+   "en": "Los Angeles",
+   "es": "Los Ángeles",
+   "fr": "Los Angeles",
+   "ja": "ロサンゼルス",
+   "ko": "로스앤젤레스",
+   "it": "Los Angeles"
+  },
+  {
+   "zh": "旧金山",
+   "en": "San Francisco",
+   "es": "San Francisco",
+   "fr": "San Francisco",
+   "ja": "サンフランシスコ",
+   "ko": "샌프란시스코",
+   "it": "San Francisco"
+  },
+  {
+   "zh": "多伦多",
+   "en": "Toronto",
+   "es": "Toronto",
+   "fr": "Toronto",
+   "ja": "トロント",
+   "ko": "토론토",
+   "it": "Toronto"
+  },
+  {
+   "zh": "温哥华",
+   "en": "Vancouver",
+   "es": "Vancouver",
+   "fr": "Vancouver",
+   "ja": "バンクーバー",
+   "ko": "밴쿠버",
+   "it": "Vancouver"
+  },
+  {
+   "zh": "北京",
+   "en": "Beijing",
+   "es": "Pekín",
+   "fr": "Pékin",
+   "ja": "北京",
+   "ko": "베이징",
+   "it": "Pechino"
+  },
+  {
+   "zh": "上海",
+   "en": "Shanghai",
+   "es": "Shanghái",
+   "fr": "Shanghai",
+   "ja": "上海",
+   "ko": "상하이",
+   "it": "Shanghai"
+  }
+ ],
+ "CONTENT_LANGS": [
+  {
+   "code": "zh",
+   "label": "中文"
+  },
+  {
+   "code": "en",
+   "label": "English"
+  },
+  {
+   "code": "es",
+   "label": "Español"
+  },
+  {
+   "code": "fr",
+   "label": "Français"
+  },
+  {
+   "code": "ja",
+   "label": "日本語"
+  },
+  {
+   "code": "ko",
+   "label": "한국어"
+  },
+  {
+   "code": "it",
+   "label": "Italiano"
+  }
+ ],
+ "EMPTY_LANG_MSG": {
+  "zh": "该语言下暂无内容，换个语言看看",
+  "en": "No posts in this language yet — try another one",
+  "es": "Aún no hay publicaciones en este idioma — prueba con otro",
+  "fr": "Aucun contenu dans cette langue pour le moment — essayez-en une autre",
+  "ja": "この言語の投稿はまだありません。他の言語も見てみてください",
+  "ko": "이 언어의 게시물이 아직 없어요. 다른 언어를 선택해 보세요",
+  "it": "Nessun contenuto in questa lingua — provane un'altra"
+ },
+ "posts": [
+  {
+   "id": 1,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "zh",
+   "title": "樱花白桃味可乐（新口味）",
+   "desc": "超市上新，粉色罐子，樱花+白桃味。有人喝过吗，值不值得买？",
+   "avatar": "🧋",
+   "author": "奶茶去冰三分糖",
+   "time": "2小时前",
+   "emoji": "🌸",
+   "grad": "linear-gradient(135deg,#FFD6E8,#FF9EC6)",
+   "blind": true,
+   "dist": [
+    12,
+    28,
+    70,
+    140,
+    114
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍑",
+     "name": "桃子爱好者",
+     "tier": 4,
+     "text": "白桃味很自然，气泡足，冰镇后封神",
+     "likes": 86
+    },
+    {
+     "avatar": "🍗",
+     "name": "炸鸡搭档",
+     "tier": 3,
+     "text": "有点甜，适合配炸鸡",
+     "likes": 34
+    },
+    {
+     "avatar": "🌸",
+     "name": "樱花控",
+     "tier": 2,
+     "text": "樱花味基本喝不出来",
+     "likes": 19
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "type": "product",
+   "cat": "零食",
+   "lang": "zh",
+   "title": "螺蛳粉味薯片",
+   "desc": "联名款，打开一股酸笋味。是猎奇还是真香？",
+   "avatar": "🍜",
+   "author": "干饭第一人",
+   "time": "5小时前",
+   "emoji": "🍜",
+   "grad": "linear-gradient(135deg,#E9F99D,#A9E34B)",
+   "blind": false,
+   "dist": [
+    180,
+    120,
+    80,
+    40,
+    22
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "😖",
+     "name": "鼻子先投降",
+     "tier": 0,
+     "text": "打开包装全宿舍都醒了，味道直冲天灵盖",
+     "likes": 152
+    },
+    {
+     "avatar": "😐",
+     "name": "猎奇体验家",
+     "tier": 2,
+     "text": "第一口想吐，第三口……居然有点上头",
+     "likes": 67
+    },
+    {
+     "avatar": "🤧",
+     "name": "酸笋受害者",
+     "tier": 1,
+     "text": "酸笋味在嘴里留了三个小时",
+     "likes": 45
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "type": "event",
+   "cat": "教育",
+   "lang": "zh",
+   "title": "周五早八的课，教授点名，到底去不去？",
+   "desc": "昨晚赶 due 到 3 点，今早 8 点高数课，教授每周点名。去还是继续睡？",
+   "avatar": "😴",
+   "author": "早八苦命人",
+   "time": "8小时前",
+   "emoji": "🏫",
+   "grad": "linear-gradient(135deg,#A5D8FF,#74C0FC)",
+   "blind": false,
+   "dist": [
+    10,
+    22,
+    40,
+    55,
+    45
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🎓",
+     "name": "绩点战士",
+     "tier": 4,
+     "text": "点名扣平时分，闭着眼也要爬过去签到",
+     "likes": 58
+    },
+    {
+     "avatar": "🛏️",
+     "name": "被窝哲学家",
+     "tier": 2,
+     "text": "看你离挂科还有多远，安全就睡",
+     "likes": 41
+    },
+    {
+     "avatar": "⏰",
+     "name": "早八幸存者",
+     "tier": 3,
+     "text": "去吧，坐最后一排补觉，两全其美",
+     "likes": 73
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "zh",
+   "title": "0糖乌龙茶气泡水",
+   "desc": "便利店新品，0糖0卡，乌龙茶底+气泡。小众但好喝？",
+   "avatar": "🫧",
+   "author": "气泡水收集者",
+   "time": "1天前",
+   "emoji": "🍵",
+   "grad": "linear-gradient(135deg,#B2F2BB,#63E6BE)",
+   "blind": false,
+   "dist": [
+    4,
+    8,
+    22,
+    60,
+    96
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍵",
+     "name": "茶味雷达",
+     "tier": 4,
+     "text": "茶香是真的，气泡绵密，回购第三箱了",
+     "likes": 92
+    },
+    {
+     "avatar": "😋",
+     "name": "戒糖中",
+     "tier": 3,
+     "text": "没负担，配火锅解腻一绝",
+     "likes": 47
+    },
+    {
+     "avatar": "😐",
+     "name": "甜党本党",
+     "tier": 2,
+     "text": "好喝但对我来说太淡了",
+     "likes": 12
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "type": "product",
+   "cat": "餐饮美食",
+   "lang": "zh",
+   "title": "食堂新出的黄焖鸡",
+   "desc": "二楼新窗口，15 块一份。分量还行，味道呢？",
+   "avatar": "🍗",
+   "author": "食堂干饭王",
+   "time": "1天前",
+   "emoji": "🍗",
+   "grad": "linear-gradient(135deg,#FFD8A8,#FFA94D)",
+   "blind": false,
+   "dist": [
+    20,
+    35,
+    80,
+    45,
+    23
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍚",
+     "name": "米饭杀手",
+     "tier": 2,
+     "text": "酱汁下饭，但鸡肉有点柴",
+     "likes": 28
+    },
+    {
+     "avatar": "😐",
+     "name": "二楼常客",
+     "tier": 1,
+     "text": "土豆比鸡多，性价比一般",
+     "likes": 35
+    },
+    {
+     "avatar": "😋",
+     "name": "辣味爱好者",
+     "tier": 3,
+     "text": "加辣版可以，能吃出锅气",
+     "likes": 21
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "type": "event",
+   "cat": "职场",
+   "lang": "zh",
+   "title": "部门团建去密室逃脱，AA 128，值吗？",
+   "desc": "周六下午，6 人本，AA 128/人。跟不太熟的同事去，尴尬吗？",
+   "avatar": "💼",
+   "author": "打工人小王",
+   "time": "2天前",
+   "emoji": "🔐",
+   "grad": "linear-gradient(135deg,#D0BFFF,#9775FA)",
+   "blind": false,
+   "dist": [
+    6,
+    10,
+    25,
+    60,
+    80
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🔐",
+     "name": "密室老玩家",
+     "tier": 4,
+     "text": "这个本口碑很好，同事破冰神器，冲",
+     "likes": 64
+    },
+    {
+     "avatar": "👍",
+     "name": "团建幸存者",
+     "tier": 3,
+     "text": "比聚餐唱歌强多了，至少不用敬酒",
+     "likes": 39
+    },
+    {
+     "avatar": "🤔",
+     "name": "社恐本恐",
+     "tier": 2,
+     "text": "值是值，但社恐要做好心理建设",
+     "likes": 26
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "en",
+   "title": "New Monster Ultra Peachy Keen — any good?",
+   "desc": "Spotted it at Target — zero sugar peach energy drink. Worth grabbing a whole case?",
+   "avatar": "⚡",
+   "author": "EnergyDrinkHunter",
+   "time": "3 hours ago",
+   "emoji": "⚡",
+   "grad": "linear-gradient(135deg,#B197FC,#22B8CF)",
+   "blind": false,
+   "dist": [
+    6,
+    10,
+    30,
+    70,
+    60
+   ],
+   "img": null,
+   "loc": "洛杉矶",
+   "comments": [
+    {
+     "avatar": "🍑",
+     "name": "PeachRingFan",
+     "tier": 3,
+     "text": "Tastes like peach rings, solid 4/5",
+     "likes": 41
+    },
+    {
+     "avatar": "🥤",
+     "name": "CaffeineCritic",
+     "tier": 4,
+     "text": "Best Ultra flavor in years, no weird aftertaste",
+     "likes": 58
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "es",
+   "title": "¿El nuevo sabor Coca-Cola Cherry Vainilla vale la pena?",
+   "desc": "La vi en el súper: lata roja, cereza y vainilla. ¿Alguien ya la probó?",
+   "avatar": "🍒",
+   "author": "CazaSabores",
+   "time": "hace 4 horas",
+   "emoji": "🍒",
+   "grad": "linear-gradient(135deg,#F06595,#9775FA)",
+   "blind": false,
+   "dist": [
+    8,
+    14,
+    32,
+    66,
+    58
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍒",
+     "name": "FanDeLaCereza",
+     "tier": 3,
+     "text": "Sabe a cereza de verdad, muy buena fría",
+     "likes": 47
+    },
+    {
+     "avatar": "🥤",
+     "name": "ProbadorMX",
+     "tier": 4,
+     "text": "La vainilla le da un toque cremoso, de las mejores ediciones",
+     "likes": 63
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "ja",
+   "title": "新発売の桜味コーラ、美味しい？",
+   "desc": "コンビニで見つけた新作。桜＋白桃味らしいけど、実際どうなの？",
+   "avatar": "🌸",
+   "author": "新作ハンター",
+   "time": "5時間前",
+   "emoji": "🌸",
+   "grad": "linear-gradient(135deg,#FFD6E8,#FFA8C5)",
+   "blind": false,
+   "dist": [
+    5,
+    9,
+    26,
+    64,
+    52
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🌸",
+     "name": "桜好き",
+     "tier": 3,
+     "text": "桃の香りが自然で美味しい",
+     "likes": 52
+    },
+    {
+     "avatar": "🍑",
+     "name": "味覚レビュアー",
+     "tier": 2,
+     "text": "桜味はほぼしないかな",
+     "likes": 23
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "type": "product",
+   "cat": "餐饮美食",
+   "lang": "zh",
+   "title": "街角新开的塔可车，排队值吗？",
+   "desc": "楼下街角新停的塔可餐车，中午排队 20 分钟。玉米饼现做，到底值不值得排？",
+   "avatar": "🌮",
+   "author": "TacoDaily",
+   "time": "1小时前",
+   "emoji": "🌮",
+   "grad": "linear-gradient(135deg,#FFE8CC,#FFA94D)",
+   "blind": false,
+   "dist": [
+    8,
+    15,
+    40,
+    55,
+    30
+   ],
+   "img": null,
+   "loc": "纽约",
+   "comments": [
+    {
+     "avatar": "🌮",
+     "name": "塔可猎人",
+     "tier": 3,
+     "text": "饼是现压的，莎莎酱够辣，排 20 分钟可以接受",
+     "likes": 38
+    },
+    {
+     "avatar": "😐",
+     "name": "午休战士",
+     "tier": 2,
+     "text": "味道不错但出餐慢，午休时间紧的慎排",
+     "likes": 21
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "type": "event",
+   "cat": "生活",
+   "lang": "zh",
+   "title": "社区免费瑜伽课，有人去过吗？",
+   "desc": "社区中心每周六上午的免费瑜伽课，器械自带瑜伽垫就行。氛围怎么样，新手友好吗？",
+   "avatar": "🧘",
+   "author": "YogaWithMe",
+   "time": "3小时前",
+   "emoji": "🧘",
+   "grad": "linear-gradient(135deg,#D3F9D8,#8CE99A)",
+   "blind": false,
+   "dist": [
+    3,
+    6,
+    20,
+    48,
+    40
+   ],
+   "img": null,
+   "loc": "纽约",
+   "comments": [
+    {
+     "avatar": "🧘",
+     "name": "拉伸爱好者",
+     "tier": 4,
+     "text": "老师会照顾新手，课后还有花草茶，宝藏活动",
+     "likes": 44
+    },
+    {
+     "avatar": "👍",
+     "name": "周六早起人",
+     "tier": 3,
+     "text": "人不多，强度适中，值得去试一次",
+     "likes": 19
+    }
+   ]
+  }
+ ],
+ "RANK": {
+  "饮料": {
+   "best": [
+    [
+     "蜜桃乌龙气泡水",
+     4.8
+    ],
+    [
+     "白桃味可乐",
+     4.7
+    ],
+    [
+     "0糖茉莉花茶",
+     4.6
+    ],
+    [
+     "椰青冰美式",
+     4.6
+    ],
+    [
+     "葡萄味养乐多",
+     4.5
+    ],
+    [
+     "咸柠七喜",
+     4.5
+    ],
+    [
+     "桂花酒酿奶茶",
+     4.4
+    ],
+    [
+     "西瓜薄荷气泡水",
+     4.4
+    ],
+    [
+     "冻柠茶·去冰半糖",
+     4.3
+    ],
+    [
+     "杨枝甘露气泡饮",
+     4.3
+    ],
+    [
+     "青提乌龙茶",
+     4.2
+    ],
+    [
+     "冰镇酸梅汤",
+     4.2
+    ],
+    [
+     "荔枝海盐气泡水",
+     4.1
+    ],
+    [
+     "多肉葡萄茶",
+     4.1
+    ],
+    [
+     "柠檬红茶·无糖",
+     4
+    ],
+    [
+     "蜜瓜牛奶",
+     4
+    ],
+    [
+     "百香果绿茶",
+     3.9
+    ],
+    [
+     "黑咖啡气泡水",
+     3.9
+    ],
+    [
+     "柚子蜂蜜茶",
+     3.8
+    ],
+    [
+     "经典可乐·冰镇",
+     3.8
+    ]
+   ],
+   "worst": [
+    [
+     "折耳根味汽水",
+     1.2
+    ],
+    [
+     "香菜味可乐",
+     1.3
+    ],
+    [
+     "螺蛳粉味奶茶",
+     1.4
+    ],
+    [
+     "鲱鱼罐头味苏打",
+     1.5
+    ],
+    [
+     "中药味功能饮料",
+     1.6
+    ],
+    [
+     "榴莲味优酸乳",
+     1.7
+    ],
+    [
+     "芥末味气泡水",
+     1.8
+    ],
+    [
+     "臭豆腐味豆奶",
+     1.8
+    ],
+    [
+     "皮蛋味拿铁",
+     1.9
+    ],
+    [
+     "大蒜味可乐",
+     1.9
+    ],
+    [
+     "苦瓜汁·无糖",
+     2
+    ],
+    [
+     "醋味冰红茶",
+     2
+    ],
+    [
+     "海鲜味椰子水",
+     2.1
+    ],
+    [
+     "烟熏味乌龙茶",
+     2.1
+    ],
+    [
+     "姜汁可乐·热饮",
+     2.2
+    ],
+    [
+     "咸蛋黄味奶茶",
+     2.2
+    ],
+    [
+     "辣条味芬达",
+     2.3
+    ],
+    [
+     "豆汁味酸奶",
+     2.3
+    ],
+    [
+     "藿香正气水味茶",
+     2.4
+    ],
+    [
+     "薄荷味热可可",
+     2.4
+    ]
+   ]
+  },
+  "食品": {
+   "best": [
+    [
+     "黄焖鸡米饭·校门口",
+     4.7
+    ],
+    [
+     "螺蛳粉·加臭加辣",
+     4.6
+    ],
+    [
+     "烤冷面·双蛋双肠",
+     4.5
+    ],
+    [
+     "东北大拉皮",
+     4.5
+    ],
+    [
+     "炸鸡架·铁板",
+     4.4
+    ],
+    [
+     "煎饼果子·薄脆",
+     4.4
+    ],
+    [
+     "牛肉板面·宽",
+     4.3
+    ],
+    [
+     "肉夹馍·纯瘦",
+     4.3
+    ],
+    [
+     "过桥米线",
+     4.2
+    ],
+    [
+     "热干面·加蛋",
+     4.2
+    ],
+    [
+     "肠粉·牛肉",
+     4.1
+    ],
+    [
+     "生煎包·底脆",
+     4.1
+    ],
+    [
+     "钵钵鸡·藤椒",
+     4
+    ],
+    [
+     "狼牙土豆",
+     4
+    ],
+    [
+     "烤面筋·微辣",
+     3.9
+    ],
+    [
+     "章鱼小丸子",
+     3.9
+    ],
+    [
+     "关东煮",
+     3.8
+    ],
+    [
+     "手抓饼·加里脊",
+     3.8
+    ],
+    [
+     "鸡蛋灌饼",
+     3.7
+    ],
+    [
+     "豆浆油条·现炸",
+     3.7
+    ]
+   ],
+   "worst": [
+    [
+     "草莓炒肉",
+     1.3
+    ],
+    [
+     "西红柿炒月饼",
+     1.4
+    ],
+    [
+     "预制菜黄焖鸡",
+     1.5
+    ],
+    [
+     "香菜味薯片",
+     1.6
+    ],
+    [
+     "隔夜寿司拼盘",
+     1.7
+    ],
+    [
+     "无糖五仁月饼",
+     1.8
+    ],
+    [
+     "榴莲味披萨",
+     1.8
+    ],
+    [
+     "鲱鱼味薯条",
+     1.9
+    ],
+    [
+     "苦瓜炒榴莲",
+     1.9
+    ],
+    [
+     "水煮鸡胸·白人饭",
+     2
+    ],
+    [
+     "压缩饼干·原味",
+     2
+    ],
+    [
+     "方便面·无调料包",
+     2.1
+    ],
+    [
+     "速冻饺子·皮厚",
+     2.1
+    ],
+    [
+     "清汤麻辣烫",
+     2.2
+    ],
+    [
+     "微波汉堡·冷心",
+     2.2
+    ],
+    [
+     "自热火锅·夹生",
+     2.3
+    ],
+    [
+     "代餐奶昔·抹茶",
+     2.3
+    ],
+    [
+     "水煮减脂餐",
+     2.4
+    ],
+    [
+     "全麦面包·干硬",
+     2.4
+    ],
+    [
+     "黑暗料理拼盘",
+     2.5
+    ]
+   ]
+  },
+  "事件": {
+   "best": [
+    [
+     "周五晚《星际穿越》重映",
+     4.9
+    ],
+    [
+     "校园音乐节·免费",
+     4.8
+    ],
+    [
+     "部门团建·密室逃脱",
+     4.7
+    ],
+    [
+     "周末市集·手作",
+     4.6
+    ],
+    [
+     "脱口秀开放麦",
+     4.6
+    ],
+    [
+     "公司年会·抽奖",
+     4.5
+    ],
+    [
+     "朋友婚礼",
+     4.5
+    ],
+    [
+     "漫展",
+     4.4
+    ],
+    [
+     "livehouse·独立乐队",
+     4.4
+    ],
+    [
+     "天文馆夜场",
+     4.3
+    ],
+    [
+     "话剧《恋爱的犀牛》",
+     4.3
+    ],
+    [
+     "城市骑行·夜骑",
+     4.2
+    ],
+    [
+     "陶艺体验课",
+     4.2
+    ],
+    [
+     "剧本杀·新本首发",
+     4.1
+    ],
+    [
+     "美术馆特展",
+     4.1
+    ],
+    [
+     "围炉煮茶·轰趴",
+     4
+    ],
+    [
+     "羽毛球约球",
+     4
+    ],
+    [
+     "读书会·科幻专场",
+     3.9
+    ],
+    [
+     "流浪猫救助志愿者",
+     3.9
+    ],
+    [
+     "早市 citywalk",
+     3.8
+    ]
+   ],
+   "worst": [
+    [
+     "周一早八·高数",
+     1.2
+    ],
+    [
+     "部门周报会·2小时",
+     1.3
+    ],
+    [
+     "相亲角·被围观",
+     1.4
+    ],
+    [
+     "团建·爬山AA",
+     1.5
+    ],
+    [
+     "早高峰地铁",
+     1.6
+    ],
+    [
+     "排队3小时网红店",
+     1.7
+    ],
+    [
+     "线上会议·开摄像头",
+     1.8
+    ],
+    [
+     "同学聚会·比工资",
+     1.8
+    ],
+    [
+     "加班·改第8版",
+     1.9
+    ],
+    [
+     "驾校科目二·烈日",
+     1.9
+    ],
+    [
+     "医院体检·空腹",
+     2
+    ],
+    [
+     "搬家·没电梯",
+     2
+    ],
+    [
+     "4S店保养·被推销",
+     2.1
+    ],
+    [
+     "物业开会·催费",
+     2.1
+    ],
+    [
+     "健身房销售围堵",
+     2.2
+    ],
+    [
+     "理发·托尼忽悠",
+     2.2
+    ],
+    [
+     "景区人挤人",
+     2.3
+    ],
+    [
+     "深夜被叫修bug",
+     2.3
+    ],
+    [
+     "早起赶飞机·延误",
+     2.4
+    ],
+    [
+     "线上团建·破冰",
+     2.4
+    ]
+   ]
+  }
+ },
+ "POOLS": {
+  "zh": {
+   "good": [
+    "这个是真的顶，闭眼入",
+    "回购三次了，稳定发挥",
+    "超出预期，好评"
+   ],
+   "bad": [
+    "谁买谁上当",
+    "一口就想扔，避雷",
+    "名不副实，失望"
+   ],
+   "mid": [
+    "中规中矩吧",
+    "看个人口味",
+    "价格合适可以试试"
+   ],
+   "names": [
+    "路人甲",
+    "干饭人",
+    "资深踩雷员",
+    "回头客",
+    "挑剔本剔",
+    "老饕本饕"
+   ],
+   "avatars": [
+    "🧑",
+    "🍚",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "👅"
+   ]
+  },
+  "en": {
+   "good": [
+    "Genuinely top tier, no-brainer buy",
+    "Bought it three times, consistently great",
+    "Way better than expected"
+   ],
+   "bad": [
+    "Total trap, avoid",
+    "One bite and I wanted to toss it",
+    "All hype, very disappointing"
+   ],
+   "mid": [
+    "Perfectly average",
+    "Depends on your taste",
+    "Worth it when it's on sale"
+   ],
+   "names": [
+    "Passerby",
+    "FoodiePro",
+    "SerialSnacker",
+    "RegularJoe",
+    "PickyEater",
+    "BrunchFan"
+   ],
+   "avatars": [
+    "🧑",
+    "🍔",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🥐"
+   ]
+  },
+  "es": {
+   "good": [
+    "De verdad es de primera, cómpralo sin pensar",
+    "Lo he comprado tres veces, siempre bueno",
+    "Superó mis expectativas"
+   ],
+   "bad": [
+    "Quien lo compra, se arrepiente",
+    "Un bocado y a la basura, evítalo",
+    "Puro humo, decepcionante"
+   ],
+   "mid": [
+    "Normalito, sin más",
+    "Depende de gustos",
+    "Con buen precio, vale la pena"
+   ],
+   "names": [
+    "UnTranseúnte",
+    "ComelónMX",
+    "CazadorDeOfertas",
+    "ClienteFiel",
+    "PaladarFino",
+    "ProbadorMX"
+   ],
+   "avatars": [
+    "🧑",
+    "🌮",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🥤"
+   ]
+  },
+  "fr": {
+   "good": [
+    "Vraiment excellent, foncez",
+    "Acheté trois fois, toujours au top",
+    "Bien au-delà de mes attentes"
+   ],
+   "bad": [
+    "Un piège, à éviter",
+    "Une bouchée et j'ai voulu le jeter",
+    "Que du marketing, décevant"
+   ],
+   "mid": [
+    "Correct, sans plus",
+    "Question de goût",
+    "À essayer en promo"
+   ],
+   "names": [
+    "UnPassant",
+    "GourmetDuCoin",
+    "ClientFidèle",
+    "CritiqueEnHerbe",
+    "FineBouche",
+    "Habitué"
+   ],
+   "avatars": [
+    "🧑",
+    "🥐",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍷"
+   ]
+  },
+  "ja": {
+   "good": [
+    "本当に神レベル、即買い",
+    "3回買ったけど安定して美味しい",
+    "期待以上だった"
+   ],
+   "bad": [
+    "買ったら後悔するやつ",
+    "一口で無理だった、地雷",
+    "宣伝負け、がっかり"
+   ],
+   "mid": [
+    "普通に及第点",
+    "好みによるかな",
+    "安いなら試す価値あり"
+   ],
+   "names": [
+    "通りすがり",
+    "食いしん坊",
+    "地雷ハンター",
+    "常連さん",
+    "味にうるさい人",
+    "新作チェッカー"
+   ],
+   "avatars": [
+    "🧑",
+    "🍙",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🌸"
+   ]
+  },
+  "ko": {
+   "good": [
+    "진짜 최고예요, 고민 말고 사세요",
+    "세 번 샀는데 늘 맛있어요",
+    "기대 이상이었어요"
+   ],
+   "bad": [
+    "사면 후회해요",
+    "한 입 먹고 버렸어요, 지뢰예요",
+    "광고빨, 실망이에요"
+   ],
+   "mid": [
+    "무난해요",
+    "취향 탈 것 같아요",
+    "세일하면 살 만해요"
+   ],
+   "names": [
+    "지나가던사람",
+    "먹방러",
+    "지뢰탐지견",
+    "단골손님",
+    "까다로운입맛",
+    "신상헌터"
+   ],
+   "avatars": [
+    "🧑",
+    "🍚",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍜"
+   ]
+  },
+  "it": {
+   "good": [
+    "Davvero eccellente, compralo a occhi chiusi",
+    "Comprato tre volte, sempre ottimo",
+    "Molto meglio del previsto"
+   ],
+   "bad": [
+    "Chi lo compra se ne pente",
+    "Un morso e volevo buttarlo, evitatelo",
+    "Tutto marketing, deludente"
+   ],
+   "mid": [
+    "Nella media, senza infamia",
+    "Dipende dai gusti",
+    "In offerta vale la pena"
+   ],
+   "names": [
+    "UnPassante",
+    "Buongustaio",
+    "CacciatoreDiOfferte",
+    "ClienteFedele",
+    "PalatoFine",
+    "Assaggiatore"
+   ],
+   "avatars": [
+    "🧑",
+    "🍝",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍕"
+   ]
+  }
+ },
+ "BADGES": [
+  {
+   "icon": "🏅",
+   "unlocked": true,
+   "time": "2026-09-02",
+   "name": {
+    "zh": "金舌头·连续30天",
+    "en": "Golden Tongue · 30-day streak",
+    "es": "Paladar de oro · 30 días",
+    "fr": "Palais d'or · 30 jours",
+    "ja": "金の舌・30日連続",
+    "ko": "황금 혀 · 30일 연속",
+    "it": "Palato d'oro · 30 giorni"
+   },
+   "desc": {
+    "zh": "连续 30 天每天评价，且与共识高度一致",
+    "en": "Rated daily for 30 days, closely matching consensus"
+   },
+   "cond": {
+    "zh": "连续 30 天评价不断档",
+    "en": "Rate every day for 30 days"
+   }
+  },
+  {
+   "icon": "🎖️",
+   "unlocked": true,
+   "time": "2026-08-14",
+   "name": {
+    "zh": "早鸟品鉴师",
+    "en": "Early Taster",
+    "es": "Catador madrugador",
+    "fr": "Dégustateur matinal",
+    "ja": "早鳥テイスター",
+    "ko": "얼리버드 테이스터",
+    "it": "Assaggiatore mattiniero"
+   },
+   "desc": {
+    "zh": "总在第一时间评新内容，眼光独到",
+    "en": "Always among the first to rate new posts"
+   },
+   "cond": {
+    "zh": "抢到 10 次首评",
+    "en": "Be first to rate 10 posts"
+   }
+  },
+  {
+   "icon": "🛡️",
+   "unlocked": true,
+   "time": "2026-09-21",
+   "name": {
+    "zh": "避雷达人",
+    "en": "Flop Spotter",
+    "es": "Cazador de fiascos",
+    "fr": "Chasseur de flops",
+    "ja": "地雷ハンター",
+    "ko": "지뢰 탐지 전문가",
+    "it": "Cacciatore di flop"
+   },
+   "desc": {
+    "zh": "成功帮大家避开了多次踩雷",
+    "en": "Helped everyone dodge flops again and again"
+   },
+   "cond": {
+    "zh": "10 次提前预警低分内容",
+    "en": "Flag 10 low-rated posts early"
+   }
+  },
+  {
+   "icon": "🌱",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "初露锋芒",
+    "en": "First Steps",
+    "es": "Primeros pasos",
+    "fr": "Premiers pas",
+    "ja": "初投稿",
+    "ko": "첫 발자국",
+    "it": "Primi passi"
+   },
+   "desc": {
+    "zh": "迈出第一步，把纠结分享给大家",
+    "en": "Take the first step and share your dilemma"
+   },
+   "cond": {
+    "zh": "发布第 1 条内容",
+    "en": "Post your first piece of content"
+   }
+  },
+  {
+   "icon": "🗣️",
+   "unlocked": false,
+   "cur": 6,
+   "total": 10,
+   "name": {
+    "zh": "评论家",
+    "en": "The Critic",
+    "es": "El crítico",
+    "fr": "Le critique",
+    "ja": "評論家",
+    "ko": "평론가",
+    "it": "Il critico"
+   },
+   "desc": {
+    "zh": "不只打分，还认真说理由",
+    "en": "More than scores — real reasons"
+   },
+   "cond": {
+    "zh": "累计写 10 条文字评价",
+    "en": "Write 10 text ratings"
+   }
+  },
+  {
+   "icon": "🎯",
+   "unlocked": false,
+   "cur": 4,
+   "total": 10,
+   "name": {
+    "zh": "神预言",
+    "en": "The Prophet",
+    "es": "El profeta",
+    "fr": "Le prophète",
+    "ja": "神予想",
+    "ko": "신예언가",
+    "it": "Il profeta"
+   },
+   "desc": {
+    "zh": "你的口味和大众出奇地一致",
+    "en": "Your taste matches the crowd uncannily"
+   },
+   "cond": {
+    "zh": "10 次评价与最终均分差 <0.3",
+    "en": "10 ratings within 0.3 of the final average"
+   }
+  },
+  {
+   "icon": "🌙",
+   "unlocked": false,
+   "cur": 2,
+   "total": 5,
+   "name": {
+    "zh": "夜猫子",
+    "en": "Night Owl",
+    "es": "Búho nocturno",
+    "fr": "Oiseau de nuit",
+    "ja": "夜ふかし",
+    "ko": "올빼미",
+    "it": "Nottambulo"
+   },
+   "desc": {
+    "zh": "深夜的评价，格外真诚",
+    "en": "Late-night ratings hit different"
+   },
+   "cond": {
+    "zh": "在 0–5 点评价 5 次",
+    "en": "Rate 5 times between midnight and 5am"
+   }
+  },
+  {
+   "icon": "🔥",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "热榜制造机",
+    "en": "Chart Maker",
+    "es": "Creador de éxitos",
+    "fr": "Faiseur de classements",
+    "ja": "バズメーカー",
+    "ko": "랭킹 제조기",
+    "it": "Re delle classifiche"
+   },
+   "desc": {
+    "zh": "你发布的内容自带流量",
+    "en": "Your posts draw a crowd"
+   },
+   "cond": {
+    "zh": "发布的内容进入月榜 Top20",
+    "en": "Get a post into the Monthly Top 20"
+   }
+  },
+  {
+   "icon": "💎",
+   "unlocked": false,
+   "cur": 92,
+   "total": 95,
+   "name": {
+    "zh": "钻石评审",
+    "en": "Diamond Judge",
+    "es": "Juez diamante",
+    "fr": "Juge diamant",
+    "ja": "ダイヤモンド審査員",
+    "ko": "다이아몬드 심사위원",
+    "it": "Giudice diamante"
+   },
+   "desc": {
+    "zh": "社区最受信赖的评审之一",
+    "en": "One of the community's most trusted judges"
+   },
+   "cond": {
+    "zh": "信誉分达到 95",
+    "en": "Reach 95 reputation"
+   }
+  },
+  {
+   "icon": "📝",
+   "unlocked": false,
+   "cur": 2,
+   "total": 5,
+   "name": {
+    "zh": "长评家",
+    "en": "Long-form Critic",
+    "es": "Crítico de fondo",
+    "fr": "Critique au long cours",
+    "ja": "長文レビュアー",
+    "ko": "장문 평론가",
+    "it": "Critico prolisso"
+   },
+   "desc": {
+    "zh": "每条长评都值得细读",
+    "en": "Every long review is worth reading closely"
+   },
+   "cond": {
+    "zh": "写出 5 条 50 字以上长评",
+    "en": "Write 5 reviews of 50+ characters"
+   }
+  },
+  {
+   "icon": "👑",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "月榜冠军",
+    "en": "Monthly Champion",
+    "es": "Campeón del mes",
+    "fr": "Champion du mois",
+    "ja": "月間チャンピオン",
+    "ko": "월간 챔피언",
+    "it": "Campione del mese"
+   },
+   "desc": {
+    "zh": "站上月榜之巅",
+    "en": "Reach the very top of the monthly chart"
+   },
+   "cond": {
+    "zh": "内容登顶月榜第 1",
+    "en": "Top the monthly chart at #1"
+   }
+  }
+ ]
+}

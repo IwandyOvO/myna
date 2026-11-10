@@ -1,0 +1,1525 @@
+{
+ "posts": [
+  {
+   "id": 1,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "zh",
+   "title": "樱花白桃味可乐（新口味）",
+   "desc": "超市上新，粉色罐子，樱花+白桃味。有人喝过吗，值不值得买？",
+   "avatar": "🧋",
+   "author": "奶茶去冰三分糖",
+   "time": "2小时前",
+   "emoji": "🌸",
+   "grad": "linear-gradient(135deg,#FFD6E8,#FF9EC6)",
+   "blind": true,
+   "dist": [
+    12,
+    28,
+    70,
+    140,
+    114
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍑",
+     "name": "桃子爱好者",
+     "tier": 4,
+     "text": "白桃味很自然，气泡足，冰镇后封神",
+     "likes": 86
+    },
+    {
+     "avatar": "🍗",
+     "name": "炸鸡搭档",
+     "tier": 3,
+     "text": "有点甜，适合配炸鸡",
+     "likes": 34
+    },
+    {
+     "avatar": "🌸",
+     "name": "樱花控",
+     "tier": 2,
+     "text": "樱花味基本喝不出来",
+     "likes": 19
+    }
+   ]
+  },
+  {
+   "id": 2,
+   "type": "product",
+   "cat": "零食",
+   "lang": "zh",
+   "title": "螺蛳粉味薯片",
+   "desc": "联名款，打开一股酸笋味。是猎奇还是真香？",
+   "avatar": "🍜",
+   "author": "干饭第一人",
+   "time": "5小时前",
+   "emoji": "🍜",
+   "grad": "linear-gradient(135deg,#E9F99D,#A9E34B)",
+   "blind": false,
+   "dist": [
+    180,
+    120,
+    80,
+    40,
+    22
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "😖",
+     "name": "鼻子先投降",
+     "tier": 0,
+     "text": "打开包装全宿舍都醒了，味道直冲天灵盖",
+     "likes": 152
+    },
+    {
+     "avatar": "😐",
+     "name": "猎奇体验家",
+     "tier": 2,
+     "text": "第一口想吐，第三口……居然有点上头",
+     "likes": 67
+    },
+    {
+     "avatar": "🤧",
+     "name": "酸笋受害者",
+     "tier": 1,
+     "text": "酸笋味在嘴里留了三个小时",
+     "likes": 45
+    }
+   ]
+  },
+  {
+   "id": 3,
+   "type": "event",
+   "cat": "教育",
+   "lang": "zh",
+   "title": "周五早八的课，教授点名，到底去不去？",
+   "desc": "昨晚赶 due 到 3 点，今早 8 点高数课，教授每周点名。去还是继续睡？",
+   "avatar": "😴",
+   "author": "早八苦命人",
+   "time": "8小时前",
+   "emoji": "🏫",
+   "grad": "linear-gradient(135deg,#A5D8FF,#74C0FC)",
+   "blind": false,
+   "dist": [
+    10,
+    22,
+    40,
+    55,
+    45
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🎓",
+     "name": "绩点战士",
+     "tier": 4,
+     "text": "点名扣平时分，闭着眼也要爬过去签到",
+     "likes": 58
+    },
+    {
+     "avatar": "🛏️",
+     "name": "被窝哲学家",
+     "tier": 2,
+     "text": "看你离挂科还有多远，安全就睡",
+     "likes": 41
+    },
+    {
+     "avatar": "⏰",
+     "name": "早八幸存者",
+     "tier": 3,
+     "text": "去吧，坐最后一排补觉，两全其美",
+     "likes": 73
+    }
+   ]
+  },
+  {
+   "id": 4,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "zh",
+   "title": "0糖乌龙茶气泡水",
+   "desc": "便利店新品，0糖0卡，乌龙茶底+气泡。小众但好喝？",
+   "avatar": "🫧",
+   "author": "气泡水收集者",
+   "time": "1天前",
+   "emoji": "🍵",
+   "grad": "linear-gradient(135deg,#B2F2BB,#63E6BE)",
+   "blind": false,
+   "dist": [
+    4,
+    8,
+    22,
+    60,
+    96
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍵",
+     "name": "茶味雷达",
+     "tier": 4,
+     "text": "茶香是真的，气泡绵密，回购第三箱了",
+     "likes": 92
+    },
+    {
+     "avatar": "😋",
+     "name": "戒糖中",
+     "tier": 3,
+     "text": "没负担，配火锅解腻一绝",
+     "likes": 47
+    },
+    {
+     "avatar": "😐",
+     "name": "甜党本党",
+     "tier": 2,
+     "text": "好喝但对我来说太淡了",
+     "likes": 12
+    }
+   ]
+  },
+  {
+   "id": 5,
+   "type": "product",
+   "cat": "餐饮美食",
+   "lang": "zh",
+   "title": "食堂新出的黄焖鸡",
+   "desc": "二楼新窗口，15 块一份。分量还行，味道呢？",
+   "avatar": "🍗",
+   "author": "食堂干饭王",
+   "time": "1天前",
+   "emoji": "🍗",
+   "grad": "linear-gradient(135deg,#FFD8A8,#FFA94D)",
+   "blind": false,
+   "dist": [
+    20,
+    35,
+    80,
+    45,
+    23
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍚",
+     "name": "米饭杀手",
+     "tier": 2,
+     "text": "酱汁下饭，但鸡肉有点柴",
+     "likes": 28
+    },
+    {
+     "avatar": "😐",
+     "name": "二楼常客",
+     "tier": 1,
+     "text": "土豆比鸡多，性价比一般",
+     "likes": 35
+    },
+    {
+     "avatar": "😋",
+     "name": "辣味爱好者",
+     "tier": 3,
+     "text": "加辣版可以，能吃出锅气",
+     "likes": 21
+    }
+   ]
+  },
+  {
+   "id": 6,
+   "type": "event",
+   "cat": "职场",
+   "lang": "zh",
+   "title": "部门团建去密室逃脱，AA 128，值吗？",
+   "desc": "周六下午，6 人本，AA 128/人。跟不太熟的同事去，尴尬吗？",
+   "avatar": "💼",
+   "author": "打工人小王",
+   "time": "2天前",
+   "emoji": "🔐",
+   "grad": "linear-gradient(135deg,#D0BFFF,#9775FA)",
+   "blind": false,
+   "dist": [
+    6,
+    10,
+    25,
+    60,
+    80
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🔐",
+     "name": "密室老玩家",
+     "tier": 4,
+     "text": "这个本口碑很好，同事破冰神器，冲",
+     "likes": 64
+    },
+    {
+     "avatar": "👍",
+     "name": "团建幸存者",
+     "tier": 3,
+     "text": "比聚餐唱歌强多了，至少不用敬酒",
+     "likes": 39
+    },
+    {
+     "avatar": "🤔",
+     "name": "社恐本恐",
+     "tier": 2,
+     "text": "值是值，但社恐要做好心理建设",
+     "likes": 26
+    }
+   ]
+  },
+  {
+   "id": 7,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "en",
+   "title": "New Monster Ultra Peachy Keen — any good?",
+   "desc": "Spotted it at Target — zero sugar peach energy drink. Worth grabbing a whole case?",
+   "avatar": "⚡",
+   "author": "EnergyDrinkHunter",
+   "time": "3 hours ago",
+   "emoji": "⚡",
+   "grad": "linear-gradient(135deg,#B197FC,#22B8CF)",
+   "blind": false,
+   "dist": [
+    6,
+    10,
+    30,
+    70,
+    60
+   ],
+   "img": null,
+   "loc": "洛杉矶",
+   "comments": [
+    {
+     "avatar": "🍑",
+     "name": "PeachRingFan",
+     "tier": 3,
+     "text": "Tastes like peach rings, solid 4/5",
+     "likes": 41
+    },
+    {
+     "avatar": "🥤",
+     "name": "CaffeineCritic",
+     "tier": 4,
+     "text": "Best Ultra flavor in years, no weird aftertaste",
+     "likes": 58
+    }
+   ]
+  },
+  {
+   "id": 8,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "es",
+   "title": "¿El nuevo sabor Coca-Cola Cherry Vainilla vale la pena?",
+   "desc": "La vi en el súper: lata roja, cereza y vainilla. ¿Alguien ya la probó?",
+   "avatar": "🍒",
+   "author": "CazaSabores",
+   "time": "hace 4 horas",
+   "emoji": "🍒",
+   "grad": "linear-gradient(135deg,#F06595,#9775FA)",
+   "blind": false,
+   "dist": [
+    8,
+    14,
+    32,
+    66,
+    58
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🍒",
+     "name": "FanDeLaCereza",
+     "tier": 3,
+     "text": "Sabe a cereza de verdad, muy buena fría",
+     "likes": 47
+    },
+    {
+     "avatar": "🥤",
+     "name": "ProbadorMX",
+     "tier": 4,
+     "text": "La vainilla le da un toque cremoso, de las mejores ediciones",
+     "likes": 63
+    }
+   ]
+  },
+  {
+   "id": 9,
+   "type": "product",
+   "cat": "饮料",
+   "lang": "ja",
+   "title": "新発売の桜味コーラ、美味しい？",
+   "desc": "コンビニで見つけた新作。桜＋白桃味らしいけど、実際どうなの？",
+   "avatar": "🌸",
+   "author": "新作ハンター",
+   "time": "5時間前",
+   "emoji": "🌸",
+   "grad": "linear-gradient(135deg,#FFD6E8,#FFA8C5)",
+   "blind": false,
+   "dist": [
+    5,
+    9,
+    26,
+    64,
+    52
+   ],
+   "img": null,
+   "loc": null,
+   "comments": [
+    {
+     "avatar": "🌸",
+     "name": "桜好き",
+     "tier": 3,
+     "text": "桃の香りが自然で美味しい",
+     "likes": 52
+    },
+    {
+     "avatar": "🍑",
+     "name": "味覚レビュアー",
+     "tier": 2,
+     "text": "桜味はほぼしないかな",
+     "likes": 23
+    }
+   ]
+  },
+  {
+   "id": 10,
+   "type": "product",
+   "cat": "餐饮美食",
+   "lang": "zh",
+   "title": "街角新开的塔可车，排队值吗？",
+   "desc": "楼下街角新停的塔可餐车，中午排队 20 分钟。玉米饼现做，到底值不值得排？",
+   "avatar": "🌮",
+   "author": "TacoDaily",
+   "time": "1小时前",
+   "emoji": "🌮",
+   "grad": "linear-gradient(135deg,#FFE8CC,#FFA94D)",
+   "blind": false,
+   "dist": [
+    8,
+    15,
+    40,
+    55,
+    30
+   ],
+   "img": null,
+   "loc": "纽约",
+   "comments": [
+    {
+     "avatar": "🌮",
+     "name": "塔可猎人",
+     "tier": 3,
+     "text": "饼是现压的，莎莎酱够辣，排 20 分钟可以接受",
+     "likes": 38
+    },
+    {
+     "avatar": "😐",
+     "name": "午休战士",
+     "tier": 2,
+     "text": "味道不错但出餐慢，午休时间紧的慎排",
+     "likes": 21
+    }
+   ]
+  },
+  {
+   "id": 11,
+   "type": "event",
+   "cat": "生活",
+   "lang": "zh",
+   "title": "社区免费瑜伽课，有人去过吗？",
+   "desc": "社区中心每周六上午的免费瑜伽课，器械自带瑜伽垫就行。氛围怎么样，新手友好吗？",
+   "avatar": "🧘",
+   "author": "YogaWithMe",
+   "time": "3小时前",
+   "emoji": "🧘",
+   "grad": "linear-gradient(135deg,#D3F9D8,#8CE99A)",
+   "blind": false,
+   "dist": [
+    3,
+    6,
+    20,
+    48,
+    40
+   ],
+   "img": null,
+   "loc": "纽约",
+   "comments": [
+    {
+     "avatar": "🧘",
+     "name": "拉伸爱好者",
+     "tier": 4,
+     "text": "老师会照顾新手，课后还有花草茶，宝藏活动",
+     "likes": 44
+    },
+    {
+     "avatar": "👍",
+     "name": "周六早起人",
+     "tier": 3,
+     "text": "人不多，强度适中，值得去试一次",
+     "likes": 19
+    }
+   ]
+  }
+ ],
+ "boards": {
+  "饮料": {
+   "best": [
+    [
+     "蜜桃乌龙气泡水",
+     4.8
+    ],
+    [
+     "白桃味可乐",
+     4.7
+    ],
+    [
+     "0糖茉莉花茶",
+     4.6
+    ],
+    [
+     "椰青冰美式",
+     4.6
+    ],
+    [
+     "葡萄味养乐多",
+     4.5
+    ],
+    [
+     "咸柠七喜",
+     4.5
+    ],
+    [
+     "桂花酒酿奶茶",
+     4.4
+    ],
+    [
+     "西瓜薄荷气泡水",
+     4.4
+    ],
+    [
+     "冻柠茶·去冰半糖",
+     4.3
+    ],
+    [
+     "杨枝甘露气泡饮",
+     4.3
+    ],
+    [
+     "青提乌龙茶",
+     4.2
+    ],
+    [
+     "冰镇酸梅汤",
+     4.2
+    ],
+    [
+     "荔枝海盐气泡水",
+     4.1
+    ],
+    [
+     "多肉葡萄茶",
+     4.1
+    ],
+    [
+     "柠檬红茶·无糖",
+     4
+    ],
+    [
+     "蜜瓜牛奶",
+     4
+    ],
+    [
+     "百香果绿茶",
+     3.9
+    ],
+    [
+     "黑咖啡气泡水",
+     3.9
+    ],
+    [
+     "柚子蜂蜜茶",
+     3.8
+    ],
+    [
+     "经典可乐·冰镇",
+     3.8
+    ]
+   ],
+   "worst": [
+    [
+     "折耳根味汽水",
+     1.2
+    ],
+    [
+     "香菜味可乐",
+     1.3
+    ],
+    [
+     "螺蛳粉味奶茶",
+     1.4
+    ],
+    [
+     "鲱鱼罐头味苏打",
+     1.5
+    ],
+    [
+     "中药味功能饮料",
+     1.6
+    ],
+    [
+     "榴莲味优酸乳",
+     1.7
+    ],
+    [
+     "芥末味气泡水",
+     1.8
+    ],
+    [
+     "臭豆腐味豆奶",
+     1.8
+    ],
+    [
+     "皮蛋味拿铁",
+     1.9
+    ],
+    [
+     "大蒜味可乐",
+     1.9
+    ],
+    [
+     "苦瓜汁·无糖",
+     2
+    ],
+    [
+     "醋味冰红茶",
+     2
+    ],
+    [
+     "海鲜味椰子水",
+     2.1
+    ],
+    [
+     "烟熏味乌龙茶",
+     2.1
+    ],
+    [
+     "姜汁可乐·热饮",
+     2.2
+    ],
+    [
+     "咸蛋黄味奶茶",
+     2.2
+    ],
+    [
+     "辣条味芬达",
+     2.3
+    ],
+    [
+     "豆汁味酸奶",
+     2.3
+    ],
+    [
+     "藿香正气水味茶",
+     2.4
+    ],
+    [
+     "薄荷味热可可",
+     2.4
+    ]
+   ]
+  },
+  "食品": {
+   "best": [
+    [
+     "黄焖鸡米饭·校门口",
+     4.7
+    ],
+    [
+     "螺蛳粉·加臭加辣",
+     4.6
+    ],
+    [
+     "烤冷面·双蛋双肠",
+     4.5
+    ],
+    [
+     "东北大拉皮",
+     4.5
+    ],
+    [
+     "炸鸡架·铁板",
+     4.4
+    ],
+    [
+     "煎饼果子·薄脆",
+     4.4
+    ],
+    [
+     "牛肉板面·宽",
+     4.3
+    ],
+    [
+     "肉夹馍·纯瘦",
+     4.3
+    ],
+    [
+     "过桥米线",
+     4.2
+    ],
+    [
+     "热干面·加蛋",
+     4.2
+    ],
+    [
+     "肠粉·牛肉",
+     4.1
+    ],
+    [
+     "生煎包·底脆",
+     4.1
+    ],
+    [
+     "钵钵鸡·藤椒",
+     4
+    ],
+    [
+     "狼牙土豆",
+     4
+    ],
+    [
+     "烤面筋·微辣",
+     3.9
+    ],
+    [
+     "章鱼小丸子",
+     3.9
+    ],
+    [
+     "关东煮",
+     3.8
+    ],
+    [
+     "手抓饼·加里脊",
+     3.8
+    ],
+    [
+     "鸡蛋灌饼",
+     3.7
+    ],
+    [
+     "豆浆油条·现炸",
+     3.7
+    ]
+   ],
+   "worst": [
+    [
+     "草莓炒肉",
+     1.3
+    ],
+    [
+     "西红柿炒月饼",
+     1.4
+    ],
+    [
+     "预制菜黄焖鸡",
+     1.5
+    ],
+    [
+     "香菜味薯片",
+     1.6
+    ],
+    [
+     "隔夜寿司拼盘",
+     1.7
+    ],
+    [
+     "无糖五仁月饼",
+     1.8
+    ],
+    [
+     "榴莲味披萨",
+     1.8
+    ],
+    [
+     "鲱鱼味薯条",
+     1.9
+    ],
+    [
+     "苦瓜炒榴莲",
+     1.9
+    ],
+    [
+     "水煮鸡胸·白人饭",
+     2
+    ],
+    [
+     "压缩饼干·原味",
+     2
+    ],
+    [
+     "方便面·无调料包",
+     2.1
+    ],
+    [
+     "速冻饺子·皮厚",
+     2.1
+    ],
+    [
+     "清汤麻辣烫",
+     2.2
+    ],
+    [
+     "微波汉堡·冷心",
+     2.2
+    ],
+    [
+     "自热火锅·夹生",
+     2.3
+    ],
+    [
+     "代餐奶昔·抹茶",
+     2.3
+    ],
+    [
+     "水煮减脂餐",
+     2.4
+    ],
+    [
+     "全麦面包·干硬",
+     2.4
+    ],
+    [
+     "黑暗料理拼盘",
+     2.5
+    ]
+   ]
+  },
+  "事件": {
+   "best": [
+    [
+     "周五晚《星际穿越》重映",
+     4.9
+    ],
+    [
+     "校园音乐节·免费",
+     4.8
+    ],
+    [
+     "部门团建·密室逃脱",
+     4.7
+    ],
+    [
+     "周末市集·手作",
+     4.6
+    ],
+    [
+     "脱口秀开放麦",
+     4.6
+    ],
+    [
+     "公司年会·抽奖",
+     4.5
+    ],
+    [
+     "朋友婚礼",
+     4.5
+    ],
+    [
+     "漫展",
+     4.4
+    ],
+    [
+     "livehouse·独立乐队",
+     4.4
+    ],
+    [
+     "天文馆夜场",
+     4.3
+    ],
+    [
+     "话剧《恋爱的犀牛》",
+     4.3
+    ],
+    [
+     "城市骑行·夜骑",
+     4.2
+    ],
+    [
+     "陶艺体验课",
+     4.2
+    ],
+    [
+     "剧本杀·新本首发",
+     4.1
+    ],
+    [
+     "美术馆特展",
+     4.1
+    ],
+    [
+     "围炉煮茶·轰趴",
+     4
+    ],
+    [
+     "羽毛球约球",
+     4
+    ],
+    [
+     "读书会·科幻专场",
+     3.9
+    ],
+    [
+     "流浪猫救助志愿者",
+     3.9
+    ],
+    [
+     "早市 citywalk",
+     3.8
+    ]
+   ],
+   "worst": [
+    [
+     "周一早八·高数",
+     1.2
+    ],
+    [
+     "部门周报会·2小时",
+     1.3
+    ],
+    [
+     "相亲角·被围观",
+     1.4
+    ],
+    [
+     "团建·爬山AA",
+     1.5
+    ],
+    [
+     "早高峰地铁",
+     1.6
+    ],
+    [
+     "排队3小时网红店",
+     1.7
+    ],
+    [
+     "线上会议·开摄像头",
+     1.8
+    ],
+    [
+     "同学聚会·比工资",
+     1.8
+    ],
+    [
+     "加班·改第8版",
+     1.9
+    ],
+    [
+     "驾校科目二·烈日",
+     1.9
+    ],
+    [
+     "医院体检·空腹",
+     2
+    ],
+    [
+     "搬家·没电梯",
+     2
+    ],
+    [
+     "4S店保养·被推销",
+     2.1
+    ],
+    [
+     "物业开会·催费",
+     2.1
+    ],
+    [
+     "健身房销售围堵",
+     2.2
+    ],
+    [
+     "理发·托尼忽悠",
+     2.2
+    ],
+    [
+     "景区人挤人",
+     2.3
+    ],
+    [
+     "深夜被叫修bug",
+     2.3
+    ],
+    [
+     "早起赶飞机·延误",
+     2.4
+    ],
+    [
+     "线上团建·破冰",
+     2.4
+    ]
+   ]
+  }
+ },
+ "commentPools": {
+  "zh": {
+   "good": [
+    "这个是真的顶，闭眼入",
+    "回购三次了，稳定发挥",
+    "超出预期，好评"
+   ],
+   "bad": [
+    "谁买谁上当",
+    "一口就想扔，避雷",
+    "名不副实，失望"
+   ],
+   "mid": [
+    "中规中矩吧",
+    "看个人口味",
+    "价格合适可以试试"
+   ],
+   "names": [
+    "路人甲",
+    "干饭人",
+    "资深踩雷员",
+    "回头客",
+    "挑剔本剔",
+    "老饕本饕"
+   ],
+   "avatars": [
+    "🧑",
+    "🍚",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "👅"
+   ]
+  },
+  "en": {
+   "good": [
+    "Genuinely top tier, no-brainer buy",
+    "Bought it three times, consistently great",
+    "Way better than expected"
+   ],
+   "bad": [
+    "Total trap, avoid",
+    "One bite and I wanted to toss it",
+    "All hype, very disappointing"
+   ],
+   "mid": [
+    "Perfectly average",
+    "Depends on your taste",
+    "Worth it when it's on sale"
+   ],
+   "names": [
+    "Passerby",
+    "FoodiePro",
+    "SerialSnacker",
+    "RegularJoe",
+    "PickyEater",
+    "BrunchFan"
+   ],
+   "avatars": [
+    "🧑",
+    "🍔",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🥐"
+   ]
+  },
+  "es": {
+   "good": [
+    "De verdad es de primera, cómpralo sin pensar",
+    "Lo he comprado tres veces, siempre bueno",
+    "Superó mis expectativas"
+   ],
+   "bad": [
+    "Quien lo compra, se arrepiente",
+    "Un bocado y a la basura, evítalo",
+    "Puro humo, decepcionante"
+   ],
+   "mid": [
+    "Normalito, sin más",
+    "Depende de gustos",
+    "Con buen precio, vale la pena"
+   ],
+   "names": [
+    "UnTranseúnte",
+    "ComelónMX",
+    "CazadorDeOfertas",
+    "ClienteFiel",
+    "PaladarFino",
+    "ProbadorMX"
+   ],
+   "avatars": [
+    "🧑",
+    "🌮",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🥤"
+   ]
+  },
+  "fr": {
+   "good": [
+    "Vraiment excellent, foncez",
+    "Acheté trois fois, toujours au top",
+    "Bien au-delà de mes attentes"
+   ],
+   "bad": [
+    "Un piège, à éviter",
+    "Une bouchée et j'ai voulu le jeter",
+    "Que du marketing, décevant"
+   ],
+   "mid": [
+    "Correct, sans plus",
+    "Question de goût",
+    "À essayer en promo"
+   ],
+   "names": [
+    "UnPassant",
+    "GourmetDuCoin",
+    "ClientFidèle",
+    "CritiqueEnHerbe",
+    "FineBouche",
+    "Habitué"
+   ],
+   "avatars": [
+    "🧑",
+    "🥐",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍷"
+   ]
+  },
+  "ja": {
+   "good": [
+    "本当に神レベル、即買い",
+    "3回買ったけど安定して美味しい",
+    "期待以上だった"
+   ],
+   "bad": [
+    "買ったら後悔するやつ",
+    "一口で無理だった、地雷",
+    "宣伝負け、がっかり"
+   ],
+   "mid": [
+    "普通に及第点",
+    "好みによるかな",
+    "安いなら試す価値あり"
+   ],
+   "names": [
+    "通りすがり",
+    "食いしん坊",
+    "地雷ハンター",
+    "常連さん",
+    "味にうるさい人",
+    "新作チェッカー"
+   ],
+   "avatars": [
+    "🧑",
+    "🍙",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🌸"
+   ]
+  },
+  "ko": {
+   "good": [
+    "진짜 최고예요, 고민 말고 사세요",
+    "세 번 샀는데 늘 맛있어요",
+    "기대 이상이었어요"
+   ],
+   "bad": [
+    "사면 후회해요",
+    "한 입 먹고 버렸어요, 지뢰예요",
+    "광고빨, 실망이에요"
+   ],
+   "mid": [
+    "무난해요",
+    "취향 탈 것 같아요",
+    "세일하면 살 만해요"
+   ],
+   "names": [
+    "지나가던사람",
+    "먹방러",
+    "지뢰탐지견",
+    "단골손님",
+    "까다로운입맛",
+    "신상헌터"
+   ],
+   "avatars": [
+    "🧑",
+    "🍚",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍜"
+   ]
+  },
+  "it": {
+   "good": [
+    "Davvero eccellente, compralo a occhi chiusi",
+    "Comprato tre volte, sempre ottimo",
+    "Molto meglio del previsto"
+   ],
+   "bad": [
+    "Chi lo compra se ne pente",
+    "Un morso e volevo buttarlo, evitatelo",
+    "Tutto marketing, deludente"
+   ],
+   "mid": [
+    "Nella media, senza infamia",
+    "Dipende dai gusti",
+    "In offerta vale la pena"
+   ],
+   "names": [
+    "UnPassante",
+    "Buongustaio",
+    "CacciatoreDiOfferte",
+    "ClienteFedele",
+    "PalatoFine",
+    "Assaggiatore"
+   ],
+   "avatars": [
+    "🧑",
+    "🍝",
+    "🕵️",
+    "🔁",
+    "🎯",
+    "🍕"
+   ]
+  }
+ },
+ "badges": [
+  {
+   "icon": "🏅",
+   "unlocked": true,
+   "time": "2026-09-02",
+   "name": {
+    "zh": "金舌头·连续30天",
+    "en": "Golden Tongue · 30-day streak",
+    "es": "Paladar de oro · 30 días",
+    "fr": "Palais d'or · 30 jours",
+    "ja": "金の舌・30日連続",
+    "ko": "황금 혀 · 30일 연속",
+    "it": "Palato d'oro · 30 giorni"
+   },
+   "desc": {
+    "zh": "连续 30 天每天评价，且与共识高度一致",
+    "en": "Rated daily for 30 days, closely matching consensus"
+   },
+   "cond": {
+    "zh": "连续 30 天评价不断档",
+    "en": "Rate every day for 30 days"
+   }
+  },
+  {
+   "icon": "🎖️",
+   "unlocked": true,
+   "time": "2026-08-14",
+   "name": {
+    "zh": "早鸟品鉴师",
+    "en": "Early Taster",
+    "es": "Catador madrugador",
+    "fr": "Dégustateur matinal",
+    "ja": "早鳥テイスター",
+    "ko": "얼리버드 테이스터",
+    "it": "Assaggiatore mattiniero"
+   },
+   "desc": {
+    "zh": "总在第一时间评新内容，眼光独到",
+    "en": "Always among the first to rate new posts"
+   },
+   "cond": {
+    "zh": "抢到 10 次首评",
+    "en": "Be first to rate 10 posts"
+   }
+  },
+  {
+   "icon": "🛡️",
+   "unlocked": true,
+   "time": "2026-09-21",
+   "name": {
+    "zh": "避雷达人",
+    "en": "Flop Spotter",
+    "es": "Cazador de fiascos",
+    "fr": "Chasseur de flops",
+    "ja": "地雷ハンター",
+    "ko": "지뢰 탐지 전문가",
+    "it": "Cacciatore di flop"
+   },
+   "desc": {
+    "zh": "成功帮大家避开了多次踩雷",
+    "en": "Helped everyone dodge flops again and again"
+   },
+   "cond": {
+    "zh": "10 次提前预警低分内容",
+    "en": "Flag 10 low-rated posts early"
+   }
+  },
+  {
+   "icon": "🌱",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "初露锋芒",
+    "en": "First Steps",
+    "es": "Primeros pasos",
+    "fr": "Premiers pas",
+    "ja": "初投稿",
+    "ko": "첫 발자국",
+    "it": "Primi passi"
+   },
+   "desc": {
+    "zh": "迈出第一步，把纠结分享给大家",
+    "en": "Take the first step and share your dilemma"
+   },
+   "cond": {
+    "zh": "发布第 1 条内容",
+    "en": "Post your first piece of content"
+   }
+  },
+  {
+   "icon": "🗣️",
+   "unlocked": false,
+   "cur": 6,
+   "total": 10,
+   "name": {
+    "zh": "评论家",
+    "en": "The Critic",
+    "es": "El crítico",
+    "fr": "Le critique",
+    "ja": "評論家",
+    "ko": "평론가",
+    "it": "Il critico"
+   },
+   "desc": {
+    "zh": "不只打分，还认真说理由",
+    "en": "More than scores — real reasons"
+   },
+   "cond": {
+    "zh": "累计写 10 条文字评价",
+    "en": "Write 10 text ratings"
+   }
+  },
+  {
+   "icon": "🎯",
+   "unlocked": false,
+   "cur": 4,
+   "total": 10,
+   "name": {
+    "zh": "神预言",
+    "en": "The Prophet",
+    "es": "El profeta",
+    "fr": "Le prophète",
+    "ja": "神予想",
+    "ko": "신예언가",
+    "it": "Il profeta"
+   },
+   "desc": {
+    "zh": "你的口味和大众出奇地一致",
+    "en": "Your taste matches the crowd uncannily"
+   },
+   "cond": {
+    "zh": "10 次评价与最终均分差 <0.3",
+    "en": "10 ratings within 0.3 of the final average"
+   }
+  },
+  {
+   "icon": "🌙",
+   "unlocked": false,
+   "cur": 2,
+   "total": 5,
+   "name": {
+    "zh": "夜猫子",
+    "en": "Night Owl",
+    "es": "Búho nocturno",
+    "fr": "Oiseau de nuit",
+    "ja": "夜ふかし",
+    "ko": "올빼미",
+    "it": "Nottambulo"
+   },
+   "desc": {
+    "zh": "深夜的评价，格外真诚",
+    "en": "Late-night ratings hit different"
+   },
+   "cond": {
+    "zh": "在 0–5 点评价 5 次",
+    "en": "Rate 5 times between midnight and 5am"
+   }
+  },
+  {
+   "icon": "🔥",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "热榜制造机",
+    "en": "Chart Maker",
+    "es": "Creador de éxitos",
+    "fr": "Faiseur de classements",
+    "ja": "バズメーカー",
+    "ko": "랭킹 제조기",
+    "it": "Re delle classifiche"
+   },
+   "desc": {
+    "zh": "你发布的内容自带流量",
+    "en": "Your posts draw a crowd"
+   },
+   "cond": {
+    "zh": "发布的内容进入月榜 Top20",
+    "en": "Get a post into the Monthly Top 20"
+   }
+  },
+  {
+   "icon": "💎",
+   "unlocked": false,
+   "cur": 92,
+   "total": 95,
+   "name": {
+    "zh": "钻石评审",
+    "en": "Diamond Judge",
+    "es": "Juez diamante",
+    "fr": "Juge diamant",
+    "ja": "ダイヤモンド審査員",
+    "ko": "다이아몬드 심사위원",
+    "it": "Giudice diamante"
+   },
+   "desc": {
+    "zh": "社区最受信赖的评审之一",
+    "en": "One of the community's most trusted judges"
+   },
+   "cond": {
+    "zh": "信誉分达到 95",
+    "en": "Reach 95 reputation"
+   }
+  },
+  {
+   "icon": "📝",
+   "unlocked": false,
+   "cur": 2,
+   "total": 5,
+   "name": {
+    "zh": "长评家",
+    "en": "Long-form Critic",
+    "es": "Crítico de fondo",
+    "fr": "Critique au long cours",
+    "ja": "長文レビュアー",
+    "ko": "장문 평론가",
+    "it": "Critico prolisso"
+   },
+   "desc": {
+    "zh": "每条长评都值得细读",
+    "en": "Every long review is worth reading closely"
+   },
+   "cond": {
+    "zh": "写出 5 条 50 字以上长评",
+    "en": "Write 5 reviews of 50+ characters"
+   }
+  },
+  {
+   "icon": "👑",
+   "unlocked": false,
+   "cur": 0,
+   "total": 1,
+   "name": {
+    "zh": "月榜冠军",
+    "en": "Monthly Champion",
+    "es": "Campeón del mes",
+    "fr": "Champion du mois",
+    "ja": "月間チャンピオン",
+    "ko": "월간 챔피언",
+    "it": "Campione del mese"
+   },
+   "desc": {
+    "zh": "站上月榜之巅",
+    "en": "Reach the very top of the monthly chart"
+   },
+   "cond": {
+    "zh": "内容登顶月榜第 1",
+    "en": "Top the monthly chart at #1"
+   }
+  }
+ ],
+ "cities": [
+  {
+   "zh": "纽约",
+   "en": "New York",
+   "es": "Nueva York",
+   "fr": "New York",
+   "ja": "ニューヨーク",
+   "ko": "뉴욕",
+   "it": "New York"
+  },
+  {
+   "zh": "洛杉矶",
+   "en": "Los Angeles",
+   "es": "Los Ángeles",
+   "fr": "Los Angeles",
+   "ja": "ロサンゼルス",
+   "ko": "로스앤젤레스",
+   "it": "Los Angeles"
+  },
+  {
+   "zh": "旧金山",
+   "en": "San Francisco",
+   "es": "San Francisco",
+   "fr": "San Francisco",
+   "ja": "サンフランシスコ",
+   "ko": "샌프란시스코",
+   "it": "San Francisco"
+  },
+  {
+   "zh": "多伦多",
+   "en": "Toronto",
+   "es": "Toronto",
+   "fr": "Toronto",
+   "ja": "トロント",
+   "ko": "토론토",
+   "it": "Toronto"
+  },
+  {
+   "zh": "温哥华",
+   "en": "Vancouver",
+   "es": "Vancouver",
+   "fr": "Vancouver",
+   "ja": "バンクーバー",
+   "ko": "밴쿠버",
+   "it": "Vancouver"
+  },
+  {
+   "zh": "北京",
+   "en": "Beijing",
+   "es": "Pekín",
+   "fr": "Pékin",
+   "ja": "北京",
+   "ko": "베이징",
+   "it": "Pechino"
+  },
+  {
+   "zh": "上海",
+   "en": "Shanghai",
+   "es": "Shanghái",
+   "fr": "Shanghai",
+   "ja": "上海",
+   "ko": "상하이",
+   "it": "Shanghai"
+  }
+ ]
+}
