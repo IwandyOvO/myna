@@ -47,7 +47,7 @@ export function HomeTopBar({ query, onQuery }: { query: string; onQuery: (q: str
       <RoundButton label={t('open_menu')} onPress={open}>
         <T style={{ fontSize: 17 }}>☰</T>
       </RoundButton>
-      <Logo width={74} />
+      <Logo width={86} />
       <View style={[s.search, { backgroundColor: colors.card, borderColor: colors.line }]}>
         <Text style={{ fontSize: 13 }}>🔍</Text>
         <TextInput
