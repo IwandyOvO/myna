@@ -138,7 +138,9 @@ export function ScoreBlock({ post }: { post: PostCard }) {
         <T style={{ fontSize: 42, fontWeight: '900', color: colors.faint }}>?.?</T>
         <T style={{ color: brand.red, fontWeight: '700', marginTop: 6 }}>{t('locked_title')}</T>
         <T muted style={{ fontSize: 12, marginTop: 4 }}>
-          {t('blind_ing', { n: post.total })}
+          {post.blindUntil
+            ? `${t('reviews_count', { n: post.total })} · ${t('blind_left_fmt', { h: Math.max(1, Math.ceil((new Date(post.blindUntil).getTime() - Date.now()) / 3_600_000)) })}`
+            : t('blind_ing', { n: post.total })}
         </T>
       </View>
     );

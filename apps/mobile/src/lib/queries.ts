@@ -1,4 +1,5 @@
 import type {
+  Draft, DraftPayload, LikeReceived, UserProfile,
   Badge, Board, BoardCategory, BoardDirection, BoardPeriod, Category, Comment, CreatePostInput, Locale,
   Me, Page, PostCard, ReportReason, Tier, UserSummary, Weekly,
 } from '@myna/shared';
@@ -99,5 +100,54 @@ export function useUpdateProfileSettings() {
   return useMutation({
     mutationFn: (s: { locale?: Locale | null; contentLangs?: Locale[]; visibility?: Me['settings']['visibility'] }) => api<Me>('PUT', '/me/settings', s),
     onSuccess: (me) => qc.setQueryData(['me'], me),
+  });
+}
+
+// ---- phase 2 (§5.6 quick access) --------------------------------------------------------
+export const useFavorites = () => useMine<{ items: PostCard[] }>('favorites', '/me/favorites');
+export const useHistory = () => useMine<{ items: PostCard[] }>('history', '/me/history');
+export const useDrafts = () => useMine<{ items: Draft[] }>('drafts', '/drafts');
+export const useLikesReceived = () => useMine<{ items: LikeReceived[] }>('likes', '/me/likes');
+export const useFollowing = () => useMine<{ items: UserSummary[] }>('following', '/me/following');
+
+export const useProfile = (id: string) => useQuery({ queryKey: ['profile', id], queryFn: () => api<UserProfile>('GET', `/users/${id}`) });
+
+export function useFavorite(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (on: boolean) => api<{ favorited: boolean }>(on ? 'PUT' : 'DELETE', `/posts/${postId}/favorite`),
+    onSuccess: ({ favorited }) => {
+      qc.setQueryData<PostCard>(['post', postId], (p) => (p ? { ...p, favorited } : p));
+      qc.invalidateQueries({ queryKey: ['favorites'] });
+    },
+  });
+}
+
+export function useClearHistory() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: () => api('DELETE', '/me/history'), onSuccess: () => qc.invalidateQueries({ queryKey: ['history'] }) });
+}
+
+export function useSaveDraft() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id?: string; payload: DraftPayload }) => api<Draft>('POST', '/drafts', v),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['drafts'] }),
+  });
+}
+
+export function useDeleteDraft() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => api('DELETE', `/drafts/${id}`), onSuccess: () => qc.invalidateQueries({ queryKey: ['drafts'] }) });
+}
+
+export function useFollow(userId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (on: boolean) => api<{ following: boolean }>(on ? 'PUT' : 'DELETE', `/users/${userId}/follow`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['profile', userId] });
+      qc.invalidateQueries({ queryKey: ['following'] });
+    },
   });
 }

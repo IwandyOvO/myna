@@ -5,7 +5,7 @@ import { Animated, Dimensions, PanResponder, Pressable, StyleSheet, Text, View }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
 import { useSettings } from '../lib/settings';
-import { T, useToast } from './ui';
+import { T } from './ui';
 
 const Ctx = createContext<{ open: () => void; close: () => void }>({ open: () => {}, close: () => {} });
 export const useDrawer = () => useContext(Ctx);
@@ -65,12 +65,10 @@ function DrawerContent({ close }: { close: () => void }) {
   const { colors, t } = useSettings();
   const { me, signedIn } = useAuth();
   const insets = useSafeAreaInsets();
-  const toast = useToast();
   const go = (path: Parameters<typeof router.push>[0]) => {
     close();
     router.push(path);
   };
-  const soon = () => toast(t('coming_soon'));
 
   const Item = ({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) => (
     <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [s.item, pressed && { backgroundColor: colors.soft }]}>
@@ -108,9 +106,9 @@ function DrawerContent({ close }: { close: () => void }) {
       </View>
       <View style={[s.sep, { backgroundColor: colors.line }]} />
       <Item icon="🏆" label={t('ach_title')} onPress={() => go(signedIn ? '/achievements' : '/login')} />
-      <Item icon="⭐" label={t('fav_t')} onPress={soon} />
-      <Item icon="🕘" label={t('hist_t')} onPress={soon} />
-      <Item icon="📝" label={t('draft_t')} onPress={soon} />
+      <Item icon="⭐" label={t('fav_t')} onPress={() => go(signedIn ? '/me/favorites' : '/login')} />
+      <Item icon="🕘" label={t('hist_t')} onPress={() => go(signedIn ? '/me/history' : '/login')} />
+      <Item icon="📝" label={t('draft_t')} onPress={() => go(signedIn ? '/me/drafts' : '/login')} />
       <T style={{ marginTop: 'auto', paddingHorizontal: 20, fontSize: 12, color: colors.faint }}>
         Myna v{Constants.expoConfig?.version ?? '0.8.0'}
       </T>

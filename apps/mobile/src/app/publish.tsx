@@ -3,15 +3,16 @@ import {
   type Category, type Locale, type PostType,
 } from '@myna/shared';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
-import { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { mediaUrl, uploadImage } from '../lib/api';
+import { api, mediaUrl, uploadImage } from '../lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../components/headers';
 import { Button, Card, Chip, Seg, Sheet, T, useToast } from '../components/ui';
 import { CITIES, cityName, locate } from '../lib/location';
-import { usePublish } from '../lib/queries';
+import { useDeleteDraft, useDrafts, usePublish } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
 
@@ -42,6 +43,57 @@ export default function Publish() {
   const [cityOpen, setCityOpen] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]); // server paths from POST /uploads
   const [uploading, setUploading] = useState(0);
+
+  // ---- drafts (§5.6): open ?draft=<id> to continue; leaving with unsent content saves one ----
+  const { draft: draftParam } = useLocalSearchParams<{ draft?: string }>();
+  const drafts = useDrafts();
+  const qc = useQueryClient();
+  const deleteDraft = useDeleteDraft();
+  const draftId = useRef<string | undefined>(draftParam);
+  const loadedDraft = useRef(false);
+  const published = useRef(false);
+  const dirty = useRef(false);
+  useEffect(() => {
+    if (!draftParam || loadedDraft.current) return;
+    const d = drafts.data?.items.find((x) => x.id === draftParam);
+    if (!d) return;
+    loadedDraft.current = true;
+    const p = d.payload;
+    if (p.type) setType(p.type);
+    if (p.category) setCategory(p.category);
+    setTitle(p.title ?? '');
+    setBody(p.body ?? '');
+    setEmoji(p.emoji ?? null);
+    setPhotos(p.imageUrls ?? []);
+    setBlind(!!p.blind);
+    if (p.lang) setLang(p.lang);
+    if (p.placeName) setLoc({ placeName: p.placeName, ...(p.lat != null && p.lng != null ? { lat: p.lat, lng: p.lng } : {}) });
+  }, [draftParam, drafts.data]);
+
+  const snapshot = { type, category, title, body, emoji, imageUrls: photos, blind, lang, placeName: loc?.placeName ?? null, lat: loc?.lat ?? null, lng: loc?.lng ?? null };
+  const latest = useRef(snapshot);
+  const first = useRef(true);
+  useEffect(() => {
+    latest.current = snapshot;
+    if (first.current) first.current = false;
+    else dirty.current = true;
+  }, [type, category, title, body, emoji, photos, blind, lang, loc]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(
+    () => () => {
+      const s = latest.current;
+      const hasContent = !!(s.title.trim() || s.body.trim() || s.imageUrls.length);
+      if (published.current || !dirty.current || !hasContent) return;
+      // The screen is gone, so call the API directly (mutation callbacks don't fire after unmount).
+      api('POST', '/drafts', { id: draftId.current, payload: { ...s, title: s.title.slice(0, 120), body: s.body.slice(0, 2000) } })
+        .then(() => {
+          toast(t('draft_saved'));
+          qc.invalidateQueries({ queryKey: ['drafts'] });
+        })
+        .catch(() => {});
+    },
+    [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const addPhoto = async (source: 'library' | 'camera') => {
     if (photos.length + uploading >= MAX_PHOTOS) return toast(t('max_photos'));
@@ -97,6 +149,8 @@ export default function Publish() {
       },
       {
         onSuccess: (p) => {
+          published.current = true;
+          if (draftId.current) deleteDraft.mutate(draftId.current);
           toast(t('published'));
           router.replace(`/post/${p.id}`);
         },

@@ -9,7 +9,7 @@ import { brand } from '../lib/theme';
 
 /** §5.7 badge wall (11 badges). Limited-time challenges and the leaderboard ship in phase 2. */
 export default function Achievements() {
-  const { t, colors, locale } = useSettings();
+  const { t, colors } = useSettings();
   const q = useBadges();
   const [sel, setSel] = useState<Badge | null>(null);
   const items = q.data?.items ?? [];
@@ -56,7 +56,7 @@ export default function Achievements() {
             </T>
             <T style={{ fontWeight: '800', color: sel.unlockedAt ? '#078043' : colors.muted }}>
               {sel.unlockedAt
-                ? `${t('badge_unlocked')}${new Date(sel.unlockedAt).toLocaleDateString(locale)}`
+                ? `${t('badge_unlocked')}${sel.unlockedAt.slice(0, 10)}`
                 : `${t('badge_progress')}: ${sel.progress.current}/${sel.progress.target}`}
             </T>
           </View>

@@ -105,7 +105,7 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
     const userIds = new Map<string, string>();
     let n = 0;
     const userFor = async (name: string, avatar: string) => {
-      if (!userIds.has(name)) userIds.set(name, await insertUser(tx, name, `seed_${++n}`, avatar));
+      if (!userIds.has(name)) userIds.set(name, await insertUser(tx, name, `myna_${1000 + ++n}`, avatar));
       return userIds.get(name)!;
     };
     // §8 demo account

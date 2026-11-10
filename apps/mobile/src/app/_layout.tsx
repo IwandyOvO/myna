@@ -5,6 +5,9 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DrawerHost } from '../components/Drawer';
+import { CrashScreen } from '../components/CrashScreen';
+
+export { CrashScreen as ErrorBoundary };
 import { ToastProvider } from '../components/ui';
 import { apiSession } from '../lib/api';
 import { AuthProvider } from '../lib/auth';

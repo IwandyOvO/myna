@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { TabHeader } from '../../components/headers';
-import { Button, Card, SectionTitle, T, useToast } from '../../components/ui';
+import { Button, Card, SectionTitle, T } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
 import { useBadges, useWeekly } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
@@ -15,7 +15,6 @@ export default function MeTab() {
   const { me, signedIn } = useAuth();
   const badges = useBadges();
   const week = useWeekly();
-  const toast = useToast();
 
   if (!signedIn) {
     return (
@@ -37,7 +36,6 @@ export default function MeTab() {
 
   const unlocked = badges.data?.items.filter((b) => b.unlockedAt) ?? [];
   const total = badges.data?.items.length ?? 0;
-  const soon = () => toast(t('coming_soon'));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -68,7 +66,7 @@ export default function MeTab() {
             {[
               { n: me?.stats.posts ?? 0, label: t('stat_posts'), go: () => router.push('/me/posts') },
               { n: me?.stats.ratings ?? 0, label: t('stat_rates'), go: () => router.push('/me/ratings') },
-              { n: me?.stats.likes ?? 0, label: t('stat_likes'), go: soon },
+              { n: me?.stats.likes ?? 0, label: t('stat_likes'), go: () => router.push('/me/likes') },
             ].map((x) => (
               <Pressable key={x.label} onPress={x.go} accessibilityRole="button" style={s.stat}>
                 <T style={{ fontSize: 20, fontWeight: '900' }}>{fmt(x.n)}</T>
@@ -116,13 +114,15 @@ export default function MeTab() {
 
         <SectionTitle>{t('freq_title')}</SectionTitle>
         <Card style={{ flexDirection: 'row', paddingVertical: 14 }}>
-          {[
-            { icon: '⭐', label: t('fav_t') },
-            { icon: '🕘', label: t('hist_t') },
-            { icon: '📝', label: t('draft_t') },
-            { icon: '👥', label: t('follow_t') },
-          ].map((x) => (
-            <Pressable key={x.label} onPress={soon} accessibilityRole="button" style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+          {(
+            [
+              { icon: '⭐', label: t('fav_t'), to: '/me/favorites' },
+              { icon: '🕘', label: t('hist_t'), to: '/me/history' },
+              { icon: '📝', label: t('draft_t'), to: '/me/drafts' },
+              { icon: '👥', label: t('follow_t'), to: '/me/following' },
+            ] as const
+          ).map((x) => (
+            <Pressable key={x.label} onPress={() => router.push(x.to)} accessibilityRole="button" style={{ flex: 1, alignItems: 'center', gap: 6 }}>
               <Text style={{ fontSize: 24 }}>{x.icon}</Text>
               <T style={{ fontSize: 12, fontWeight: '600' }} numberOfLines={1}>
                 {x.label}

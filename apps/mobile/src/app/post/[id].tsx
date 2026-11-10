@@ -9,7 +9,7 @@ import { Pills, ScoreBlock, TierBadge } from '../../components/post';
 import { RateSheet } from '../../components/RateSheet';
 import { Button, Card, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T, useToast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
-import { useBlock, useComments, useLike, usePost, useReport } from '../../lib/queries';
+import { useBlock, useComments, useFavorite, useLike, usePost, useReport } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
 
 /** §5.2 detail page — also the target of every board row. */
@@ -26,6 +26,7 @@ export default function PostDetail() {
   const like = useLike();
   const report = useReport();
   const block = useBlock();
+  const fav = useFavorite(id);
   const [rateOpen, setRateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -60,7 +61,28 @@ export default function PostDetail() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <PageHeader title={categoryName(p.category, locale)} right={<T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>⋯</T>} />
+      <PageHeader
+        title={categoryName(p.category, locale)}
+        right={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Pressable
+              onPress={() => {
+                if (!signedIn) return router.push('/login');
+                const on = !p.favorited;
+                fav.mutate(on, { onSuccess: () => toast(on ? t('fav_added') : t('fav_removed')) });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('fav_add')}
+              accessibilityState={{ selected: p.favorited }}
+              hitSlop={8}
+              style={{ paddingHorizontal: 6 }}
+            >
+              <Text style={{ fontSize: 22, color: p.favorited ? '#FFB020' : colors.faint }}>{p.favorited ? '★' : '☆'}</Text>
+            </Pressable>
+            <T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>⋯</T>
+          </View>
+        }
+      />
       <ScrollView contentContainerStyle={{ paddingBottom: 110 + insets.bottom }}>
         {p.imageUrls.length > 0 ? (
           <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={{ height: 260 }}>
@@ -87,7 +109,7 @@ export default function PostDetail() {
         <View style={{ padding: 16 }}>
           <T style={{ fontSize: 20, fontWeight: '900', lineHeight: 27 }}>{p.title}</T>
           {!!p.body && <T style={{ fontSize: 14.5, lineHeight: 22, marginTop: 8, color: colors.body }}>{p.body}</T>}
-          <T muted style={{ fontSize: 12, marginTop: 10 }}>
+          <T muted style={{ fontSize: 12, marginTop: 10 }} onPress={() => router.push(`/user/${p.author.id}`)}>
             {p.author.avatar} {p.author.nickname} · {timeAgo(locale, p.createdAt)}
             {p.placeName ? ` · 📍${p.placeName}` : ''}
           </T>
@@ -115,8 +137,8 @@ export default function PostDetail() {
             comments.data.items.map((c) => (
               <View key={c.id} style={[s.comment, { borderBottomColor: colors.line }]}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-                  <Text style={{ fontSize: 19 }}>{c.author.avatar}</Text>
-                  <T style={{ fontSize: 13, fontWeight: '800', flexShrink: 1 }} numberOfLines={1}>
+                  <Text style={{ fontSize: 19 }} onPress={() => router.push(`/user/${c.author.id}`)}>{c.author.avatar}</Text>
+                  <T style={{ fontSize: 13, fontWeight: '800', flexShrink: 1 }} numberOfLines={1} onPress={() => router.push(`/user/${c.author.id}`)}>
                     {c.mine ? `${c.author.nickname} (${t('my_name')})` : c.author.nickname}
                   </T>
                   <TierBadge category={p.category} tier={c.tier} locale={locale} />
