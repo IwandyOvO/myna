@@ -19,16 +19,31 @@
 | §13.3 UGC | `POST /reports`, block/unblock | Report sheet + block author on the detail page. Moderation console not built. |
 | App Store 5.1.1(v) | `DELETE /me` | Erases identity and personal data; anonymous votes stay so averages and boards remain correct. |
 
-Verified: 15 shared unit tests, 32 server integration tests on PostgreSQL 16, typecheck of all three packages,
-and a scripted Playwright walkthrough of the web build against the real API (browse → filter → blind post locked →
-log in → rate → unlocked → edit → drawer → settings in EN + dark → boards → publish → me). Native iOS/Android builds
+Verified: 15 shared unit tests, 41 server integration tests on PostgreSQL 16, typecheck of all three packages,
+and two scripted Playwright walkthroughs of the web build against the real API (browse → filter → blind post locked →
+log in → rate → unlocked → edit → drawer → settings in EN + dark → boards → publish → me; then favourite → profile/follow →
+history → draft autosave/resume → likes → challenge/leaderboard → comment report). Native iOS/Android builds
 have **not** been run in this environment.
+
+## Phase 2: community features (done)
+
+| Spec | What | Where |
+|---|---|---|
+| §5.6 收藏 | ☆/★ on the detail page, favourites list | `PUT/DELETE /posts/:id/favorite`, `GET /me/favorites`, `app/me/favorites.tsx` |
+| §5.6 浏览历史 | Recorded when a signed-in user opens a post; one row per post, newest first; clear | `GET/DELETE /me/history`, migration `002_social.sql` |
+| §5.6 草稿箱 | Leaving the publish page with unsent content saves a draft; tap a draft to resume; publishing deletes it | `GET/POST /drafts`, `DELETE /drafts/:id`, `app/me/drafts.tsx` |
+| §5.6 获赞记录 | Who liked which of my comments | `GET /me/likes`, `app/me/likes.tsx` |
+| §5.6 关注 | Tap any author/commenter → profile with counts, posts and follow; following list | `GET /users/:id`, `PUT/DELETE /users/:id/follow`, `GET /me/following` |
+| §5.7 | Weekly challenge ("rate 5 new products this week") and badge leaderboard | `GET /me/challenge`, `GET /leaderboard` |
+| §5.8 | "Who can see my ratings" is enforced on comment lists (hidden ratings still count in averages) | `services/posts.ts` `listComments` |
+| §13.3 | Comments are reportable too (⋯ on each comment), plus block author | detail page |
+| — | Route error boundary: friendly retry / go-home page instead of a red screen | `components/CrashScreen.tsx` |
 
 ## Deferred (spec phase 2/3, or needs credentials)
 
 - §7 system share import (iOS Share Extension / Android `ACTION_SEND`). Link Finder currently offers only the honest manual search; it never guesses.
 - Production object storage + CDN, thumbnails, and image moderation (uploads themselves are done).
-- Favourites, history, drafts, follows, likes-received list, limited-time challenges, badge leaderboard → "coming in a later release" toasts.
+- Comment replies (§4.6), push notifications, season-end badge awards (§6) and the limited challenge's reward badge.
 - Real e-mail delivery (`ConsoleMailer` → SES/Postmark), push notifications, Redis, rate limiting, moderation console.
 - Social sign-in needs real client IDs; unconfigured providers show "not set up yet" in the app and 501 on the API.
 
