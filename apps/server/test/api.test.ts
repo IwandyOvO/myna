@@ -692,3 +692,33 @@ describe('season settlement (§6)', () => {
     expect(pub.awards.find((a: { post_id: string }) => a.post_id === created.body.id).rank).toBe(1);
   });
 });
+
+describe('production hardening', () => {
+  it('rate-limits sign-in attempts per IP', async () => {
+    const cfg = { ...loadConfig({ NODE_ENV: 'test', RATE_LIMIT_GENERAL: '1000', RATE_LIMIT_AUTH: '3' } as NodeJS.ProcessEnv), databaseUrl: url };
+    const limited = buildApp({ db, config: cfg, mailer: { sendLoginCode: async () => {} } });
+    const codes: number[] = [];
+    for (let i = 0; i < 5; i++) codes.push((await limited.inject({ method: 'POST', url: '/auth/email', payload: { email: 'x@example.com', code: '123456' } })).statusCode);
+    expect(codes.slice(0, 3)).toEqual([401, 401, 401]);
+    expect(codes.slice(3)).toEqual([429, 429]);
+    // other routes are not affected by the sign-in limit
+    expect((await limited.inject({ method: 'GET', url: '/health' })).statusCode).toBe(200);
+    await limited.close();
+  });
+
+  it('readiness checks the database; security headers are set; big bodies are refused', async () => {
+    const r = await app.inject({ method: 'GET', url: '/ready' });
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['x-content-type-options']).toBe('nosniff');
+    expect(r.headers['strict-transport-security']).toBeTruthy();
+    const big = await app.inject({ method: 'POST', url: '/drafts', headers: { authorization: `Bearer ${demoToken}`, 'content-type': 'application/json' }, payload: JSON.stringify({ payload: { body: 'x'.repeat(300_000) } }) });
+    expect(big.statusCode).toBe(413);
+  });
+
+  it('production config refuses a missing JWT secret and disables dev helpers', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production' } as NodeJS.ProcessEnv)).toThrow(/JWT_SECRET/);
+    const prod = loadConfig({ NODE_ENV: 'production', JWT_SECRET: 'x'.repeat(40), ALLOW_DEV_LOGIN: '1', DEV_EXPOSE_EMAIL_CODES: '1' } as NodeJS.ProcessEnv);
+    expect(prod.allowDevLogin).toBe(false);
+    expect(prod.exposeEmailCodes).toBe(false);
+  });
+});

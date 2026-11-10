@@ -1,0 +1,33 @@
+# Local production-like stack: PostgreSQL + API.
+#   JWT_SECRET=$(openssl rand -hex 32) docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: myna
+      POSTGRES_PASSWORD: myna
+      POSTGRES_DB: myna
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myna"]
+      interval: 5s
+      retries: 10
+  api:
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgres://myna:myna@db:5432/myna
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (32+ random characters)}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      EXPO_ACCESS_TOKEN: ${EXPO_ACCESS_TOKEN:-}
+      GOOGLE_CLIENT_IDS: ${GOOGLE_CLIENT_IDS:-}
+      APPLE_BUNDLE_IDS: ${APPLE_BUNDLE_IDS:-app.myna.ios}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+    ports: ["4000:4000"]
+    volumes: [uploads:/data/uploads]
+volumes:
+  pgdata:
+  uploads:

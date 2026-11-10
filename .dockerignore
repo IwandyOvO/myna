@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+apps/mobile
+!apps/mobile/package.json
+apps/server/uploads
+apps/server/.env
+apps/server/dev.log
+docs
+tools
+.git

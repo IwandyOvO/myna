@@ -1,4 +1,6 @@
 import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
+import rateLimit from '@fastify/rate-limit';
 import multipart from '@fastify/multipart';
 import {
   BOARD_CATEGORIES, CATEGORIES, LOCALES, isLocale, resolveLocale,
@@ -54,8 +56,24 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const pusher = deps.pusher ?? (process.env.NODE_ENV === 'test' ? new NoopPusher() : new ExpoPusher(process.env.EXPO_ACCESS_TOKEN));
   const tagCfg = { tags: config.autoTags, blindHours: config.blindHours };
 
-  const app = Fastify({ logger: process.env.NODE_ENV !== 'test' && { level: 'info' } });
-  app.register(cors, { origin: true, methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'] });
+  const app = Fastify({
+    logger: process.env.NODE_ENV !== 'test' && {
+      level: process.env.LOG_LEVEL ?? 'info',
+      // Never write bearer tokens or e-mail codes to logs.
+      redact: ['req.headers.authorization', 'req.body.code', 'req.body.idToken', 'req.body.identityToken', 'req.body.accessToken'],
+    },
+    bodyLimit: 256 * 1024, // JSON bodies; uploads have their own multipart limit
+    trustProxy: config.trustProxy,
+  });
+  app.register(helmet, { crossOriginResourcePolicy: { policy: 'cross-origin' } }); // images are loaded by the app/web from another origin
+  app.register(cors, {
+    origin: config.corsOrigins.length ? config.corsOrigins : true,
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  });
+  const limits = config.rateLimits;
+  if (limits.general > 0) app.register(rateLimit, { max: limits.general, timeWindow: '1 minute' });
+  /** Per-route limit (e.g. sign-in); no-op when rate limiting is disabled. */
+  const limit = (max: number) => (limits.general > 0 && max > 0 ? { config: { rateLimit: { max, timeWindow: '1 minute' } } } : {});
   app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } });
 
   app.setErrorHandler((err, _req, reply) => {
@@ -102,32 +120,43 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return { token: await tokens.sign(userId), user: await users.getMe(db, userId) };
   }
 
+  // Routes live in a child scope registered after the rate limiter, so its per-route limits apply.
+  app.register(async (app) => {
   app.get('/health', async () => ({ ok: true }));
+  /** Readiness: the database answers. Use for load-balancer health checks. */
+  app.get('/ready', async (_req, reply) => {
+    try {
+      await db.query('SELECT 1');
+      return { ok: true };
+    } catch {
+      return reply.status(503).send({ ok: false });
+    }
+  });
 
   // ---- auth (§10 POST /auth/{provider}) ----------------------------------------
-  app.post('/auth/email/start', async (req) => {
+  app.post('/auth/email/start', limit(limits.auth), async (req) => {
     const { email } = z.object({ email: z.string() }).parse(req.body);
     const e = users.normalizeEmail(email);
     const code = await users.issueEmailCode(db, e, config.jwtSecret);
     await mailer.sendLoginCode(e, code);
     return config.exposeEmailCodes ? { sent: true, devCode: code } : { sent: true };
   });
-  app.post('/auth/email', async (req) => {
+  app.post('/auth/email', limit(limits.auth), async (req) => {
     const { email, code } = z.object({ email: z.string(), code: z.string().regex(/^\d{6}$/) }).parse(req.body);
     const e = users.normalizeEmail(email);
     await users.consumeEmailCode(db, e, code, config.jwtSecret);
     return issue('email', { providerUid: e, email: e }, req);
   });
-  app.post('/auth/google', async (req) => {
+  app.post('/auth/google', limit(limits.auth), async (req) => {
     const { idToken } = z.object({ idToken: z.string().min(10) }).parse(req.body);
     return issue('google', await social.google(idToken), req);
   });
-  app.post('/auth/apple', async (req) => {
+  app.post('/auth/apple', limit(limits.auth), async (req) => {
     const { identityToken, fullName } = z.object({ identityToken: z.string().min(10), fullName: z.string().max(60).optional() }).parse(req.body);
     const id = await social.apple(identityToken);
     return issue('apple', { ...id, name: fullName || id.name }, req);
   });
-  app.post('/auth/facebook', async (req) => {
+  app.post('/auth/facebook', limit(limits.auth), async (req) => {
     const { accessToken } = z.object({ accessToken: z.string().min(10) }).parse(req.body);
     return issue('facebook', await social.facebook(accessToken), req);
   });
@@ -188,7 +217,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
 
   // ---- images (§4.1 post images) -------------------------------------------------------
-  app.post('/uploads', async (req, reply) => {
+  app.post('/uploads', limit(limits.upload), async (req, reply) => {
     await requireUser(req);
     const file = await req.file();
     if (!file) throw badRequest('file_required');
@@ -431,6 +460,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     await posts.report(db, me, b, b.reason, b.note);
     reply.status(201);
     return { ok: true };
+  });
   });
 
   /** Settles the previous month if nobody has yet, then notifies the authors (safe to call repeatedly). */

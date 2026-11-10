@@ -19,6 +19,13 @@ export interface Config {
   blindHours: number;
   /** Local upload directory (dev). Swap LocalDiskStorage for S3/R2 + CDN in production. */
   uploadDir: string;
+  /** Allowed browser origins (native apps don't send Origin). Empty = allow all (development). */
+  corsOrigins: string[];
+  /** Behind a load balancer / reverse proxy: trust X-Forwarded-For for client IPs (rate limits). */
+  trustProxy: boolean;
+  /** Requests per minute per IP: general / sign-in / uploads. 0 disables (tests). */
+  rateLimits: { general: number; auth: number; upload: number };
+  dbPoolMax: number;
 }
 
 /** Loads apps/server/.env into process.env if it exists (npm workspace scripts run from apps/server). */
@@ -46,6 +53,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     boardMinRatings: num(env.BOARD_MIN_RATINGS, 50),
     blindHours: num(env.BLIND_HOURS, BLIND_HOURS),
     uploadDir: env.UPLOAD_DIR ?? join(process.cwd(), 'uploads'),
+    corsOrigins: list(env.CORS_ORIGINS),
+    trustProxy: env.TRUST_PROXY === '1',
+    rateLimits: env.NODE_ENV === 'test' && !env.RATE_LIMIT_GENERAL
+      ? { general: 0, auth: 0, upload: 0 }
+      : { general: num(env.RATE_LIMIT_GENERAL, 300), auth: num(env.RATE_LIMIT_AUTH, 10), upload: num(env.RATE_LIMIT_UPLOAD, 30) },
+    dbPoolMax: num(env.DB_POOL_MAX, 10),
     autoTags: {
       newPostDays: num(env.TAG_NEW_POST_DAYS, DEFAULT_AUTO_TAG_CONFIG.newPostDays),
       potentialMinTotal: num(env.TAG_POTENTIAL_MIN_TOTAL, DEFAULT_AUTO_TAG_CONFIG.potentialMinTotal),

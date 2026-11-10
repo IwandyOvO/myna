@@ -9,8 +9,8 @@ pg.types.setTypeParser(20, (v) => Number(v));
 // numeric → number (averages).
 pg.types.setTypeParser(1700, (v) => Number(v));
 
-export function createPool(url: string): Db {
-  return new pg.Pool({ connectionString: url, max: 10 });
+export function createPool(url: string, max = 10): Db {
+  return new pg.Pool({ connectionString: url, max });
 }
 
 export async function withTx<T>(db: Db, fn: (tx: Tx) => Promise<T>): Promise<T> {
