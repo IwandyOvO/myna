@@ -19,7 +19,7 @@
 | §13.3 UGC | `POST /reports`, block/unblock | Report sheet + block author on the detail page. Moderation console not built. |
 | App Store 5.1.1(v) | `DELETE /me` | Erases identity and personal data; anonymous votes stay so averages and boards remain correct. |
 
-Verified: 13 shared unit tests, 27 server integration tests on PostgreSQL 16, typecheck of all three packages,
+Verified: 15 shared unit tests, 32 server integration tests on PostgreSQL 16, typecheck of all three packages,
 and a scripted Playwright walkthrough of the web build against the real API (browse → filter → blind post locked →
 log in → rate → unlocked → edit → drawer → settings in EN + dark → boards → publish → me). Native iOS/Android builds
 have **not** been run in this environment.
@@ -27,20 +27,30 @@ have **not** been run in this environment.
 ## Deferred (spec phase 2/3, or needs credentials)
 
 - §7 system share import (iOS Share Extension / Android `ACTION_SEND`). Link Finder currently offers only the honest manual search; it never guesses.
-- Image upload (object storage + CDN). Posts use an emoji cover for now; `image_urls` is in the schema and API type.
+- Production object storage + CDN, thumbnails, and image moderation (uploads themselves are done).
 - Favourites, history, drafts, follows, likes-received list, limited-time challenges, badge leaderboard → "coming in a later release" toasts.
 - Real e-mail delivery (`ConsoleMailer` → SES/Postmark), push notifications, Redis, rate limiting, moderation console.
 - Social sign-in needs real client IDs; unconfigured providers show "not set up yet" in the app and 501 on the API.
 
-## Decisions that need product sign-off
+## Product decisions (2026-11, spec v0.8.1)
 
-1. **§4.3 generic zh product scale contains "屎" and "不好喝/好喝".** It contradicts §4.2's own tone rule ("有梗但不骂人") and is drink-specific. It is currently unreachable (every zh product category has its own scale), but any future product category without a custom scale would show it. Recommend replacing before adding categories.
-2. **Blind posts never appear on boards.** Spec says blind scores stay hidden until *you* rate; a public board would reveal them. Alternatives: only chart after a blind window (the prototype's "24h" copy), or show blind posts on boards without the score.
-3. **Blind posts also hide comment tier badges and the tier filter** until you rate. The prototype showed them, which leaks the distribution.
+Decided:
+1. **§4.3 generic zh product scale** is now 👎 踩雷 / 😖 不太行 / 😐 一般 / 😋 不错 / 🤩 顶级 (was 屎 / 不好喝 / 好喝). Test-enforced: no "屎" in any scale.
+2. **Blind window = 24 h** (`BLIND_HOURS`, shared constant + server env). During the window the score, breakdown, auto tags, comment tier badges and tier filter are hidden from people who have not rated, and the post stays off the boards. Afterwards it is a normal public post and can chart.
+3. **Phase 2 starts with image uploads** — done, see below.
+
+Still placeholders / open:
 4. **"Food" board = snacks + dining.** §6 is ambiguous; it uses the dining scale as specified.
 5. **Demo account stats.** The seed keeps the spec identity (干饭鉴黄师, @foodjudge_007, reputation 92, 3 badges) but shows real counts, not the illustrative 12 / 348 / 1.2k.
 6. **Reputation rule (placeholder, §14):** +2 per first rating (matches the "Rated! Reputation +2" copy), clamped to 0–100. Badge time rules (streak, night owl) use UTC until users have a time zone.
 7. Badge descriptions/conditions only exist in zh/en in the prototype; the other 5 languages fall back to English.
+
+## Phase 2: image uploads
+
+- App: up to 4 photos per post (library or camera, cropped 4:3, JPEG quality 0.7); the first is the cover on cards and the detail page shows a swipeable gallery. Emoji stays as the fallback cover.
+- API: `POST /uploads` (signed-in, multipart, ≤ 8 MB, JPEG/PNG identified by magic bytes, not by the declared type) → `{ url: "/uploads/<uuid>.jpg" }`; `POST /posts` only accepts paths that exist in our storage.
+- Privacy: EXIF/XMP (incl. GPS) and PNG text chunks are stripped server-side before storing; the picker is also asked not to return EXIF.
+- Storage: `LocalDiskStorage` (`UPLOAD_DIR`, default `apps/server/uploads/`, git-ignored) behind a `Storage` interface. **Before launch:** S3/R2 + CDN implementation, image resizing/thumbnails, and image moderation (App Store 1.2) — reports already cover posts with images.
 
 ## Still open from the spec (§13–14)
 

@@ -23,14 +23,23 @@ const CARD_FROM = `
   LEFT JOIN ratings r ON r.post_id = p.id AND r.user_id = $1::uuid`;
 const NOT_BLOCKED = `NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = p.author_id)`;
 
+/** Read-side rules every PostCard depends on. */
+export interface CardRules {
+  tags: AutoTagConfig;
+  blindHours: number;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function toCard(row: any, cfg: AutoTagConfig, now = new Date()): PostCard {
+export function toCard(row: any, cfg: CardRules, now = new Date()): PostCard {
   const dist: Distribution = [row.c1, row.c2, row.c3, row.c4, row.c5];
   const myRating = row.my_tier
     ? { tier: row.my_tier as Tier, reason: row.my_reason as string, editedCount: row.my_edited as number, editsLeft: editsLeft(row.my_edited) }
     : null;
-  // §4.4 blind posts: average and breakdown stay masked until the viewer has rated.
-  const locked = row.blind && !myRating;
+  // §4.4 blind posts: average and breakdown stay masked until the viewer has rated,
+  // for cfg.blindHours after posting; after that the post is public (and can chart).
+  const blindUntil = row.blind ? new Date(row.created_at.getTime() + cfg.blindHours * 3_600_000) : null;
+  const blindActive = !!blindUntil && blindUntil > now;
+  const locked = blindActive && !myRating;
   const card: PostCard = {
     id: row.id,
     type: row.type,
@@ -40,7 +49,8 @@ export function toCard(row: any, cfg: AutoTagConfig, now = new Date()): PostCard
     emoji: row.emoji,
     imageUrls: row.image_urls,
     lang: row.lang,
-    blind: row.blind,
+    blind: blindActive,
+    blindUntil: blindUntil ? blindUntil.toISOString() : null,
     placeName: row.place_name,
     author: row.author,
     createdAt: row.created_at.toISOString(),
@@ -48,7 +58,7 @@ export function toCard(row: any, cfg: AutoTagConfig, now = new Date()): PostCard
     avg: locked ? null : row.avg,
     dist: locked ? null : dist,
     locked,
-    tags: locked ? [] : autoTags(dist, row.created_at, now, cfg),
+    tags: locked ? [] : autoTags(dist, row.created_at, now, cfg.tags),
     myRating,
   };
   if (row.distance_km !== undefined && row.distance_km !== null) card.distanceKm = Math.round(row.distance_km * 10) / 10;
@@ -63,7 +73,7 @@ export interface FeedQuery {
   cursor?: string;
 }
 
-export async function feed(db: Queryable, cfg: AutoTagConfig, f: FeedQuery): Promise<Page<PostCard>> {
+export async function feed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Page<PostCard>> {
   const cur = decodeCursor(f.cursor);
   const params: unknown[] = [f.viewer];
   const where = [`p.status = 'active'`, NOT_BLOCKED];
@@ -93,7 +103,7 @@ export async function feed(db: Queryable, cfg: AutoTagConfig, f: FeedQuery): Pro
 const HAVERSINE = `6371 * 2 * asin(sqrt(power(sin(radians(p.lat - $2) / 2), 2) + cos(radians($2)) * cos(radians(p.lat)) * power(sin(radians(p.lng - $3) / 2), 2)))`;
 
 /** §5.5 — nearby posts ordered by distance. radiusKm undefined = "whole city" (50 km). */
-export async function nearby(db: Queryable, cfg: AutoTagConfig, viewer: string | null, lat: number, lng: number, radiusKm = 50): Promise<PostCard[]> {
+export async function nearby(db: Queryable, cfg: CardRules, viewer: string | null, lat: number, lng: number, radiusKm = 50): Promise<PostCard[]> {
   const rows = (
     await db.query(
       `SELECT * FROM (${CARD_SELECT}, ${HAVERSINE} AS distance_km ${CARD_FROM}
@@ -106,7 +116,7 @@ export async function nearby(db: Queryable, cfg: AutoTagConfig, viewer: string |
   return rows.map((r) => toCard(r, cfg));
 }
 
-export async function getPost(db: Queryable, cfg: AutoTagConfig, viewer: string | null, id: string): Promise<PostCard> {
+export async function getPost(db: Queryable, cfg: CardRules, viewer: string | null, id: string): Promise<PostCard> {
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw notFound('post_not_found');
   const row = (await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE p.id = $2 AND p.status = 'active'`, [viewer, id])).rows[0];
   if (!row) throw notFound('post_not_found');
@@ -121,22 +131,25 @@ export async function createPost(db: Queryable, authorId: string, input: CreateP
   const lat = loc && 'lat' in loc ? loc.lat : null;
   const lng = loc && 'lng' in loc ? loc.lng : null;
   const res = await db.query<{ id: string }>(
-    `INSERT INTO posts (author_id, type, category, title, body, emoji, lang, blind, lat, lng, place_name)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+    `INSERT INTO posts (author_id, type, category, title, body, emoji, lang, blind, lat, lng, place_name, image_urls)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
     [authorId, typeOfCategory(input.category), input.category, title, (input.body ?? '').trim(), input.emoji || CATEGORY_EMOJI[input.category],
-      input.lang, !!input.blind, lat, lng, loc?.placeName?.trim() || null],
+      input.lang, !!input.blind, lat, lng, loc?.placeName?.trim() || null, input.imageUrls ?? []],
   );
   const id = res.rows[0]!.id;
   await db.query('INSERT INTO post_stats (post_id) VALUES ($1)', [id]);
   return id;
 }
 
-export async function listComments(db: Queryable, viewer: string | null, postId: string, tier: Tier | undefined, cursor: string | undefined): Promise<Page<Comment>> {
+export async function listComments(
+  db: Queryable, viewer: string | null, postId: string, tier: Tier | undefined, cursor: string | undefined, blindHours: number,
+): Promise<Page<Comment>> {
   const post = (
     await db.query<{ blind: boolean; rated: boolean }>(
-      `SELECT p.blind, EXISTS (SELECT 1 FROM ratings r WHERE r.post_id = p.id AND r.user_id = $2::uuid) AS rated
+      `SELECT (p.blind AND p.created_at > now() - $3 * interval '1 hour') AS blind,
+              EXISTS (SELECT 1 FROM ratings r WHERE r.post_id = p.id AND r.user_id = $2::uuid) AS rated
        FROM posts p WHERE p.id = $1 AND p.status = 'active'`,
-      [postId, viewer],
+      [postId, viewer, blindHours],
     )
   ).rows[0];
   if (!post) throw notFound('post_not_found');
@@ -185,12 +198,12 @@ export async function setCommentLike(db: Queryable, userId: string, commentId: s
   return r.rows[0]!.like_count;
 }
 
-export async function myPosts(db: Queryable, cfg: AutoTagConfig, userId: string): Promise<PostCard[]> {
+export async function myPosts(db: Queryable, cfg: CardRules, userId: string): Promise<PostCard[]> {
   const rows = (await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE p.author_id = $1 AND p.status = 'active' ORDER BY p.created_at DESC LIMIT 100`, [userId])).rows;
   return rows.map((r) => toCard(r, cfg));
 }
 
-export async function myRatedPosts(db: Queryable, cfg: AutoTagConfig, userId: string): Promise<PostCard[]> {
+export async function myRatedPosts(db: Queryable, cfg: CardRules, userId: string): Promise<PostCard[]> {
   const rows = (
     await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE r.user_id = $1 AND p.status = 'active' ORDER BY r.updated_at DESC LIMIT 100`, [userId])
   ).rows;

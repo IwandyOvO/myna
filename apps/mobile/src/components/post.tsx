@@ -1,6 +1,7 @@
 import { CATEGORY_EMOJI, categoryName, LANG_TAG, scaleFor, verdict, type Category, type Locale, type PostCard, type Tier } from '@myna/shared';
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { mediaUrl } from '../lib/api';
 import { useSettings } from '../lib/settings';
 import { avgColors, brand } from '../lib/theme';
 import { Card, T } from './ui';
@@ -71,7 +72,11 @@ export function PostCardView({ post, showDistance }: { post: PostCard; showDista
   return (
     <Card onPress={open} style={{ marginHorizontal: 16, marginBottom: 12 }}>
       <View style={[s.cover, { backgroundColor: colors.soft }]}>
-        <Text style={{ fontSize: 58 }}>{post.emoji || CATEGORY_EMOJI[post.category]}</Text>
+        {post.imageUrls[0] ? (
+          <Image source={{ uri: mediaUrl(post.imageUrls[0]) }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+        ) : (
+          <Text style={{ fontSize: 58 }}>{post.emoji || CATEGORY_EMOJI[post.category]}</Text>
+        )}
         <Pills post={post} />
         {post.lang !== locale && (
           <View style={[s.lang, { backgroundColor: colors.card }]}>

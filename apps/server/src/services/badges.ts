@@ -11,7 +11,7 @@ export type Metric =
  * Computes the metric values for one user. All time-of-day logic uses UTC
  * until users carry a time zone (open question, see docs/IMPLEMENTATION.md).
  */
-export async function computeMetrics(db: Queryable, userId: string, boardMinRatings: number): Promise<Record<Metric, number>> {
+export async function computeMetrics(db: Queryable, userId: string, boardMinRatings: number, blindHours: number): Promise<Record<Metric, number>> {
   const one = async (sql: string) => Number((await db.query(sql, [userId])).rows[0]?.n ?? 0);
 
   const days = (
@@ -35,7 +35,7 @@ export async function computeMetrics(db: Queryable, userId: string, boardMinRati
   let top1 = 0;
   const mine = new Set((await db.query<{ id: string }>('SELECT id FROM posts WHERE author_id = $1', [userId])).rows.map((r) => r.id));
   for (const category of BOARD_CATEGORIES) {
-    const b = await getBoard(db, { period: 'monthly', category, direction: 'best', minRatings: boardMinRatings });
+    const b = await getBoard(db, { period: 'monthly', category, direction: 'best', minRatings: boardMinRatings, blindHours });
     for (const e of b.entries) if (mine.has(e.post.id)) { top20++; if (e.rank === 1) top1++; }
   }
 
@@ -69,8 +69,8 @@ export async function computeMetrics(db: Queryable, userId: string, boardMinRati
 const pickLang = (m: Record<string, string>, l: Locale) => m[l] ?? m.en ?? m.zh ?? '';
 
 /** Badge wall for a user; unlocks any badge whose target is now met (idempotent). */
-export async function badgeWall(db: Queryable, userId: string, locale: Locale, boardMinRatings: number): Promise<Badge[]> {
-  const metrics = await computeMetrics(db, userId, boardMinRatings);
+export async function badgeWall(db: Queryable, userId: string, locale: Locale, boardMinRatings: number, blindHours: number): Promise<Badge[]> {
+  const metrics = await computeMetrics(db, userId, boardMinRatings, blindHours);
   const defs = (await db.query('SELECT * FROM badges ORDER BY sort, id')).rows;
   for (const b of defs) {
     if ((metrics[b.rule.metric as Metric] ?? 0) >= b.rule.target) {

@@ -87,3 +87,39 @@ export const qs = (params: Record<string, string | number | undefined | null>) =
     .join('&');
   return s ? `?${s}` : '';
 };
+
+/** Uploaded images are stored as "/uploads/…" paths; turn them into absolute URLs for <Image>. */
+export function mediaUrl(path: string): string {
+  return /^https?:\/\//.test(path) ? path : `${API_URL}${path}`;
+}
+
+/** Uploads one picked image; returns the server path to put in CreatePostInput.imageUrls. */
+export async function uploadImage(asset: { uri: string; mimeType?: string | null; fileName?: string | null }): Promise<string> {
+  const type = asset.mimeType ?? 'image/jpeg';
+  const name = asset.fileName ?? (type === 'image/png' ? 'photo.png' : 'photo.jpg');
+  const form = new FormData();
+  if (Platform.OS === 'web') {
+    form.append('file', await (await fetch(asset.uri)).blob(), name);
+  } else {
+    // React Native's FormData accepts a { uri, name, type } descriptor for local files.
+    form.append('file', { uri: asset.uri, name, type } as unknown as Blob);
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60_000);
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}/uploads`, {
+      method: 'POST',
+      body: form,
+      headers: { ...(token ? { authorization: `Bearer ${token}` } : {}) },
+      signal: controller.signal,
+    });
+  } catch {
+    throw new ApiFailure(0, 'network_error');
+  } finally {
+    clearTimeout(timer);
+  }
+  const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok || !data.url) throw new ApiFailure(res.status, data.error ?? 'upload_failed');
+  return data.url;
+}

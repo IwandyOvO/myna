@@ -1,7 +1,8 @@
 import { categoryName, scaleFor, timeAgo, type ReportReason, type Tier } from '@myna/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { mediaUrl } from '../../lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../../components/headers';
 import { Pills, ScoreBlock, TierBadge } from '../../components/post';
@@ -17,6 +18,7 @@ export default function PostDetail() {
   const { t, locale, colors } = useSettings();
   const { signedIn, me } = useAuth();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
   const toast = useToast();
   const post = usePost(id);
   const [filter, setFilter] = useState<Tier | null>(null);
@@ -60,10 +62,28 @@ export default function PostDetail() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <PageHeader title={categoryName(p.category, locale)} right={<T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>⋯</T>} />
       <ScrollView contentContainerStyle={{ paddingBottom: 110 + insets.bottom }}>
-        <View style={[s.cover, { backgroundColor: colors.soft }]}>
-          <Text style={{ fontSize: 76 }}>{p.emoji}</Text>
-          <Pills post={p} />
-        </View>
+        {p.imageUrls.length > 0 ? (
+          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={{ height: 260 }}>
+            {p.imageUrls.map((u, i) => (
+              <View key={u + i} style={{ width: windowWidth, height: 260 }}>
+                <Image source={{ uri: mediaUrl(u) }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
+                {i === 0 && <Pills post={p} />}
+                {p.imageUrls.length > 1 && (
+                  <View style={s.counter}>
+                    <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+                      {i + 1}/{p.imageUrls.length}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={[s.cover, { backgroundColor: colors.soft }]}>
+            <Text style={{ fontSize: 76 }}>{p.emoji}</Text>
+            <Pills post={p} />
+          </View>
+        )}
         <View style={{ padding: 16 }}>
           <T style={{ fontSize: 20, fontWeight: '900', lineHeight: 27 }}>{p.title}</T>
           {!!p.body && <T style={{ fontSize: 14.5, lineHeight: 22, marginTop: 8, color: colors.body }}>{p.body}</T>}
@@ -139,6 +159,7 @@ export default function PostDetail() {
 
 const s = StyleSheet.create({
   cover: { height: 180, alignItems: 'center', justifyContent: 'center' },
+  counter: { position: 'absolute', right: 12, bottom: 12, backgroundColor: 'rgba(0,0,0,0.55)', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999 },
   comment: { paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },
   cta: { position: 'absolute', left: 16, right: 16 },
   menuRow: { paddingVertical: 15, borderBottomWidth: StyleSheet.hairlineWidth },

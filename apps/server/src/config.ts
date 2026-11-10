@@ -1,4 +1,5 @@
-import { DEFAULT_AUTO_TAG_CONFIG, type AutoTagConfig } from '@myna/shared';
+import { BLIND_HOURS, DEFAULT_AUTO_TAG_CONFIG, type AutoTagConfig } from '@myna/shared';
+import { join } from 'node:path';
 
 const list = (v: string | undefined) => (v ?? '').split(',').map((s) => s.trim()).filter(Boolean);
 const num = (v: string | undefined, d: number) => (v && !Number.isNaN(Number(v)) ? Number(v) : d);
@@ -14,6 +15,10 @@ export interface Config {
   facebook: { appId: string; appSecret: string } | null;
   boardMinRatings: number;
   autoTags: AutoTagConfig;
+  /** §4.4 blind window. Keep equal to shared BLIND_HOURS: the app's copy quotes that number. */
+  blindHours: number;
+  /** Local upload directory (dev). Swap LocalDiskStorage for S3/R2 + CDN in production. */
+  uploadDir: string;
 }
 
 /** Loads apps/server/.env into process.env if it exists (npm workspace scripts run from apps/server). */
@@ -39,6 +44,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     appleBundleIds: list(env.APPLE_BUNDLE_IDS),
     facebook: env.FACEBOOK_APP_ID && env.FACEBOOK_APP_SECRET ? { appId: env.FACEBOOK_APP_ID, appSecret: env.FACEBOOK_APP_SECRET } : null,
     boardMinRatings: num(env.BOARD_MIN_RATINGS, 50),
+    blindHours: num(env.BLIND_HOURS, BLIND_HOURS),
+    uploadDir: env.UPLOAD_DIR ?? join(process.cwd(), 'uploads'),
     autoTags: {
       newPostDays: num(env.TAG_NEW_POST_DAYS, DEFAULT_AUTO_TAG_CONFIG.newPostDays),
       potentialMinTotal: num(env.TAG_POTENTIAL_MIN_TOTAL, DEFAULT_AUTO_TAG_CONFIG.potentialMinTotal),

@@ -48,7 +48,10 @@ export interface PostCard {
   emoji: string;
   imageUrls: string[];
   lang: Locale;
+  /** True while the blind window is active (BLIND_HOURS after posting). */
   blind: boolean;
+  /** End of the blind window for posts created as blind, else null. */
+  blindUntil: string | null;
   placeName: string | null;
   distanceKm?: number;
   author: UserSummary;
@@ -86,6 +89,8 @@ export interface CreatePostInput {
   title: string;
   body?: string;
   emoji?: string;
+  /** Paths returned by POST /uploads (max 4); the first one is the cover. */
+  imageUrls?: string[];
   blind?: boolean;
   lang: Locale;
   location?: { lat: number; lng: number; placeName: string } | { placeName: string } | null;

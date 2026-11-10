@@ -1,5 +1,8 @@
 import type { Tier } from './scales';
 
+/** §4.4 — blind posts hide their score from people who have not rated, for this many hours after posting. */
+export const BLIND_HOURS = 24;
+
 /** §4.5 — each user may edit a rating at most 3 times. */
 export const MAX_EDITS = 3;
 

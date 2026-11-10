@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, autoTags, average, categoryName,
+  CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, genericScale, autoTags, average, categoryName,
   moveVote, placeholderFor, resolveLocale, scaleFor, scaleForBoard, timeAgo, translate,
 } from './index';
 import { OVERRIDES } from './i18n/overrides';
@@ -15,6 +15,10 @@ describe('scales', () => {
     expect(scaleFor('other', 'zh').map((t) => t.label)).toEqual(['别去', '不推荐', '看情况', '值得去', '必冲']);
     expect(scaleFor('drinks', 'es')[4].label).toBe('De primera');
     expect(scaleFor('work', 'ja')[0]).toEqual({ emoji: '🙅', label: '行かない' });
+  });
+  it('generic zh product scale follows the §4.2 tone rule (spec v0.8.1)', () => {
+    expect(genericScale('product', 'zh').map((t) => t.label)).toEqual(['踩雷', '不太行', '一般', '不错', '顶级']);
+    expect(JSON.stringify([CATEGORY_SCALES, LOCALES.map((l) => [genericScale('product', l), genericScale('event', l)])])).not.toContain('屎');
   });
   it('board scales map drinks→drinks, food→food, event→generic event (§6)', () => {
     expect(scaleForBoard('food', 'zh')[4].label).toBe('排队也值');

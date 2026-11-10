@@ -7,3 +7,4 @@ web-build/
 .env.local
 apps/mobile/ios/
 apps/mobile/android/
+apps/server/uploads/

@@ -1,4 +1,5 @@
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import {
   BOARD_CATEGORIES, CATEGORIES, LOCALES, isLocale, resolveLocale,
   type AuthProvider, type Locale,
@@ -10,7 +11,9 @@ import { ConsoleMailer, type Mailer } from './auth/mailer';
 import { TokenService } from './auth/tokens';
 import type { Config } from './config';
 import { withTx, type Db } from './db/pool';
-import { HttpError, notFound, unauthorized } from './lib/errors';
+import { HttpError, badRequest, notFound, unauthorized } from './lib/errors';
+import { sniffImage, stripMetadata } from './lib/images';
+import { LocalDiskStorage, UPLOAD_PATH, type Storage } from './lib/storage';
 import { badgeWall, weekly } from './services/badges';
 import { getBoard } from './services/boards';
 import * as posts from './services/posts';
@@ -22,7 +25,11 @@ export interface AppDeps {
   config: Config;
   mailer?: Mailer;
   social?: SocialVerifier;
+  storage?: Storage;
 }
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGES = 4;
 
 const tier = z.coerce.number().int().min(1).max(5);
 const uuid = z.string().uuid();
@@ -38,10 +45,12 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const tokens = new TokenService(config.jwtSecret);
   const mailer = deps.mailer ?? new ConsoleMailer();
   const social = deps.social ?? createSocialVerifier(config);
-  const tagCfg = config.autoTags;
+  const storage = deps.storage ?? new LocalDiskStorage(config.uploadDir);
+  const tagCfg = { tags: config.autoTags, blindHours: config.blindHours };
 
   const app = Fastify({ logger: process.env.NODE_ENV !== 'test' && { level: 'info' } });
   app.register(cors, { origin: true, methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'] });
+  app.register(multipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } });
 
   app.setErrorHandler((err, _req, reply) => {
     if (err instanceof HttpError) return reply.status(err.status).send({ error: err.code, message: err.message });
@@ -136,6 +145,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         title: z.string().min(1).max(120),
         body: z.string().max(2000).optional(),
         emoji: z.string().max(8).optional(),
+        imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional(),
         blind: z.boolean().optional(),
         lang: locale,
         location: z
@@ -146,9 +156,38 @@ export function buildApp(deps: AppDeps): FastifyInstance {
           .nullish(),
       })
       .parse(req.body);
+    for (const u of body.imageUrls ?? []) if (!(await storage.exists(u))) throw badRequest('unknown_image');
     const id = await withTx(db, (tx) => posts.createPost(tx, userId, body));
     reply.status(201);
     return posts.getPost(db, tagCfg, userId, id);
+  });
+
+  // ---- images (§4.1 post images) -------------------------------------------------------
+  app.post('/uploads', async (req, reply) => {
+    await requireUser(req);
+    const file = await req.file();
+    if (!file) throw badRequest('file_required');
+    let data: Buffer;
+    try {
+      data = await file.toBuffer();
+    } catch {
+      throw new HttpError(413, 'file_too_large');
+    }
+    const type = sniffImage(data);
+    if (!type) throw new HttpError(415, 'unsupported_image'); // JPEG and PNG only
+    const url = await storage.putImage(stripMetadata(data, type), type);
+    reply.status(201);
+    return { url };
+  });
+  app.get('/uploads/:name', async (req, reply) => {
+    const { name } = z.object({ name: z.string() }).parse(req.params);
+    const data = await storage.read(name);
+    if (!data) throw notFound();
+    return reply
+      .header('content-type', name.endsWith('.png') ? 'image/png' : 'image/jpeg')
+      .header('cache-control', 'public, max-age=31536000, immutable')
+      .header('x-content-type-options', 'nosniff')
+      .send(data);
   });
 
   // ---- ratings (§4.5) ----------------------------------------------------------------
@@ -173,7 +212,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get('/posts/:id/comments', async (req) => {
     const { id } = z.object({ id: uuid }).parse(req.params);
     const q = z.object({ tier: tier.optional(), cursor: z.string().optional() }).parse(req.query);
-    return posts.listComments(db, await viewer(req), id, q.tier as 1 | 2 | 3 | 4 | 5 | undefined, q.cursor);
+    return posts.listComments(db, await viewer(req), id, q.tier as 1 | 2 | 3 | 4 | 5 | undefined, q.cursor, config.blindHours);
   });
   app.put('/comments/:id/like', async (req) => {
     const userId = await requireUser(req);
@@ -191,7 +230,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const q = z
       .object({ period: z.enum(['monthly', 'all']).default('monthly'), category: z.enum(BOARD_CATEGORIES).default('drinks'), direction: z.enum(['best', 'worst']).default('best') })
       .parse(req.query);
-    return getBoard(db, { ...q, minRatings: config.boardMinRatings });
+    return getBoard(db, { ...q, minRatings: config.boardMinRatings, blindHours: config.blindHours });
   });
 
   // ---- me (§5.6–5.8) -----------------------------------------------------------------
@@ -211,8 +250,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
   app.get('/me/posts', async (req) => ({ items: await posts.myPosts(db, tagCfg, await requireUser(req)) }));
   app.get('/me/ratings', async (req) => ({ items: await posts.myRatedPosts(db, tagCfg, await requireUser(req)) }));
-  app.get('/me/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings) }));
-  app.get('/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings) }));
+  app.get('/me/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings, config.blindHours) }));
+  app.get('/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings, config.blindHours) }));
   app.get('/me/weekly', async (req) => weekly(db, await requireUser(req)));
   app.get('/me/blocks', async (req) => ({ items: await users.listBlocks(db, await requireUser(req)) }));
   app.put('/me/blocks/:userId', async (req) => {

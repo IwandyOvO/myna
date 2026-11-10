@@ -49,9 +49,12 @@ export const GENERIC_EMOJI: Record<PostType, readonly string[]> = {
   event: ['🙅', '😒', '🤔', '👍', '🚀'],
 };
 
-/** §4.3 — generic fallback scales (zh/en from the spec, the rest from the prototype). */
+/**
+ * §4.3 — generic fallback scales (zh/en from the spec, the rest from the prototype).
+ * zh product labels changed in spec v0.8.1: the original 屎/不好喝/好喝 broke the §4.2 tone rule and only fit drinks.
+ */
 const GENERIC_LABELS: Record<Locale, Record<PostType, readonly string[]>> = {
-  zh: { product: ['屎', '不好喝', '一般', '好喝', '顶级'], event: ['别去', '不推荐', '看情况', '值得去', '必冲'] },
+  zh: { product: ['踩雷', '不太行', '一般', '不错', '顶级'], event: ['别去', '不推荐', '看情况', '值得去', '必冲'] },
   en: { product: ['Terrible', 'Bad', 'Okay', 'Good', 'Top Tier'], event: ['Skip It', 'Not Recommended', 'Depends', 'Worth It', 'Must Go'] },
   es: { product: ['Pésimo', 'Malo', 'Regular', 'Bueno', 'De primera'], event: ['No vayas', 'No lo recomiendo', 'Depende', 'Vale la pena', '¡Imperdible!'] },
   fr: { product: ['Nul', 'Mauvais', 'Moyen', 'Bon', 'Excellent'], event: ["N'y va pas", 'Pas recommandé', 'Ça dépend', 'Ça vaut le coup', 'À ne pas manquer'] },

@@ -23,7 +23,10 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -41,6 +44,13 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Myna uses your location to tag where a post is from and to show posts near you. You can always pick a city instead."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Myna lets you add photos to a post. Location data embedded in photos is removed before upload.",
+          "cameraPermission": "Myna uses the camera so you can photograph what you are asking about."
         }
       ]
     ],

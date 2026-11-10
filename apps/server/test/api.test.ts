@@ -12,6 +12,10 @@ import { createPool, type Db } from '../src/db/pool';
 import { seed, synthDistribution } from '../src/db/seed';
 import { HttpError } from '../src/lib/errors';
 import { clearBoardCache } from '../src/services/boards';
+import { LocalDiskStorage } from '../src/lib/storage';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const url = process.env.TEST_DATABASE_URL ?? 'postgres://myna:myna@localhost:5432/myna_test';
 let db: Db;
@@ -54,7 +58,7 @@ beforeAll(async () => {
   db = createPool(url);
   await seed(db);
   const config = { ...loadConfig({ NODE_ENV: 'test', ALLOW_DEV_LOGIN: '1', DEV_EXPOSE_EMAIL_CODES: '1' } as NodeJS.ProcessEnv), databaseUrl: url };
-  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} } });
+  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} }, storage: new LocalDiskStorage(mkdtempSync(join(tmpdir(), 'myna-uploads-'))) });
   await app.ready();
   demoToken = (await call('POST', '/auth/dev', { body: { handle: 'foodjudge_007' } })).body.token;
 });
@@ -313,5 +317,111 @@ describe('cors', () => {
     const r = await app.inject({ method: 'OPTIONS', url: '/me/settings', headers: { origin: 'http://localhost:8081', 'access-control-request-method': 'PATCH' } });
     const allowed = String(r.headers['access-control-allow-methods']);
     for (const m of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']) expect(allowed).toContain(m);
+  });
+});
+
+describe('blind window (§4.4, 24 h)', () => {
+  it('a blind post locks only during its window, then opens up and can chart', async () => {
+    const t = await newUserToken('blindwin@example.com');
+    const created = await call<PostCard>('POST', '/posts', { token: t, body: { category: 'drinks', title: 'Blind window soda', lang: 'en', blind: true } });
+    expect(created.body.blind).toBe(true);
+    expect(created.body.blindUntil).not.toBeNull();
+    // Make it the worst drink by far, with enough ratings to chart this season.
+    await db.query('UPDATE post_stats SET c1 = 900 WHERE post_id = $1', [created.body.id]);
+    await db.query(`INSERT INTO post_season_stats (post_id, season, c1) VALUES ($1, to_char(now() AT TIME ZONE 'UTC', 'YYYY-MM'), 900)`, [created.body.id]);
+    const other = await newUserToken('blindwin2@example.com');
+    clearBoardCache();
+    expect((await call<PostCard>('GET', `/posts/${created.body.id}`, { token: other })).body.locked).toBe(true);
+    let worst = (await call<Board>('GET', '/boards?period=monthly&category=drinks&direction=worst')).body;
+    expect(worst.entries.some((e) => e.post.id === created.body.id)).toBe(false);
+
+    await db.query("UPDATE posts SET created_at = now() - interval '25 hours' WHERE id = $1", [created.body.id]);
+    clearBoardCache();
+    const after = (await call<PostCard>('GET', `/posts/${created.body.id}`, { token: other })).body;
+    expect(after).toMatchObject({ locked: false, blind: false });
+    expect(after.avg).toBe(1);
+    worst = (await call<Board>('GET', '/boards?period=monthly&category=drinks&direction=worst')).body;
+    expect(worst.entries[0]!.post.id).toBe(created.body.id);
+    const all = (await call<Board>('GET', '/boards?period=all&category=drinks&direction=worst')).body;
+    expect(all.entries.length).toBeGreaterThan(0); // all-time path (null season parameter) still works
+  });
+});
+
+/** Minimal multipart/form-data body with one file field. */
+function multipartBody(data: Buffer, filename: string, type: string) {
+  const boundary = '----myna' + Math.random().toString(16).slice(2);
+  const head = Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${type}\r\n\r\n`);
+  const tail = Buffer.from(`\r\n--${boundary}--\r\n`);
+  return { payload: Buffer.concat([head, data, tail]), headers: { 'content-type': `multipart/form-data; boundary=${boundary}` } };
+}
+
+const seg = (marker: number, body: Buffer) => Buffer.concat([Buffer.from([0xff, marker, (body.length + 2) >> 8, (body.length + 2) & 0xff]), body]);
+/** Structurally valid JPEG: SOI, JFIF APP0, EXIF APP1 carrying a fake GPS tag, SOS, scan data, EOI. */
+const jpegWithGps = Buffer.concat([
+  Buffer.from([0xff, 0xd8]),
+  seg(0xe0, Buffer.from('JFIF\0\x01\x01\0\0\x01\0\x01\0\0', 'latin1')),
+  seg(0xe1, Buffer.from('Exif\0\0GPS-LAT-40.7128-LNG--74.0060', 'latin1')),
+  seg(0xda, Buffer.from([1, 1, 0, 0, 0x3f, 0])),
+  Buffer.from([0x12, 0x34, 0x56, 0xff, 0xd9]),
+]);
+
+describe('image uploads', () => {
+  async function upload(token: string | undefined, data: Buffer, name = 'p.jpg', type = 'image/jpeg') {
+    const { payload, headers } = multipartBody(data, name, type);
+    const res = await app.inject({ method: 'POST', url: '/uploads', payload, headers: { ...headers, ...(token ? { authorization: `Bearer ${token}` } : {}) } });
+    return { status: res.statusCode, body: res.json() };
+  }
+
+  it('stores a JPEG without its EXIF/GPS metadata and serves it back', async () => {
+    const t = await newUserToken('photo@example.com');
+    const up = await upload(t, jpegWithGps);
+    expect(up.status).toBe(201);
+    expect(up.body.url).toMatch(/^\/uploads\/[0-9a-f-]{36}\.jpg$/);
+    const got = await app.inject({ method: 'GET', url: up.body.url });
+    expect(got.statusCode).toBe(200);
+    expect(got.headers['content-type']).toBe('image/jpeg');
+    const bytes = got.rawPayload;
+    expect(bytes.includes(Buffer.from('GPS-LAT'))).toBe(false);
+    expect(bytes.includes(Buffer.from('JFIF'))).toBe(true);
+    expect(bytes.subarray(-2)).toEqual(Buffer.from([0xff, 0xd9]));
+  });
+
+  it('strips PNG text/eXIf chunks', async () => {
+    const t = await newUserToken('png@example.com');
+    const chunk = (type: string, data: Buffer) => {
+      const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
+      return Buffer.concat([len, Buffer.from(type, 'latin1'), data, Buffer.alloc(4)]);
+    };
+    const png = Buffer.concat([
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      chunk('IHDR', Buffer.alloc(13)), chunk('tEXt', Buffer.from('Location\0Home address')), chunk('IDAT', Buffer.from([1, 2, 3])), chunk('IEND', Buffer.alloc(0)),
+    ]);
+    const up = await upload(t, png, 'a.png', 'image/png');
+    expect(up.status).toBe(201);
+    const got = await app.inject({ method: 'GET', url: up.body.url });
+    expect(got.rawPayload.includes(Buffer.from('Home address'))).toBe(false);
+    expect(got.rawPayload.includes(Buffer.from('IDAT'))).toBe(true);
+  });
+
+  it('rejects anonymous uploads, non-images and spoofed content types', async () => {
+    const t = await newUserToken('reject@example.com');
+    expect((await upload(undefined, jpegWithGps)).status).toBe(401);
+    const fake = await upload(t, Buffer.from('<script>alert(1)</script>'), 'x.jpg', 'image/jpeg');
+    expect(fake.status).toBe(415);
+    expect((await app.inject({ method: 'GET', url: '/uploads/../../etc/passwd' })).statusCode).toBe(404);
+  });
+
+  it('posts accept only images that were uploaded here (max 4)', async () => {
+    const t = await newUserToken('postimg@example.com');
+    const url = (await upload(t, jpegWithGps)).body.url;
+    const ok = await call<PostCard>('POST', '/posts', { token: t, body: { category: 'snacks', title: 'Chips with a photo', lang: 'en', imageUrls: [url] } });
+    expect(ok.status).toBe(201);
+    expect(ok.body.imageUrls).toEqual([url]);
+    const foreign = await call('POST', '/posts', { token: t, body: { category: 'snacks', title: 'x', lang: 'en', imageUrls: ['https://evil.example/a.jpg'] } });
+    expect(foreign.status).toBe(400);
+    const missing = await call('POST', '/posts', { token: t, body: { category: 'snacks', title: 'x', lang: 'en', imageUrls: ['/uploads/00000000-0000-0000-0000-000000000000.jpg'] } });
+    expect(missing.body.error).toBe('unknown_image');
+    const tooMany = await call('POST', '/posts', { token: t, body: { category: 'snacks', title: 'x', lang: 'en', imageUrls: [url, url, url, url, url] } });
+    expect(tooMany.status).toBe(400);
   });
 });

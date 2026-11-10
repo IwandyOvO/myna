@@ -1,10 +1,12 @@
 import {
-  CATEGORY_EMOJI, LANG_TAG, LOCALES, categoriesOf, categoryName, placeholderFor, scaleFor,
+  BLIND_HOURS, CATEGORY_EMOJI, LANG_TAG, LOCALES, categoriesOf, categoryName, placeholderFor, scaleFor,
   type Category, type Locale, type PostType,
 } from '@myna/shared';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { mediaUrl, uploadImage } from '../lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../components/headers';
 import { Button, Card, Chip, Seg, Sheet, T, useToast } from '../components/ui';
@@ -12,6 +14,8 @@ import { CITIES, cityName, locate } from '../lib/location';
 import { usePublish } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
+
+const MAX_PHOTOS = 4;
 
 const COVER_EMOJIS: Record<PostType, string[]> = {
   product: ['🥤', '🧋', '🍿', '🍜', '🎧', '💄', '🧺', '🍰'],
@@ -36,6 +40,27 @@ export default function Publish() {
   const [loc, setLoc] = useState<Loc>(null);
   const [locating, setLocating] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]); // server paths from POST /uploads
+  const [uploading, setUploading] = useState(0);
+
+  const addPhoto = async (source: 'library' | 'camera') => {
+    if (photos.length + uploading >= MAX_PHOTOS) return toast(t('max_photos'));
+    const perm = source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) return toast(t('photo_denied'));
+    const opts: ImagePicker.ImagePickerOptions = { mediaTypes: 'images', quality: 0.7, exif: false, allowsEditing: true, aspect: [4, 3] };
+    const res = source === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
+    const asset = res.canceled ? null : res.assets[0];
+    if (!asset) return;
+    setUploading((n) => n + 1);
+    try {
+      const url = await uploadImage(asset);
+      setPhotos((p) => [...p, url].slice(0, MAX_PHOTOS));
+    } catch {
+      toast(t('error_generic'));
+    } finally {
+      setUploading((n) => n - 1);
+    }
+  };
 
   const ph = placeholderFor(category, locale);
   const scale = scaleFor(category, locale);
@@ -65,6 +90,7 @@ export default function Publish() {
         title: title.trim(),
         body: body.trim() || t('default_desc'),
         emoji: emoji ?? CATEGORY_EMOJI[category],
+        imageUrls: photos,
         blind,
         lang,
         location: loc ? (loc.lat !== undefined ? { lat: loc.lat, lng: loc.lng!, placeName: loc.placeName } : { placeName: loc.placeName }) : null,
@@ -111,6 +137,36 @@ export default function Publish() {
             maxLength={2000}
             style={[input, { minHeight: 90, textAlignVertical: 'top' }]}
           />
+        </View>
+
+        <View>
+          <T style={s.label}>{t('pub_cover_l')}</T>
+          <View style={s.wrap}>
+            {photos.map((u, i) => (
+              <View key={u} style={s.photo}>
+                <Image source={{ uri: mediaUrl(u) }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                {i === 0 && (
+                  <View style={s.coverTag}>
+                    <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>★</Text>
+                  </View>
+                )}
+                <Pressable onPress={() => setPhotos((p) => p.filter((x) => x !== u))} accessibilityRole="button" accessibilityLabel={t('close')} style={s.remove}>
+                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '900' }}>✕</Text>
+                </Pressable>
+              </View>
+            ))}
+            {Array.from({ length: uploading }).map((_, i) => (
+              <View key={`up${i}`} style={[s.photo, { backgroundColor: colors.soft, alignItems: 'center', justifyContent: 'center' }]}>
+                <ActivityIndicator color={colors.muted} />
+              </View>
+            ))}
+          </View>
+          {photos.length + uploading < MAX_PHOTOS && (
+            <View style={[s.wrap, { marginTop: photos.length + uploading ? 10 : 0 }]}>
+              <Chip label={`🖼️ ${t('pick_photo')}`} onPress={() => addPhoto('library')} />
+              {Platform.OS !== 'web' && <Chip label={`📷 ${t('take_photo')}`} onPress={() => addPhoto('camera')} />}
+            </View>
+          )}
         </View>
 
         <View>
@@ -161,7 +217,7 @@ export default function Publish() {
           <View style={{ flex: 1 }}>
             <T style={{ fontWeight: '800' }}>{t('blind')}</T>
             <T muted style={{ fontSize: 12, marginTop: 3 }}>
-              {t('blind_sub')}
+              {t('blind_sub', { h: BLIND_HOURS })}
             </T>
           </View>
           <Switch value={blind} onValueChange={setBlind} trackColor={{ true: brand.red }} />
@@ -173,7 +229,7 @@ export default function Publish() {
           </T>
         </View>
 
-        <Button label={t('publish')} onPress={submit} loading={publish.isPending} disabled={!title.trim()} />
+        <Button label={uploading ? t('uploading') : t('publish')} onPress={submit} loading={publish.isPending} disabled={!title.trim() || uploading > 0} />
       </ScrollView>
 
       <Sheet visible={cityOpen} title={t('loc_manual')} onClose={() => setCityOpen(false)}>
@@ -200,4 +256,7 @@ const s = StyleSheet.create({
   input: { borderWidth: 1.5, borderRadius: 12, padding: 12, fontSize: 14 },
   emoji: { width: 44, height: 44, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   hint: { padding: 12, borderRadius: 12 },
+  photo: { width: 76, height: 76, borderRadius: 12, overflow: 'hidden' },
+  remove: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
+  coverTag: { position: 'absolute', left: 4, bottom: 4, backgroundColor: brand.red, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1 },
 });
