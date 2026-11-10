@@ -27,7 +27,10 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -50,7 +53,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Myna lets you add photos to a post. Location data embedded in photos is removed before upload.",
-          "cameraPermission": "Myna uses the camera so you can photograph what you are asking about."
+          "cameraPermission": "Myna uses the camera so you can photograph what you are asking about.",
+          "microphonePermission": false
         }
       ],
       [
@@ -76,6 +80,12 @@
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "owner": "iwandy",
+    "extra": {
+      "eas": {
+        "projectId": "ba2ad804-202b-43f7-b3ad-712f9faf5891"
+      }
     }
   }
 }
