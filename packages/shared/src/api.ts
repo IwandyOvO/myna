@@ -64,6 +64,8 @@ export interface PostCard {
   locked: boolean;
   tags: AutoTag[];
   myRating: MyRating | null;
+  /** Viewer has this post in their favourites. */
+  favorited: boolean;
 }
 
 export interface Comment {
@@ -140,4 +142,42 @@ export type ReportReason = 'spam' | 'abuse' | 'illegal' | 'other';
 export interface ApiError {
   error: string; // machine code, e.g. "edit_limit_reached"
   message?: string;
+}
+
+export interface UserProfile {
+  user: UserSummary;
+  reputation: number;
+  stats: { posts: number; ratings: number; followers: number; following: number };
+  followedByMe: boolean;
+  blockedByMe: boolean;
+  isMe: boolean;
+  posts: PostCard[];
+}
+
+export interface LikeReceived {
+  liker: UserSummary;
+  commentBody: string;
+  tier: Tier;
+  post: Pick<PostCard, 'id' | 'title' | 'category'>;
+  createdAt: string;
+}
+
+/** Unsent publish-page state (§5.6 草稿箱). */
+export interface DraftPayload {
+  type?: PostType;
+  category?: Category;
+  title?: string;
+  body?: string;
+  emoji?: string | null;
+  imageUrls?: string[];
+  blind?: boolean;
+  lang?: Locale;
+  placeName?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+export interface Draft {
+  id: string;
+  payload: DraftPayload;
+  updatedAt: string;
 }

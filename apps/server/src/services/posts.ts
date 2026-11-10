@@ -11,12 +11,13 @@ import { userSummarySql } from './users';
 const PAGE = 20;
 
 /** Columns shared by every query that returns PostCards. $1 is always the viewer id (nullable). */
-const CARD_SELECT = `
+export const CARD_SELECT = `
   SELECT p.id, p.type, p.category, p.title, p.body, p.emoji, p.image_urls, p.lang, p.blind, p.place_name,
          p.created_at, p.author_id, ${userSummarySql('u')} AS author,
          s.c1, s.c2, s.c3, s.c4, s.c5, s.total, s.avg,
-         r.tier AS my_tier, r.reason_text AS my_reason, r.edited_count AS my_edited`;
-const CARD_FROM = `
+         r.tier AS my_tier, r.reason_text AS my_reason, r.edited_count AS my_edited,
+         EXISTS (SELECT 1 FROM favorites fv WHERE fv.post_id = p.id AND fv.user_id = $1::uuid) AS favorited`;
+export const CARD_FROM = `
   FROM posts p
   JOIN post_stats s ON s.post_id = p.id
   JOIN users u ON u.id = p.author_id
@@ -60,6 +61,7 @@ export function toCard(row: any, cfg: CardRules, now = new Date()): PostCard {
     locked,
     tags: locked ? [] : autoTags(dist, row.created_at, now, cfg.tags),
     myRating,
+    favorited: !!row.favorited,
   };
   if (row.distance_km !== undefined && row.distance_km !== null) card.distanceKm = Math.round(row.distance_km * 10) / 10;
   return card;

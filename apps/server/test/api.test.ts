@@ -425,3 +425,81 @@ describe('image uploads', () => {
     expect(tooMany.status).toBe(400);
   });
 });
+
+describe('phase 2: favourites, history, drafts, likes, follows (§5.6)', () => {
+  it('favourites toggle idempotently and show on cards and in the list', async () => {
+    const t = await newUserToken('fav@example.com');
+    const p = await postByTitle('0糖乌龙茶气泡水', t);
+    expect(p.favorited).toBe(false);
+    expect((await call('PUT', `/posts/${p.id}/favorite`, { token: t })).body.favorited).toBe(true);
+    await call('PUT', `/posts/${p.id}/favorite`, { token: t });
+    expect((await call<PostCard>('GET', `/posts/${p.id}`, { token: t })).body.favorited).toBe(true);
+    expect((await call<{ items: PostCard[] }>('GET', '/me/favorites', { token: t })).body.items.map((x) => x.id)).toEqual([p.id]);
+    await call('DELETE', `/posts/${p.id}/favorite`, { token: t });
+    expect((await call<{ items: PostCard[] }>('GET', '/me/favorites', { token: t })).body.items).toHaveLength(0);
+    expect((await call('PUT', '/posts/00000000-0000-0000-0000-000000000000/favorite', { token: t })).status).toBe(404);
+  });
+
+  it('opening posts builds a de-duplicated, newest-first history that can be cleared', async () => {
+    const t = await newUserToken('hist@example.com');
+    const a = await postByTitle('螺蛳粉味薯片', t);
+    const b = await postByTitle('食堂新出的黄焖鸡', t);
+    await call('GET', `/posts/${a.id}`, { token: t });
+    await call('GET', `/posts/${b.id}`, { token: t });
+    await call('GET', `/posts/${a.id}`, { token: t });
+    expect((await call<{ items: PostCard[] }>('GET', '/me/history', { token: t })).body.items.map((x) => x.id)).toEqual([a.id, b.id]);
+    expect((await call('DELETE', '/me/history', { token: t })).status).toBe(204);
+    expect((await call<{ items: PostCard[] }>('GET', '/me/history', { token: t })).body.items).toHaveLength(0);
+    await call('GET', `/posts/${a.id}`); // anonymous views are not recorded anywhere
+  });
+
+  it('drafts can be created, updated, listed and deleted — only by their owner', async () => {
+    const t = await newUserToken('draft@example.com');
+    const other = await newUserToken('draft2@example.com');
+    const d = await call('POST', '/drafts', { token: t, body: { payload: { type: 'event', category: 'work', title: '团建去吗' } } });
+    expect(d.status).toBe(201);
+    const u = await call('POST', '/drafts', { token: t, body: { id: d.body.id, payload: { type: 'event', category: 'work', title: '团建去吗？', body: 'AA' } } });
+    expect(u.body.payload).toMatchObject({ title: '团建去吗？', body: 'AA' });
+    expect((await call('GET', '/drafts', { token: t })).body.items).toHaveLength(1);
+    expect((await call('POST', '/drafts', { token: other, body: { id: d.body.id, payload: { title: 'hijack' } } })).status).toBe(404);
+    expect((await call('POST', '/drafts', { token: t, body: { payload: { title: 'x', evil: 1 } } })).status).toBe(400);
+    await call('DELETE', `/drafts/${d.body.id}`, { token: other });
+    expect((await call('GET', '/drafts', { token: t })).body.items).toHaveLength(1); // other user's delete did nothing
+    await call('DELETE', `/drafts/${d.body.id}`, { token: t });
+    expect((await call('GET', '/drafts', { token: t })).body.items).toHaveLength(0);
+  });
+
+  it('likes received lists who liked my comments, excluding my own likes', async () => {
+    const author = await newUserToken('likes-author@example.com');
+    const fan = await newUserToken('likes-fan@example.com');
+    const p = await postByTitle('部门团建去密室逃脱，AA 128，值吗？', author);
+    await call('POST', `/posts/${p.id}/ratings`, { token: author, body: { tier: 5, reason: '超好玩' } });
+    const mine = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: author })).body.items.find((c) => c.mine)!;
+    await call('PUT', `/comments/${mine.id}/like`, { token: author }); // self-like: not listed
+    await call('PUT', `/comments/${mine.id}/like`, { token: fan });
+    const likes = (await call('GET', '/me/likes', { token: author })).body.items;
+    expect(likes).toHaveLength(1);
+    expect(likes[0]).toMatchObject({ commentBody: '超好玩', tier: 5, post: { id: p.id } });
+    expect(likes[0].liker.nickname).toBe('likes-fan');
+  });
+
+  it('profiles show posts and counts; follow/unfollow; cannot follow yourself', async () => {
+    const a = await newUserToken('prof-a@example.com');
+    const b = await newUserToken('prof-b@example.com');
+    const bMe = (await call('GET', '/me', { token: b })).body;
+    await call('POST', '/posts', { token: b, body: { category: 'snacks', title: 'B 的零食', lang: 'zh' } });
+    let prof = (await call('GET', `/users/${bMe.id}`, { token: a })).body;
+    expect(prof).toMatchObject({ isMe: false, followedByMe: false, stats: { posts: 1, followers: 0 } });
+    expect(prof.posts[0].title).toBe('B 的零食');
+    await call('PUT', `/users/${bMe.id}/follow`, { token: a });
+    await call('PUT', `/users/${bMe.id}/follow`, { token: a });
+    prof = (await call('GET', `/users/${bMe.id}`, { token: a })).body;
+    expect(prof).toMatchObject({ followedByMe: true, stats: { followers: 1 } });
+    expect((await call('GET', '/me/following', { token: a })).body.items.map((u: { id: string }) => u.id)).toEqual([bMe.id]);
+    expect((await call('PUT', `/users/${bMe.id}/follow`, { token: b })).status).toBe(400);
+    await call('DELETE', `/users/${bMe.id}/follow`, { token: a });
+    expect((await call('GET', '/me/following', { token: a })).body.items).toHaveLength(0);
+    expect((await call('GET', `/users/${bMe.id}`)).body.isMe).toBe(false); // anonymous can view
+    expect((await call('GET', '/users/not-a-user')).status).toBe(404);
+  });
+});

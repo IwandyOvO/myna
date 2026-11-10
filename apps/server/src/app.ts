@@ -17,6 +17,7 @@ import { LocalDiskStorage, UPLOAD_PATH, type Storage } from './lib/storage';
 import { badgeWall, weekly } from './services/badges';
 import { getBoard } from './services/boards';
 import * as posts from './services/posts';
+import * as community from './services/social';
 import { editRating, rate } from './services/ratings';
 import * as users from './services/users';
 
@@ -135,7 +136,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
   app.get('/posts/:id', async (req) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    return posts.getPost(db, tagCfg, await viewer(req), id);
+    const me = await viewer(req);
+    const post = await posts.getPost(db, tagCfg, me, id);
+    if (me) await community.recordView(db, me, post.id); // §5.6 browsing history
+    return post;
   });
   app.post('/posts', async (req, reply) => {
     const userId = await requireUser(req);
@@ -265,6 +269,75 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const { userId } = z.object({ userId: uuid }).parse(req.params);
     await users.unblock(db, me, userId);
     return { ok: true };
+  });
+
+  // ---- phase 2: favourites, history, drafts, likes received, profiles & follows (§5.6) ----
+  app.put('/posts/:id/favorite', async (req) => {
+    const me = await requireUser(req);
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    await community.setFavorite(db, me, id, true);
+    return { favorited: true };
+  });
+  app.delete('/posts/:id/favorite', async (req) => {
+    const me = await requireUser(req);
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    await community.setFavorite(db, me, id, false);
+    return { favorited: false };
+  });
+  app.get('/me/favorites', async (req) => ({ items: await community.favorites(db, tagCfg, await requireUser(req)) }));
+  app.get('/me/history', async (req) => ({ items: await community.history(db, tagCfg, await requireUser(req)) }));
+  app.delete('/me/history', async (req, reply) => {
+    await community.clearHistory(db, await requireUser(req));
+    reply.status(204);
+  });
+  app.get('/me/likes', async (req) => ({ items: await community.likesReceived(db, await requireUser(req)) }));
+  app.get('/me/following', async (req) => ({ items: await community.following(db, await requireUser(req)) }));
+
+  const draftPayload = z
+    .object({
+      type: z.enum(['product', 'event']).optional(),
+      category: category.optional(),
+      title: z.string().max(120).optional(),
+      body: z.string().max(2000).optional(),
+      emoji: z.string().max(8).nullable().optional(),
+      imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional(),
+      blind: z.boolean().optional(),
+      lang: locale.optional(),
+      placeName: z.string().max(80).nullable().optional(),
+      lat: z.number().min(-90).max(90).nullable().optional(),
+      lng: z.number().min(-180).max(180).nullable().optional(),
+    })
+    .strict();
+  app.get('/drafts', async (req) => ({ items: await community.listDrafts(db, await requireUser(req)) }));
+  app.post('/drafts', async (req, reply) => {
+    const me = await requireUser(req);
+    const b = z.object({ id: uuid.optional(), payload: draftPayload }).parse(req.body);
+    const d = await community.saveDraft(db, me, b.id, b.payload);
+    reply.status(b.id ? 200 : 201);
+    return d;
+  });
+  app.delete('/drafts/:id', async (req, reply) => {
+    const me = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    await community.deleteDraft(db, me, id);
+    reply.status(204);
+  });
+
+  app.get('/users/:id', async (req) => {
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    return community.profile(db, tagCfg, await viewer(req), id);
+  });
+  app.put('/users/:id/follow', async (req) => {
+    const me = await requireUser(req);
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    await community.setFollow(db, me, id, true);
+    return { following: true };
+  });
+  app.delete('/users/:id/follow', async (req) => {
+    const me = await requireUser(req);
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    await community.setFollow(db, me, id, false);
+    return { following: false };
   });
 
   // ---- moderation (App Store 1.2) ------------------------------------------------------
