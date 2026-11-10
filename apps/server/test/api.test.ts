@@ -503,3 +503,59 @@ describe('phase 2: favourites, history, drafts, likes, follows (§5.6)', () => {
     expect((await call('GET', '/users/not-a-user')).status).toBe(404);
   });
 });
+
+describe('rating visibility, comment reports, challenge, leaderboard', () => {
+  it('"who can see my ratings" hides the comment (not the vote) from the right people', async () => {
+    const author = await newUserToken('vis-author@example.com');
+    const friend = await newUserToken('vis-friend@example.com');
+    const stranger = await newUserToken('vis-stranger@example.com');
+    const friendId = (await call('GET', '/me', { token: friend })).body.id;
+    const p = await postByTitle('0糖乌龙茶气泡水', author);
+    await call('POST', `/posts/${p.id}/ratings`, { token: author, body: { tier: 4, reason: 'private take' } });
+    const sees = async (t: string) => (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: t })).body.items.some((c) => c.body === 'private take');
+
+    await call('PUT', '/me/settings', { token: author, body: { visibility: 'only_me' } });
+    expect(await sees(author)).toBe(true);
+    expect(await sees(friend)).toBe(false);
+    expect(await sees(stranger)).toBe(false);
+    expect((await call<PostCard>('GET', `/posts/${p.id}`, { token: stranger })).body.total).toBe(p.total + 1); // vote still counts
+
+    await call('PUT', '/me/settings', { token: author, body: { visibility: 'following' } });
+    await call('PUT', `/users/${friendId}/follow`, { token: author }); // the author follows friend
+    expect(await sees(friend)).toBe(true);
+    expect(await sees(stranger)).toBe(false);
+
+    await call('PUT', '/me/settings', { token: author, body: { visibility: 'everyone' } });
+    expect(await sees(stranger)).toBe(true);
+  });
+
+  it('comments can be reported', async () => {
+    const t = await newUserToken('reporter2@example.com');
+    const p = await postByTitle('螺蛳粉味薯片', t);
+    const c = (await call<{ items: Comment[] }>('GET', `/posts/${p.id}/comments`, { token: t })).body.items[0]!;
+    expect((await call('POST', '/reports', { token: t, body: { commentId: c.id, reason: 'abuse' } })).status).toBe(201);
+    const row = (await db.query('SELECT reason FROM reports WHERE comment_id = $1', [c.id])).rows[0];
+    expect(row.reason).toBe('abuse');
+  });
+
+  it('weekly challenge counts ratings on new products this week only', async () => {
+    const t = await newUserToken('challenge@example.com');
+    expect((await call('GET', '/me/challenge', { token: t })).body).toMatchObject({ current: 0, target: 5, done: false });
+    const newProduct = await postByTitle('螺蛳粉味薯片', t); // seeded hours ago → new product
+    const event = await postByTitle('周五早八的课，教授点名，到底去不去？', t); // event → doesn't count
+    const old = (await call<Board>('GET', '/boards?period=all&category=drinks&direction=best')).body.entries[0]!; // created 40+ days ago
+    await call('POST', `/posts/${newProduct.id}/ratings`, { token: t, body: { tier: 2 } });
+    await call('POST', `/posts/${event.id}/ratings`, { token: t, body: { tier: 4 } });
+    await call('POST', `/posts/${old.post.id}/ratings`, { token: t, body: { tier: 5 } });
+    const ch = (await call('GET', '/me/challenge', { token: t })).body;
+    expect(ch.current).toBe(1);
+    expect(new Date(ch.endsAt).getUTCDay()).toBe(1); // next Monday
+  });
+
+  it('leaderboard ranks by badges then reputation and marks me', async () => {
+    const lb = (await call('GET', '/leaderboard', { token: demoToken })).body.items;
+    expect(lb[0]).toMatchObject({ rank: 1, badges: 3, isMe: true });
+    expect(lb[0].user.handle).toBe('foodjudge_007');
+    for (let i = 1; i < lb.length; i++) expect(lb[i].badges).toBeLessThanOrEqual(lb[i - 1].badges);
+  });
+});

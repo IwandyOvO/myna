@@ -1,5 +1,5 @@
 import type {
-  Draft, DraftPayload, LikeReceived, UserProfile,
+  Draft, DraftPayload, LeaderboardRow, LikeReceived, UserProfile, WeeklyChallenge,
   Badge, Board, BoardCategory, BoardDirection, BoardPeriod, Category, Comment, CreatePostInput, Locale,
   Me, Page, PostCard, ReportReason, Tier, UserSummary, Weekly,
 } from '@myna/shared';
@@ -56,7 +56,7 @@ export const useBlocks = () => useMine<{ items: UserSummary[] }>('blocks', '/me/
 /** After any write that changes a post, refresh everything that may show it. */
 function refreshPost(qc: QueryClient, post: PostCard) {
   qc.setQueryData(['post', post.id], post);
-  for (const k of ['feed', 'comments', 'my-ratings', 'my-posts', 'nearby', 'search', 'me', 'weekly', 'badges', 'board']) qc.invalidateQueries({ queryKey: [k] });
+  for (const k of ['feed', 'comments', 'my-ratings', 'my-posts', 'nearby', 'search', 'me', 'weekly', 'badges', 'board', 'challenge', 'leaderboard', 'history']) qc.invalidateQueries({ queryKey: [k] });
 }
 
 export function useRate(postId: string) {
@@ -151,3 +151,6 @@ export function useFollow(userId: string) {
     },
   });
 }
+
+export const useChallenge = () => useMine<WeeklyChallenge>('challenge', '/me/challenge');
+export const useLeaderboard = () => useQuery({ queryKey: ['leaderboard'], queryFn: () => api<{ items: LeaderboardRow[] }>('GET', '/leaderboard') });

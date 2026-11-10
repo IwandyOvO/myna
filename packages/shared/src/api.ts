@@ -181,3 +181,20 @@ export interface Draft {
   payload: DraftPayload;
   updatedAt: string;
 }
+
+/** §5.7 limited challenge: "rate 5 new products this week" (week = Monday 00:00 UTC). */
+export interface WeeklyChallenge {
+  current: number;
+  target: number;
+  endsAt: string;
+  done: boolean;
+}
+
+/** §5.7 成就达人榜: most badges, then reputation. */
+export interface LeaderboardRow {
+  rank: number;
+  user: UserSummary;
+  badges: number;
+  reputation: number;
+  isMe: boolean;
+}

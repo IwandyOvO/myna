@@ -14,7 +14,7 @@ import { withTx, type Db } from './db/pool';
 import { HttpError, badRequest, notFound, unauthorized } from './lib/errors';
 import { sniffImage, stripMetadata } from './lib/images';
 import { LocalDiskStorage, UPLOAD_PATH, type Storage } from './lib/storage';
-import { badgeWall, weekly } from './services/badges';
+import { badgeWall, leaderboard, weekly, weeklyChallenge } from './services/badges';
 import { getBoard } from './services/boards';
 import * as posts from './services/posts';
 import * as community from './services/social';
@@ -257,6 +257,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get('/me/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings, config.blindHours) }));
   app.get('/badges', async (req) => ({ items: await badgeWall(db, await requireUser(req), reqLocale(req), config.boardMinRatings, config.blindHours) }));
   app.get('/me/weekly', async (req) => weekly(db, await requireUser(req)));
+  app.get('/me/challenge', async (req) => weeklyChallenge(db, await requireUser(req)));
+  app.get('/leaderboard', async (req) => ({ items: await leaderboard(db, await viewer(req)) }));
   app.get('/me/blocks', async (req) => ({ items: await users.listBlocks(db, await requireUser(req)) }));
   app.put('/me/blocks/:userId', async (req) => {
     const me = await requireUser(req);

@@ -165,6 +165,10 @@ export async function listComments(
        FROM comments c JOIN users u ON u.id = c.user_id
        WHERE c.post_id = $2 AND c.status = 'active' AND ($3::int IS NULL OR c.tier_snapshot = $3)
          AND NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = c.user_id)
+         -- §5.8 "who can see my ratings": everyone / people the author follows / only the author.
+         -- Hidden ratings still count in the averages; only the comment is withheld.
+         AND (c.user_id = $1::uuid OR u.visibility = 'everyone'
+              OR (u.visibility = 'following' AND EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = c.user_id AND f.followee_id = $1::uuid)))
        ORDER BY mine DESC, c.like_count DESC, c.created_at DESC
        OFFSET $4 LIMIT ${PAGE + 1}`,
       // Tier filtering would reveal tiers on a locked blind post, so it is ignored there.

@@ -1,4 +1,5 @@
-import { BOARD_CATEGORIES, type Badge, type Locale, type Weekly } from '@myna/shared';
+import { BOARD_CATEGORIES, type Badge, type LeaderboardRow, type Locale, type Weekly, type WeeklyChallenge } from '@myna/shared';
+import { userSummarySql } from './users';
 import type { Queryable } from '../db/pool';
 import { getBoard } from './boards';
 
@@ -109,4 +110,46 @@ export async function weekly(db: Queryable, userId: string): Promise<Weekly> {
     )
   ).rows[0];
   return { ratings: r.ratings, newBadges: r.badges, reputationDelta: Number(r.rep) };
+}
+
+const CHALLENGE_TARGET = 5;
+const NEW_PRODUCT_DAYS = 30;
+
+/** Start of the current challenge week: Monday 00:00 UTC. */
+export function weekStart(now = new Date()): Date {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d;
+}
+
+/** "Rate 5 new products this week": ratings this week on product posts created in the last 30 days. */
+export async function weeklyChallenge(db: Queryable, userId: string, now = new Date()): Promise<WeeklyChallenge> {
+  const start = weekStart(now);
+  const n = Number(
+    (
+      await db.query(
+        `SELECT count(*) AS n FROM ratings r JOIN posts p ON p.id = r.post_id
+         WHERE r.user_id = $1 AND r.created_at >= $2 AND p.type = 'product' AND p.created_at > $3::timestamptz - $4 * interval '1 day'`,
+        [userId, start, now, NEW_PRODUCT_DAYS],
+      )
+    ).rows[0].n,
+  );
+  const end = new Date(start.getTime() + 7 * 86_400_000);
+  return { current: Math.min(n, CHALLENGE_TARGET), target: CHALLENGE_TARGET, endsAt: end.toISOString(), done: n >= CHALLENGE_TARGET };
+}
+
+export async function leaderboard(db: Queryable, viewer: string | null, limit = 10): Promise<LeaderboardRow[]> {
+  const rows = (
+    await db.query(
+      `SELECT ${userSummarySql('u')} AS user, u.reputation, count(ub.badge_id) AS badges
+       FROM users u LEFT JOIN user_badges ub ON ub.user_id = u.id
+       WHERE u.deleted_at IS NULL
+       GROUP BY u.id
+       HAVING count(ub.badge_id) > 0
+       ORDER BY count(ub.badge_id) DESC, u.reputation DESC, u.created_at ASC
+       LIMIT $1`,
+      [limit],
+    )
+  ).rows;
+  return rows.map((r, i) => ({ rank: i + 1, user: r.user, badges: Number(r.badges), reputation: r.reputation, isMe: r.user.id === viewer }));
 }

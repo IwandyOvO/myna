@@ -29,6 +29,7 @@ export default function PostDetail() {
   const fav = useFavorite(id);
   const [rateOpen, setRateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean } | null>(null);
 
   if (post.isPending) return <View style={{ flex: 1, backgroundColor: colors.bg }}><PageHeader title="" /><Loading /></View>;
   if (post.isError || !post.data) return <View style={{ flex: 1, backgroundColor: colors.bg }}><PageHeader title="" /><ErrorView onRetry={() => post.refetch()} /></View>;
@@ -40,20 +41,28 @@ export default function PostDetail() {
   const cta = !mr ? t('cta_rate') : mr.editsLeft <= 0 ? t('cta_max') : t('cta_edit_fmt', { x: mr.editsLeft });
   const onCta = () => (signedIn ? setRateOpen(true) : router.push('/login'));
 
-  const doReport = (reason: ReportReason) => {
+  // The same sheet reports/blocks either the post or one comment (App Store 1.2 covers all UGC).
+  const target = commentMenu ? { commentId: commentMenu.id, authorId: commentMenu.authorId, mine: commentMenu.mine } : { postId: p.id, authorId: p.author.id, mine };
+  const closeMenus = () => {
     setMenuOpen(false);
+    setCommentMenu(null);
+  };
+  const doReport = (reason: ReportReason) => {
+    closeMenus();
     if (!signedIn) return router.push('/login');
-    report.mutate({ postId: p.id, reason }, { onSuccess: () => toast(t('report_ok')), onError: () => toast(t('error_generic')) });
+    const { authorId: _a, mine: _m, ...ref } = target;
+    report.mutate({ ...ref, reason }, { onSuccess: () => toast(t('report_ok')), onError: () => toast(t('error_generic')) });
   };
   const doBlock = () => {
-    setMenuOpen(false);
+    const isPost = !commentMenu;
+    closeMenus();
     if (!signedIn) return router.push('/login');
     block.mutate(
-      { userId: p.author.id, block: true },
+      { userId: target.authorId, block: true },
       {
         onSuccess: () => {
           toast(t('blocked_ok'));
-          router.back();
+          if (isPost) router.back();
         },
       },
     );
@@ -143,7 +152,16 @@ export default function PostDetail() {
                   </T>
                   <TierBadge category={p.category} tier={c.tier} locale={locale} />
                   <Pressable
-                    style={{ marginLeft: 'auto', paddingVertical: 4, paddingLeft: 8 }}
+                    onPress={() => setCommentMenu({ id: c.id, authorId: c.author.id, mine: c.mine })}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('report')}
+                    hitSlop={8}
+                    style={{ marginLeft: 'auto', paddingHorizontal: 6, paddingVertical: 4 }}
+                  >
+                    <T style={{ fontSize: 14, color: colors.faint }}>⋯</T>
+                  </Pressable>
+                  <Pressable
+                    style={{ paddingVertical: 4, paddingLeft: 4 }}
                     accessibilityRole="button"
                     onPress={() => (signedIn ? like.mutate({ commentId: c.id, like: !c.likedByMe }) : router.push('/login'))}
                   >
@@ -163,13 +181,13 @@ export default function PostDetail() {
         <Button label={cta} onPress={onCta} disabled={!!mr && mr.editsLeft <= 0} />
       </View>
       <RateSheet post={p} visible={rateOpen} onClose={() => setRateOpen(false)} />
-      <Sheet visible={menuOpen} title={t('report_title')} onClose={() => setMenuOpen(false)}>
+      <Sheet visible={menuOpen || !!commentMenu} title={t('report_title')} onClose={closeMenus}>
         {(['spam', 'abuse', 'illegal', 'other'] as const).map((r) => (
           <Pressable key={r} onPress={() => doReport(r)} accessibilityRole="button" style={[s.menuRow, { borderBottomColor: colors.line }]}>
             <T style={{ fontSize: 15 }}>{t(`report_${r}`)}</T>
           </Pressable>
         ))}
-        {!mine && (
+        {!target.mine && (
           <Pressable onPress={doBlock} accessibilityRole="button" style={s.menuRow}>
             <T style={{ fontSize: 15, color: '#C92A1A', fontWeight: '700' }}>🚫 {t('block_user')}</T>
           </Pressable>
