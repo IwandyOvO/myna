@@ -6,7 +6,7 @@ import { PageHeader } from '../components/headers';
 import { Logo } from '../components/Logo';
 import { SocialButtons } from '../components/SocialButtons';
 import { Button, T, useToast } from '../components/ui';
-import { api, ApiFailure } from '../lib/api';
+import { api, ApiFailure, API_URL } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useSettings } from '../lib/settings';
 
@@ -36,7 +36,13 @@ export default function Login() {
       if (r.devCode) setCode(r.devCode); // dev servers echo the code so the flow can be tested without e-mail
       toast(t('code_sent', { email }));
     } catch (e) {
-      toast(e instanceof ApiFailure && e.code === 'code_recently_sent' ? t('code_sent', { email }) : t('error_generic'));
+      toast(
+        e instanceof ApiFailure && e.code === 'code_recently_sent'
+          ? t('code_sent', { email })
+          : e instanceof ApiFailure && e.code === 'network_error'
+            ? `${t('error_generic')} (${API_URL})`
+            : t('error_generic'),
+      );
       if (e instanceof ApiFailure && e.code === 'code_recently_sent') setSent(true);
     } finally {
       setBusy(false);
@@ -101,6 +107,11 @@ export default function Login() {
           <View style={[s.rule, { backgroundColor: colors.line }]} />
         </View>
         <SocialButtons onDone={done} />
+        {__DEV__ && (
+          <T muted style={{ fontSize: 11, textAlign: 'center', marginTop: 8 }}>
+            API: {API_URL}
+          </T>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
