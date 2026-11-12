@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/react-native';
  * is safe to ship in the app; override per build with EXPO_PUBLIC_SENTRY_DSN.
  * Privacy: no IP/personal data (sendDefaultPii off); we attach only the opaque user id.
  */
-const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? 'https://3cb33f8dc92444e1a6967fe792dfe77b@o4512416908574720.ingest.us.sentry.io/4512416923713536';
+const DSN = process.env.EXPO_PUBLIC_SENTRY_DSN ?? 'https://d286bac12f74f42e15ff4913881149ab@o4512416908574720.ingest.us.sentry.io/4512416929218560';
 
 Sentry.init({
   dsn: DSN,
