@@ -54,7 +54,7 @@ async function postByTitle(title: string, token?: string): Promise<PostCard> {
 
 async function newUserToken(email: string): Promise<string> {
   const start = await call<{ devCode: string }>('POST', '/auth/email/start', { body: { email } });
-  const login = await call<{ token: string }>('POST', '/auth/email', { body: { email, code: start.body.devCode } });
+  const login = await call<{ token: string }>('POST', '/auth/email', { body: { email, code: start.body.devCode, ageConfirmed: true } });
   return login.body.token;
 }
 
@@ -76,13 +76,13 @@ describe('auth', () => {
     const start = await call('POST', '/auth/email/start', { body: { email: 'Bob@Example.com' } });
     expect(start.status).toBe(200);
     expect(start.body.devCode).toMatch(/^\d{6}$/);
-    const bad = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode === '000000' ? '111111' : '000000' } });
+    const bad = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode === '000000' ? '111111' : '000000', ageConfirmed: true } });
     expect(bad.status).toBe(401);
-    const ok = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode } });
+    const ok = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode, ageConfirmed: true } });
     expect(ok.status).toBe(200);
     expect(ok.body.user.nickname).toBe('bob');
     // code is single-use
-    const again = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode } });
+    const again = await call('POST', '/auth/email', { body: { email: 'bob@example.com', code: start.body.devCode, ageConfirmed: true } });
     expect(again.status).toBe(401);
   });
   it('resend within 30s is throttled', async () => {
@@ -90,7 +90,7 @@ describe('auth', () => {
     expect((await call('POST', '/auth/email/start', { body: { email: 'carol@example.com' } })).status).toBe(429);
   });
   it('google sign-in maps to one stable user', async () => {
-    const a = await call('POST', '/auth/google', { body: { idToken: 'valid-google-token' } });
+    const a = await call('POST', '/auth/google', { body: { idToken: 'valid-google-token', ageConfirmed: true } });
     const b = await call('POST', '/auth/google', { body: { idToken: 'valid-google-token' } });
     expect(a.body.user.id).toBe(b.body.user.id);
     expect(a.body.user.nickname).toBe('Ann Lee');
@@ -154,8 +154,8 @@ describe('feed & detail', () => {
   it('nearby returns distances sorted ascending within the radius (§5.5)', async () => {
     const r = await call<{ items: PostCard[] }>('GET', '/nearby?lat=40.7128&lng=-74.006&radius_km=5');
     expect(r.body.items.map((p) => [p.title, p.distanceKm])).toEqual([
-      ['社区免费瑜伽课，有人去过吗？', 0.5],
-      ['街角新开的塔可车，排队值吗？', 2.1],
+      ['社区免费瑜伽课，有人去过吗？', 1],
+      ['街角新开的塔可车，排队值吗？', 2],
     ]);
     const one = await call<{ items: PostCard[] }>('GET', '/nearby?lat=40.7128&lng=-74.006&radius_km=1');
     expect(one.body.items).toHaveLength(1);
@@ -699,7 +699,7 @@ describe('production hardening', () => {
     const cfg = { ...loadConfig({ NODE_ENV: 'test', RATE_LIMIT_GENERAL: '1000', RATE_LIMIT_AUTH: '3' } as NodeJS.ProcessEnv), databaseUrl: url };
     const limited = buildApp({ db, config: cfg, mailer: { sendLoginCode: async () => {} } });
     const codes: number[] = [];
-    for (let i = 0; i < 5; i++) codes.push((await limited.inject({ method: 'POST', url: '/auth/email', payload: { email: 'x@example.com', code: '123456' } })).statusCode);
+    for (let i = 0; i < 5; i++) codes.push((await limited.inject({ method: 'POST', url: '/auth/email', payload: { email: 'x@example.com', code: '123456', ageConfirmed: true } })).statusCode);
     expect(codes.slice(0, 3)).toEqual([401, 401, 401]);
     expect(codes.slice(3)).toEqual([429, 429]);
     // other routes are not affected by the sign-in limit
@@ -759,5 +759,129 @@ describe('profile editing', () => {
     expect(second.items.length).toBeGreaterThan(0);
     const ids = new Set(first.items.map((c) => c.id));
     expect(second.items.some((c) => ids.has(c.id))).toBe(false);
+  });
+});
+
+describe('own posts, privacy, moderation, age gate, export, hot feed, share page', () => {
+  it('authors can edit and delete their posts; others cannot', async () => {
+    const me = await newUserToken('owner@example.com');
+    const other = await newUserToken('not-owner@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: me, body: { category: 'snacks', title: 'Typo titel', lang: 'en' } })).body;
+    expect(p.editedAt).toBeNull();
+    const e = await call<PostCard>('PATCH', `/posts/${p.id}`, { token: me, body: { title: 'Fixed title', body: 'better' } });
+    expect(e.body).toMatchObject({ title: 'Fixed title', body: 'better' });
+    expect(e.body.editedAt).not.toBeNull();
+    expect((await call('PATCH', `/posts/${p.id}`, { token: other, body: { title: 'hijack' } })).status).toBe(404);
+    expect((await call('DELETE', `/posts/${p.id}`, { token: other })).status).toBe(404);
+    expect((await call('DELETE', `/posts/${p.id}`, { token: me })).status).toBe(204);
+    expect((await call('GET', `/posts/${p.id}`)).status).toBe(404);
+    expect((await call<{ items: PostCard[] }>('GET', '/me/posts', { token: me })).body.items).toHaveLength(0);
+  });
+
+  it('stores coordinates on a ~1 km grid', async () => {
+    const t = await newUserToken('geo@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: t, body: { category: 'food', title: 'Secret spot', lang: 'en', location: { lat: 40.712345, lng: -74.006789, placeName: 'NYC' } } })).body;
+    const row = (await db.query('SELECT lat, lng FROM posts WHERE id = $1', [p.id])).rows[0];
+    expect(row).toEqual({ lat: 40.71, lng: -74.01 });
+  });
+
+  it('blocks clear profanity in posts, ratings, replies and nicknames', async () => {
+    const t = await newUserToken('potty@example.com');
+    expect((await call('POST', '/posts', { token: t, body: { category: 'food', title: '老板是傻逼', lang: 'zh' } })).body.error).toBe('content_blocked');
+    const p = await postByTitle('食堂新出的黄焖鸡', t);
+    expect((await call('POST', `/posts/${p.id}/ratings`, { token: t, body: { tier: 1, reason: 'total shit' } })).body.error).toBe('content_blocked');
+    expect((await call('PUT', '/me/profile', { token: t, body: { nickname: 'fuck_you' } })).status).toBe(400);
+    expect((await call('PUT', '/me/profile', { token: t, body: { nickname: 'fuck you' } })).body.error).toBe('content_blocked');
+  });
+
+  it('three distinct reporters auto-hide a post; repeat reports by one person count once', async () => {
+    const author = await newUserToken('reported-author@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: author, body: { category: 'life', title: 'Borderline post', lang: 'en' } })).body;
+    const r1 = await newUserToken('rep1@example.com');
+    for (let i = 0; i < 3; i++) await call('POST', '/reports', { token: r1, body: { postId: p.id, reason: 'spam' } });
+    expect((await call('GET', `/posts/${p.id}`)).status).toBe(200); // still one reporter
+    const r2 = await newUserToken('rep2@example.com');
+    await call('POST', '/reports', { token: r2, body: { postId: p.id, reason: 'abuse' } });
+    const r3 = await newUserToken('rep3@example.com');
+    const last = await call('POST', '/reports', { token: r3, body: { postId: p.id, reason: 'spam' } });
+    expect(last.body.hidden).toBe(true);
+    expect((await call('GET', `/posts/${p.id}`)).status).toBe(404);
+
+    // admin queue → restore it
+    const queue = (await call('GET', '/admin/reports', { token: demoToken })).body.items;
+    const item = queue.find((x: { targetId: string }) => x.targetId === p.id);
+    expect(item).toMatchObject({ targetType: 'post', status: 'hidden', reporters: 3, reasons: { spam: 2, abuse: 1 } });
+    expect((await call('GET', '/admin/reports', { token: author })).status).toBe(403); // not an admin
+    await call('POST', '/admin/reports/resolve', { token: demoToken, body: { targetType: 'post', targetId: p.id, action: 'restore' } });
+    expect((await call('GET', `/posts/${p.id}`)).status).toBe(200);
+    expect((await call('GET', '/admin/reports', { token: demoToken })).body.items.some((x: { targetId: string }) => x.targetId === p.id)).toBe(false);
+  });
+
+  it('admins remove content and ban accounts; banned accounts cannot act or sign in', async () => {
+    const troll = await newUserToken('troll2@example.com');
+    const trollId = (await call('GET', '/me', { token: troll })).body.id;
+    const p = (await call<PostCard>('POST', '/posts', { token: troll, body: { category: 'life', title: 'Spam spam', lang: 'en' } })).body;
+    const fan = await newUserToken('reporter-fan@example.com');
+    await call('POST', '/reports', { token: fan, body: { postId: p.id, reason: 'spam' } });
+    await call('POST', '/admin/reports/resolve', { token: demoToken, body: { targetType: 'post', targetId: p.id, action: 'remove' } });
+    expect((await call('GET', `/posts/${p.id}`)).status).toBe(404);
+    expect((await call('PUT', `/admin/users/${trollId}/ban`, { token: demoToken })).status).toBe(200);
+    expect((await call('POST', '/posts', { token: troll, body: { category: 'life', title: 'again', lang: 'en' } })).body.error).toBe('account_banned');
+    const start = await call('POST', '/auth/email/start', { body: { email: 'troll2@example.com' } }).catch(() => null);
+    if (start && start.status === 200) {
+      const relogin = await call('POST', '/auth/email', { body: { email: 'troll2@example.com', code: start.body.devCode } });
+      expect(relogin.body.error).toBe('account_banned');
+    }
+    await call('DELETE', `/admin/users/${trollId}/ban`, { token: demoToken });
+    expect((await call('GET', '/me', { token: troll })).status).toBe(200);
+  });
+
+  it('new accounts must confirm they are 13+; existing ones sign in without it', async () => {
+    const start = await call('POST', '/auth/email/start', { body: { email: 'kid@example.com' } });
+    const no = await call('POST', '/auth/email', { body: { email: 'kid@example.com', code: start.body.devCode } });
+    expect(no.body.error).toBe('age_confirmation_required');
+    const yes = await call('POST', '/auth/email', { body: { email: 'kid@example.com', code: start.body.devCode, ageConfirmed: true } });
+    expect(yes.status).toBe(200);
+    const row = (await db.query("SELECT age_confirmed_at FROM users WHERE id = $1", [yes.body.user.id])).rows[0];
+    expect(row.age_confirmed_at).not.toBeNull();
+    expect((await call('POST', '/auth/google', { body: { idToken: 'valid-google-token' } })).status).toBe(200); // existing Google user from earlier test
+  });
+
+  it('exports the account\'s data', async () => {
+    const r = await call('GET', '/me/export', { token: demoToken });
+    expect(r.status).toBe(200);
+    expect(r.body.account.handle).toBe('foodjudge_007');
+    expect(r.body.ratings).toHaveLength(4);
+    expect(r.body.posts.length).toBeGreaterThan(0);
+    expect(r.body).toHaveProperty('signInMethods');
+    expect(JSON.stringify(r.body)).not.toContain('code_hash');
+  });
+
+  it('hot feed puts actively rated posts first; new feed stays chronological', async () => {
+    const fresh = await newUserToken('hot-author@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: fresh, body: { category: 'drinks', title: 'Viral soda', lang: 'en' } })).body;
+    for (let i = 0; i < 6; i++) {
+      const t = await newUserToken(`hot-rater${i}@example.com`);
+      await call('POST', `/posts/${p.id}/ratings`, { token: t, body: { tier: 5 } });
+    }
+    const hot = (await call<{ items: PostCard[]; nextCursor: string }>('GET', '/feed?sort=hot')).body;
+    expect(hot.items[0]!.id).toBe(p.id);
+    const page2 = (await call<{ items: PostCard[] }>('GET', `/feed?sort=hot&cursor=${hot.nextCursor}`)).body;
+    expect(page2.items.some((x) => hot.items.some((y) => y.id === x.id))).toBe(false);
+  });
+
+  it('share landing page has preview tags, escapes text and hides blind scores', async () => {
+    const t = await newUserToken('share@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: t, body: { category: 'snacks', title: '<script>alert(1)</script> chips', lang: 'en' } })).body;
+    const r = await app.inject({ method: 'GET', url: `/p/${p.id}` });
+    expect(r.statusCode).toBe(200);
+    expect(r.headers['content-type']).toContain('text/html');
+    expect(r.body).toContain('og:title');
+    expect(r.body).not.toContain('<script>alert(1)</script>');
+    expect(r.body).toContain(`myna://post/${p.id}`);
+    const blind = await postByTitle('樱花白桃味可乐（新口味）');
+    const b = await app.inject({ method: 'GET', url: `/p/${blind.id}`, headers: { 'accept-language': 'en' } });
+    expect(b.body).not.toMatch(/class="score"/);
+    expect((await app.inject({ method: 'GET', url: '/p/not-a-post' })).statusCode).toBe(200); // generic page
   });
 });

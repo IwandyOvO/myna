@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, genericScale, autoTags, average, categoryName,
+  containsBlockedWords, CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, genericScale, autoTags, average, categoryName,
   moveVote, placeholderFor, resolveLocale, scaleFor, scaleForBoard, timeAgo, translate,
 } from './index';
 import { OVERRIDES } from './i18n/overrides';
@@ -81,5 +81,14 @@ describe('i18n', () => {
   it('placeholders follow category for zh/en, type for others (§5.4)', () => {
     expect(placeholderFor('work', 'en').title).toBe('e.g. Team outing is a hike — should I go?');
     expect(placeholderFor('work', 'fr').title).toBe("Ex. : cet événement, j'y vais ?");
+  });
+});
+
+describe('moderation word filter', () => {
+  it('blocks clear profanity in zh/en, including spaced-out evasions', () => {
+    for (const t of ['这家店老板是傻逼', '傻 逼', 'what the fuck', 'You BITCH', 'ｆｕｃｋ this', 'fuck_you', 'shit-show']) expect(containsBlockedWords(t), t).toBe(true);
+  });
+  it('does not block innocent text', () => {
+    for (const t of ['Scunthorpe pickles', 'shiitake mushrooms', 'class assessment', '傻傻分不清', '辣到想哭', 'Hit the spot']) expect(containsBlockedWords(t), t).toBe(false);
   });
 });

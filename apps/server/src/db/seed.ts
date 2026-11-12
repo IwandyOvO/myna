@@ -88,7 +88,8 @@ async function insertPost(
     await tx.query<{ id: string }>(
       `INSERT INTO posts (author_id, type, category, title, body, emoji, lang, blind, lat, lng, place_name, created_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id`,
-      [p.author, type, p.category, p.title, p.body, p.emoji, p.lang, p.blind, p.lat ?? null, p.lng ?? null, p.place ?? null, p.createdAt],
+      [p.author, type, p.category, p.title, p.body, p.emoji, p.lang, p.blind,
+        p.lat != null ? Math.round(p.lat * 100) / 100 : null, p.lng != null ? Math.round(p.lng * 100) / 100 : null, p.place ?? null, p.createdAt],
     )
   ).rows[0]!.id;
   await tx.query('INSERT INTO post_stats (post_id, c1, c2, c3, c4, c5) VALUES ($1,$2,$3,$4,$5,$6)', [id, ...all]);
@@ -197,7 +198,8 @@ export async function seed(db: Db): Promise<{ demoUserId: string }> {
     ['周五早八的课，教授点名，到底去不去？', 4, '平时分要紧，爬也要爬过去'],
   ];
   for (const [title, tier, reason] of history) await rate(db, demoUserId, await pick(title), { tier, reason });
-  await db.query('UPDATE users SET reputation = 92 WHERE id = $1', [demoUserId]);
+  // Dev data: the demo account is a moderator so the admin console can be tried out.
+  await db.query("UPDATE users SET reputation = 92, role = 'admin' WHERE id = $1", [demoUserId]);
   await db.query('DELETE FROM reputation_events');
   return { demoUserId };
 }

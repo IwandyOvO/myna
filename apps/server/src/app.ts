@@ -23,6 +23,8 @@ import { previousSeason, seasonAwards, settleSeason } from './services/seasons';
 import { getBoard } from './services/boards';
 import * as posts from './services/posts';
 import * as community from './services/social';
+import * as admin from './services/admin';
+import { landingPage } from './services/landing';
 import { editRating, rate } from './services/ratings';
 import * as users from './services/users';
 
@@ -96,6 +98,14 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   async function requireUser(req: FastifyRequest): Promise<string> {
     const id = await viewer(req);
     if (!id) throw unauthorized('login_required');
+    const state = await users.accountState(db, id);
+    if (!state) throw unauthorized('user_not_found');
+    if (state.banned) throw new HttpError(403, 'account_banned');
+    return id;
+  }
+  async function requireAdmin(req: FastifyRequest): Promise<string> {
+    const id = await requireUser(req);
+    if ((await users.accountState(db, id))?.role !== 'admin') throw new HttpError(403, 'admin_only');
     return id;
   }
   const reqLocale = (req: FastifyRequest): Locale => resolveLocale(req.headers['accept-language']?.split(',')[0]);
@@ -116,13 +126,29 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   }
 
   async function issue(provider: AuthProvider, identity: Parameters<typeof users.findOrCreateUser>[2], req: FastifyRequest) {
-    const userId = await withTx(db, (tx) => users.findOrCreateUser(tx, provider, identity, reqLocale(req)));
+    const ageConfirmed = (req.body as { ageConfirmed?: unknown } | undefined)?.ageConfirmed === true;
+    const userId = await withTx(db, (tx) => users.findOrCreateUser(tx, provider, identity, reqLocale(req), ageConfirmed));
+    const state = await users.accountState(db, userId);
+    if (state?.banned) throw new HttpError(403, 'account_banned');
     return { token: await tokens.sign(userId), user: await users.getMe(db, userId) };
   }
 
   // Routes live in a child scope registered after the rate limiter, so its per-route limits apply.
   app.register(async (app) => {
   app.get('/health', async () => ({ ok: true }));
+
+  // Share landing page (spec: growth). Link previews read its Open Graph tags; the button opens the app.
+  app.get('/p/:id', async (req, reply) => {
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    let post = null;
+    try {
+      post = await posts.getPost(db, tagCfg, null, id);
+    } catch {
+      /* unknown or removed: render the generic page */
+    }
+    reply.header('content-type', 'text/html; charset=utf-8').header('cache-control', 'public, max-age=300');
+    return landingPage(post, resolveLocale(req.headers['accept-language']?.split(',')[0]), config.appStoreUrl);
+  });
   /** Readiness: the database answers. Use for load-balancer health checks. */
   app.get('/ready', async (_req, reply) => {
     try {
@@ -142,22 +168,24 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return config.exposeEmailCodes ? { sent: true, devCode: code } : { sent: true };
   });
   app.post('/auth/email', limit(limits.auth), async (req) => {
-    const { email, code } = z.object({ email: z.string(), code: z.string().regex(/^\d{6}$/) }).parse(req.body);
+    const { email, code } = z.object({ email: z.string(), code: z.string().regex(/^\d{6}$/), ageConfirmed: z.boolean().optional() }).parse(req.body);
     const e = users.normalizeEmail(email);
+    // Check the age gate before using up the one-time code, so a missed checkbox doesn't burn it.
+    if (!(req.body as { ageConfirmed?: boolean }).ageConfirmed && !(await users.identityExists(db, 'email', e))) throw badRequest('age_confirmation_required');
     await users.consumeEmailCode(db, e, code, config.jwtSecret);
     return issue('email', { providerUid: e, email: e }, req);
   });
   app.post('/auth/google', limit(limits.auth), async (req) => {
-    const { idToken } = z.object({ idToken: z.string().min(10) }).parse(req.body);
+    const { idToken } = z.object({ idToken: z.string().min(10), ageConfirmed: z.boolean().optional() }).parse(req.body);
     return issue('google', await social.google(idToken), req);
   });
   app.post('/auth/apple', limit(limits.auth), async (req) => {
-    const { identityToken, fullName } = z.object({ identityToken: z.string().min(10), fullName: z.string().max(60).optional() }).parse(req.body);
+    const { identityToken, fullName } = z.object({ identityToken: z.string().min(10), fullName: z.string().max(60).optional(), ageConfirmed: z.boolean().optional() }).parse(req.body);
     const id = await social.apple(identityToken);
     return issue('apple', { ...id, name: fullName || id.name }, req);
   });
   app.post('/auth/facebook', limit(limits.auth), async (req) => {
-    const { accessToken } = z.object({ accessToken: z.string().min(10) }).parse(req.body);
+    const { accessToken } = z.object({ accessToken: z.string().min(10), ageConfirmed: z.boolean().optional() }).parse(req.body);
     return issue('facebook', await social.facebook(accessToken), req);
   });
   if (config.allowDevLogin) {
@@ -172,7 +200,9 @@ export function buildApp(deps: AppDeps): FastifyInstance {
 
   // ---- feed / posts ---------------------------------------------------------------
   app.get('/feed', async (req) => {
-    const q = z.object({ category: category.optional(), langs: langList, q: z.string().max(100).optional(), cursor: z.string().optional() }).parse(req.query);
+    const q = z
+      .object({ category: category.optional(), langs: langList, q: z.string().max(100).optional(), cursor: z.string().optional(), sort: z.enum(['hot', 'new']).default('new') })
+      .parse(req.query);
     return posts.feed(db, tagCfg, { viewer: await viewer(req), ...q });
   });
   app.get('/search', async (req) => {
@@ -242,6 +272,24 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       .header('cache-control', 'public, max-age=31536000, immutable')
       .header('x-content-type-options', 'nosniff')
       .send(data);
+  });
+
+  // Own posts: edit text/cover/images, or delete.
+  app.patch('/posts/:id', async (req) => {
+    const userId = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const b = z
+      .object({ title: z.string().max(120).optional(), body: z.string().max(2000).optional(), emoji: z.string().max(8).optional(), imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional() })
+      .parse(req.body);
+    for (const u of b.imageUrls ?? []) if (!(await storage.exists(u))) throw badRequest('unknown_image');
+    await posts.editPost(db, userId, id, b);
+    return posts.getPost(db, tagCfg, userId, id);
+  });
+  app.delete('/posts/:id', async (req, reply) => {
+    const userId = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    await posts.deletePost(db, userId, id);
+    reply.status(204);
   });
 
   // ---- ratings (§4.5) ----------------------------------------------------------------
@@ -338,6 +386,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const b = z.object({ nickname: z.string().max(60).optional(), avatar: z.string().max(16).optional() }).parse(req.body);
     await users.updateProfile(db, userId, b);
     return users.getMe(db, userId);
+  });
+  app.get('/me/export', async (req, reply) => {
+    const data = await users.exportData(db, await requireUser(req));
+    reply.header('content-disposition', 'attachment; filename="myna-data.json"');
+    return data;
   });
   app.get('/me/posts', async (req) => ({ items: await posts.myPosts(db, tagCfg, await requireUser(req)) }));
   app.get('/me/ratings', async (req) => ({ items: await posts.myRatedPosts(db, tagCfg, await requireUser(req)) }));
@@ -472,8 +525,33 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const b = z
       .object({ postId: uuid.optional(), commentId: uuid.optional(), reason: z.enum(['spam', 'abuse', 'illegal', 'other']), note: z.string().max(500).default('') })
       .parse(req.body);
-    await posts.report(db, me, b, b.reason, b.note);
+    const r = await posts.report(db, me, b, b.reason, b.note);
     reply.status(201);
+    return { ok: true, hidden: r.hidden };
+  });
+
+  // ---- admin moderation (role = admin; grant with `npm run admin:grant -- <handle>`) -------
+  app.get('/admin/reports', async (req) => {
+    await requireAdmin(req);
+    return { items: await admin.reportQueue(db) };
+  });
+  app.post('/admin/reports/resolve', async (req) => {
+    const me = await requireAdmin(req);
+    const b = z.object({ targetType: z.enum(['post', 'comment']), targetId: uuid, action: z.enum(['remove', 'restore', 'dismiss']) }).parse(req.body);
+    await admin.resolveReports(db, me, b.targetType, b.targetId, b.action);
+    return { ok: true };
+  });
+  app.put('/admin/users/:id/ban', async (req) => {
+    const me = await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    if (id === me) throw badRequest('cannot_ban_self');
+    await admin.setBan(db, id, true);
+    return { ok: true };
+  });
+  app.delete('/admin/users/:id/ban', async (req) => {
+    await requireAdmin(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    await admin.setBan(db, id, false);
     return { ok: true };
   });
   });

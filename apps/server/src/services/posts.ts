@@ -1,5 +1,5 @@
 import {
-  autoTags, editsLeft, isLocale, typeOfCategory, CATEGORY_EMOJI,
+  containsBlockedWords, autoTags, editsLeft, isLocale, typeOfCategory, CATEGORY_EMOJI,
   type AutoTagConfig, type Category, type Comment, type CreatePostInput, type Distribution, type Locale,
   type Page, type PostCard, type Tier,
 } from '@myna/shared';
@@ -12,7 +12,7 @@ const PAGE = 20;
 
 /** Columns shared by every query that returns PostCards. $1 is always the viewer id (nullable). */
 export const CARD_SELECT = `
-  SELECT p.id, p.type, p.category, p.title, p.body, p.emoji, p.image_urls, p.lang, p.blind, p.place_name,
+  SELECT p.id, p.type, p.category, p.title, p.body, p.emoji, p.image_urls, p.lang, p.blind, p.place_name, p.edited_at,
          p.created_at, p.author_id, ${userSummarySql('u')} AS author,
          s.c1, s.c2, s.c3, s.c4, s.c5, s.total, s.avg,
          r.tier AS my_tier, r.reason_text AS my_reason, r.edited_count AS my_edited,
@@ -62,20 +62,32 @@ export function toCard(row: any, cfg: CardRules, now = new Date()): PostCard {
     tags: locked ? [] : autoTags(dist, row.created_at, now, cfg.tags),
     myRating,
     favorited: !!row.favorited,
+    editedAt: row.edited_at ? row.edited_at.toISOString() : null,
   };
-  if (row.distance_km !== undefined && row.distance_km !== null) card.distanceKm = Math.round(row.distance_km * 10) / 10;
+  // Whole kilometres only (coordinates are on a ~1 km grid); 0 means "under 1 km".
+  if (row.distance_km !== undefined && row.distance_km !== null) card.distanceKm = Math.round(row.distance_km);
   return card;
 }
 
 export interface FeedQuery {
   viewer: string | null;
+  /** hot = popularity + recent rating velocity with time decay; new = newest first (default). */
+  sort?: 'hot' | 'new';
   category?: Category;
   langs?: Locale[];
   q?: string;
   cursor?: string;
 }
 
+/**
+ * Hot score: (log popularity + 2 x ratings in the last 48 h + freshness bonus) / (age in hours + 2)^1.2.
+ * A post keeps rising while people are actively rating it and fades with age.
+ */
+const HOT_SCORE = `((ln(1 + s.total) + 2 * (SELECT count(*) FROM ratings rr WHERE rr.post_id = p.id AND rr.created_at > now() - interval '48 hours') + 1.5)
+  / power(extract(epoch FROM now() - p.created_at) / 3600 + 2, 1.2))`;
+
 export async function feed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Page<PostCard>> {
+  if (f.sort === 'hot' && !f.q?.trim()) return hotFeed(db, cfg, f);
   const cur = decodeCursor(f.cursor);
   const params: unknown[] = [f.viewer];
   const where = [`p.status = 'active'`, NOT_BLOCKED];
@@ -100,6 +112,25 @@ export async function feed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise
   const items = rows.slice(0, PAGE).map((r) => toCard(r, cfg));
   const last = rows[PAGE - 1];
   return { items, nextCursor: more && last ? encodeCursor(last.created_at, last.id) : null };
+}
+
+async function hotFeed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Page<PostCard>> {
+  const offset = f.cursor ? Number.parseInt(f.cursor, 10) || 0 : 0;
+  const params: unknown[] = [f.viewer];
+  const where = [`p.status = 'active'`, NOT_BLOCKED];
+  if (f.category) {
+    params.push(f.category);
+    where.push(`p.category = $${params.length}`);
+  }
+  if (f.langs?.length) {
+    params.push(f.langs);
+    where.push(`p.lang = ANY($${params.length})`);
+  }
+  params.push(offset);
+  const rows = (
+    await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE ${where.join(' AND ')} ORDER BY ${HOT_SCORE} DESC, p.created_at DESC OFFSET $${params.length} LIMIT ${PAGE + 1}`, params)
+  ).rows;
+  return { items: rows.slice(0, PAGE).map((r) => toCard(r, cfg)), nextCursor: rows.length > PAGE ? String(offset + PAGE) : null };
 }
 
 const HAVERSINE = `6371 * 2 * asin(sqrt(power(sin(radians(p.lat - $2) / 2), 2) + cos(radians($2)) * cos(radians(p.lat)) * power(sin(radians(p.lng - $3) / 2), 2)))`;
@@ -128,10 +159,12 @@ export async function getPost(db: Queryable, cfg: CardRules, viewer: string | nu
 export async function createPost(db: Queryable, authorId: string, input: CreatePostInput): Promise<string> {
   const title = input.title.trim();
   if (!title) throw badRequest('need_title');
+  if (containsBlockedWords(title) || containsBlockedWords(input.body ?? '')) throw badRequest('content_blocked');
   if (!isLocale(input.lang)) throw badRequest('invalid_lang');
   const loc = input.location ?? null;
-  const lat = loc && 'lat' in loc ? loc.lat : null;
-  const lng = loc && 'lng' in loc ? loc.lng : null;
+  // Privacy: snap to a ~1 km grid before storing (0.01 deg is about 1.1 km).
+  const lat = loc && 'lat' in loc ? Math.round(Number(loc.lat) * 100) / 100 : null;
+  const lng = loc && 'lng' in loc ? Math.round(Number(loc.lng) * 100) / 100 : null;
   const res = await db.query<{ id: string }>(
     `INSERT INTO posts (author_id, type, category, title, body, emoji, lang, blind, lat, lng, place_name, image_urls)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
@@ -242,6 +275,7 @@ export async function listReplies(db: Queryable, viewer: string | null, commentI
 export async function createReply(db: Queryable, userId: string, commentId: string, body: string) {
   const text = body.trim().slice(0, MAX_REPLY);
   if (!text) throw badRequest('empty_reply');
+  if (containsBlockedWords(text)) throw badRequest('content_blocked');
   const target = (
     await db.query<{ id: string; parent_id: string | null; post_id: string; user_id: string }>(
       `SELECT c.id, c.parent_id, c.post_id, c.user_id FROM comments c JOIN posts p ON p.id = c.post_id AND p.status = 'active'
@@ -289,9 +323,40 @@ export async function myRatedPosts(db: Queryable, cfg: CardRules, userId: string
   return rows.map((r) => toCard(r, cfg));
 }
 
-export async function report(db: Queryable, reporterId: string, target: { postId?: string; commentId?: string }, reason: string, note: string): Promise<void> {
+/** Distinct reporters needed before content is hidden pending review (App Store 1.2). */
+export const AUTO_HIDE_REPORTS = 3;
+
+export async function report(db: Queryable, reporterId: string, target: { postId?: string; commentId?: string }, reason: string, note: string): Promise<{ hidden: boolean }> {
   if (!target.postId && !target.commentId) throw badRequest('report_target_required');
-  await db.query('INSERT INTO reports (reporter_id, post_id, comment_id, reason, note) VALUES ($1, $2, $3, $4, $5)', [
-    reporterId, target.postId ?? null, target.commentId ?? null, reason, note.slice(0, 500),
-  ]);
+  await db.query(
+    'INSERT INTO reports (reporter_id, post_id, comment_id, reason, note) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
+    [reporterId, target.commentId ? null : target.postId ?? null, target.commentId ?? null, reason, note.slice(0, 500)],
+  );
+  const col = target.commentId ? 'comment_id' : 'post_id';
+  const id = target.commentId ?? target.postId;
+  const n = Number((await db.query(`SELECT count(DISTINCT reporter_id) AS n FROM reports WHERE ${col} = $1 AND status = 'open'`, [id])).rows[0].n);
+  if (n < AUTO_HIDE_REPORTS) return { hidden: false };
+  const table = target.commentId ? 'comments' : 'posts';
+  const r = await db.query(`UPDATE ${table} SET status = 'hidden' WHERE id = $1 AND status = 'active'`, [id]);
+  return { hidden: (r.rowCount ?? 0) > 0 };
+}
+
+// ---- own posts: edit & delete -------------------------------------------------------------
+export async function editPost(db: Queryable, userId: string, postId: string, p: { title?: string; body?: string; emoji?: string; imageUrls?: string[] }): Promise<void> {
+  const title = p.title?.trim();
+  if (title !== undefined && !title) throw badRequest('need_title');
+  if (containsBlockedWords(title ?? '') || containsBlockedWords(p.body ?? '')) throw badRequest('content_blocked');
+  const r = await db.query(
+    `UPDATE posts SET title = coalesce($3, title), body = coalesce($4, body), emoji = coalesce($5, emoji),
+       image_urls = coalesce($6, image_urls), edited_at = now()
+     WHERE id = $1 AND author_id = $2 AND status = 'active'`,
+    [postId, userId, title ?? null, p.body?.trim() ?? null, p.emoji ?? null, p.imageUrls ?? null],
+  );
+  if (!r.rowCount) throw notFound('post_not_found');
+}
+
+/** Authors can delete their posts: hidden from every list; ratings stay as anonymous history. */
+export async function deletePost(db: Queryable, userId: string, postId: string): Promise<void> {
+  const r = await db.query("UPDATE posts SET status = 'removed' WHERE id = $1 AND author_id = $2 AND status IN ('active', 'hidden')", [postId, userId]);
+  if (!r.rowCount) throw notFound('post_not_found');
 }

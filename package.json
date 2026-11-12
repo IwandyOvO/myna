@@ -13,7 +13,8 @@
     "db:migrate": "npm run db:migrate -w @myna/server",
     "db:seed": "npm run db:seed -w @myna/server",
     "server": "npm run dev -w @myna/server",
-    "mobile": "npm run start -w @myna/mobile"
+    "mobile": "npm run start -w @myna/mobile",
+    "admin:grant": "npm run admin:grant -w @myna/server --"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

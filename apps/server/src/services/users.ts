@@ -1,5 +1,5 @@
 import { createHash, randomInt } from 'node:crypto';
-import { LOCALES, isLocale, type AuthProvider, type Locale, type Me, type UserSummary, type Visibility } from '@myna/shared';
+import { LOCALES, containsBlockedWords, isLocale, type AuthProvider, type Locale, type Me, type UserSummary, type Visibility } from '@myna/shared';
 import type { Queryable } from '../db/pool';
 import { HttpError, badRequest, notFound, unauthorized } from '../lib/errors';
 import type { VerifiedIdentity } from '../auth/providers';
@@ -14,19 +14,24 @@ function slug(s: string): string {
   return base || 'myna';
 }
 
-export async function findOrCreateUser(db: Queryable, provider: AuthProvider, id: VerifiedIdentity, locale: Locale | null): Promise<string> {
+/**
+ * Signs in an existing identity, or creates the account. New accounts must confirm they are 13+
+ * (COPPA; the privacy policy says Myna is for 13 and over).
+ */
+export async function findOrCreateUser(db: Queryable, provider: AuthProvider, id: VerifiedIdentity, locale: Locale | null, ageConfirmed = false): Promise<string> {
   const existing = await db.query<{ user_id: string }>(
     `SELECT i.user_id FROM auth_identities i JOIN users u ON u.id = i.user_id
      WHERE i.provider = $1 AND i.provider_uid = $2 AND u.deleted_at IS NULL`,
     [provider, id.providerUid],
   );
   if (existing.rows[0]) return existing.rows[0].user_id;
+  if (!ageConfirmed) throw badRequest('age_confirmation_required');
 
   const nickname = (id.name ?? id.email?.split('@')[0] ?? 'Myna friend').slice(0, 24);
   for (let attempt = 0; attempt < 5; attempt++) {
     const handle = `${slug(id.name ?? id.email?.split('@')[0] ?? '')}_${randomInt(100, 1000)}${attempt ? randomInt(10) : ''}`;
     const res = await db.query<{ id: string }>(
-      `INSERT INTO users (nickname, handle, avatar, locale) VALUES ($1, $2, $3, $4) ON CONFLICT (handle) DO NOTHING RETURNING id`,
+      `INSERT INTO users (nickname, handle, avatar, locale, age_confirmed_at) VALUES ($1, $2, $3, $4, now()) ON CONFLICT (handle) DO NOTHING RETURNING id`,
       [nickname, handle, AVATARS[randomInt(AVATARS.length)], locale],
     );
     const userId = res.rows[0]?.id;
@@ -94,6 +99,7 @@ export async function getMe(db: Queryable, userId: string): Promise<Me> {
     handle: row.handle,
     avatar: row.avatar,
     reputation: row.reputation,
+    role: row.role === 'admin' ? 'admin' : 'user',
     locale: isLocale(row.locale) ? row.locale : null,
     stats: { posts: row.posts, ratings: row.ratings, likes: Number(row.likes) },
     settings: {
@@ -176,7 +182,45 @@ export async function addReputation(db: Queryable, userId: string, delta: number
 export async function updateProfile(db: Queryable, userId: string, p: { nickname?: string; avatar?: string }): Promise<void> {
   const nickname = p.nickname?.trim();
   if (nickname !== undefined && (nickname.length < 1 || [...nickname].length > 24)) throw badRequest('invalid_nickname');
+  if (nickname && containsBlockedWords(nickname)) throw badRequest('content_blocked');
   const avatar = p.avatar?.trim();
   if (avatar !== undefined && (avatar.length < 1 || [...avatar].length > 2)) throw badRequest('invalid_avatar');
   await db.query('UPDATE users SET nickname = coalesce($2, nickname), avatar = coalesce($3, avatar) WHERE id = $1', [userId, nickname ?? null, avatar ?? null]);
+}
+
+/** Who is calling: used to refuse banned accounts and to gate admin routes. */
+export async function accountState(db: Queryable, userId: string): Promise<{ role: 'user' | 'admin'; banned: boolean } | null> {
+  const r = (await db.query<{ role: string; banned_at: Date | null }>('SELECT role, banned_at FROM users WHERE id = $1 AND deleted_at IS NULL', [userId])).rows[0];
+  return r ? { role: r.role === 'admin' ? 'admin' : 'user', banned: !!r.banned_at } : null;
+}
+
+/** "Download my data" (CCPA right to know): everything we hold that belongs to this account. */
+export async function exportData(db: Queryable, userId: string): Promise<Record<string, unknown>> {
+  const q = async (sql: string) => (await db.query(sql, [userId])).rows;
+  const [user] = await q(
+    `SELECT id, nickname, handle, avatar, reputation, locale, content_langs, visibility, notify_social, notify_rank, created_at, age_confirmed_at
+     FROM users WHERE id = $1`,
+  );
+  return {
+    exportedAt: new Date().toISOString(),
+    account: user,
+    signInMethods: await q('SELECT provider, created_at FROM auth_identities WHERE user_id = $1'),
+    posts: await q(`SELECT id, category, title, body, emoji, image_urls, lang, blind, place_name, status, created_at, edited_at FROM posts WHERE author_id = $1 ORDER BY created_at`),
+    ratings: await q(`SELECT r.post_id, p.title, r.tier, r.reason_text, r.edited_count, r.created_at, r.updated_at FROM ratings r JOIN posts p ON p.id = r.post_id WHERE r.user_id = $1 ORDER BY r.created_at`),
+    comments: await q(`SELECT id, post_id, parent_id, body, status, created_at FROM comments WHERE user_id = $1 ORDER BY created_at`),
+    favorites: await q('SELECT post_id, created_at FROM favorites WHERE user_id = $1'),
+    following: await q('SELECT followee_id AS user_id, created_at FROM follows WHERE follower_id = $1'),
+    blocked: await q('SELECT blocked_user_id AS user_id, created_at FROM blocks WHERE user_id = $1'),
+    drafts: await q('SELECT id, payload_json, updated_at FROM drafts WHERE user_id = $1'),
+    badges: await q('SELECT b.key, ub.unlocked_at FROM user_badges ub JOIN badges b ON b.id = ub.badge_id WHERE ub.user_id = $1'),
+    reports: await q('SELECT post_id, comment_id, reason, created_at FROM reports WHERE reporter_id = $1'),
+  };
+}
+
+export async function identityExists(db: Queryable, provider: AuthProvider, providerUid: string): Promise<boolean> {
+  const r = await db.query(
+    'SELECT 1 FROM auth_identities i JOIN users u ON u.id = i.user_id WHERE i.provider = $1 AND i.provider_uid = $2 AND u.deleted_at IS NULL',
+    [provider, providerUid],
+  );
+  return (r.rowCount ?? 0) > 0;
 }

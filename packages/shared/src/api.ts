@@ -16,6 +16,7 @@ export interface UserSummary {
 
 export interface Me extends UserSummary {
   reputation: number;
+  role: 'user' | 'admin';
   locale: Locale | null;
   stats: { posts: number; ratings: number; likes: number };
   settings: UserSettings;
@@ -70,6 +71,8 @@ export interface PostCard {
   myRating: MyRating | null;
   /** Viewer has this post in their favourites. */
   favorited: boolean;
+  /** Set when the author edited the title/description/images. */
+  editedAt: string | null;
 }
 
 export interface Comment {
@@ -220,4 +223,18 @@ export interface Notification {
   /** In-app route to open. */
   url: string;
   createdAt: string;
+}
+
+/** Admin moderation queue: one entry per reported post/comment. */
+export interface ReportItem {
+  targetType: 'post' | 'comment';
+  targetId: string;
+  postId: string;
+  /** The target's status: active | hidden | removed */
+  status: string;
+  text: string;
+  author: UserSummary;
+  reasons: Record<string, number>;
+  reporters: number;
+  lastReportedAt: string;
 }

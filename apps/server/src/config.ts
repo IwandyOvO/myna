@@ -26,6 +26,8 @@ export interface Config {
   /** Requests per minute per IP: general / sign-in / uploads. 0 disables (tests). */
   rateLimits: { general: number; auth: number; upload: number };
   dbPoolMax: number;
+  /** Where the share page sends people who don't have the app yet. */
+  appStoreUrl: string | null;
 }
 
 /** Loads apps/server/.env into process.env if it exists (npm workspace scripts run from apps/server). */
@@ -59,6 +61,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       ? { general: 0, auth: 0, upload: 0 }
       : { general: num(env.RATE_LIMIT_GENERAL, 300), auth: num(env.RATE_LIMIT_AUTH, 10), upload: num(env.RATE_LIMIT_UPLOAD, 30) },
     dbPoolMax: num(env.DB_POOL_MAX, 10),
+    appStoreUrl: env.APP_STORE_URL || null,
     autoTags: {
       newPostDays: num(env.TAG_NEW_POST_DAYS, DEFAULT_AUTO_TAG_CONFIG.newPostDays),
       potentialMinTotal: num(env.TAG_POTENTIAL_MIN_TOTAL, DEFAULT_AUTO_TAG_CONFIG.potentialMinTotal),

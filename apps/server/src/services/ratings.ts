@@ -1,6 +1,6 @@
-import { MAX_EDITS, type RateInput, type Tier } from '@myna/shared';
+import { MAX_EDITS, containsBlockedWords, type RateInput, type Tier } from '@myna/shared';
 import { withTx, type Db, type Tx } from '../db/pool';
-import { conflict, notFound } from '../lib/errors';
+import { badRequest, conflict, notFound } from '../lib/errors';
 import { seasonOf } from '../lib/season';
 import { addReputation } from './users';
 
@@ -24,6 +24,7 @@ async function bump(tx: Tx, postId: string, season: string, tier: Tier, by: 1 | 
 /** §4.5 first rating: picks a tier, optional reason; mirrored into the comment stream. */
 export async function rate(db: Db, userId: string, postId: string, input: RateInput): Promise<void> {
   const reason = (input.reason ?? '').trim().slice(0, MAX_REASON);
+  if (containsBlockedWords(reason)) throw badRequest('content_blocked');
   await withTx(db, async (tx) => {
     const post = await tx.query("SELECT id FROM posts WHERE id = $1 AND status = 'active' FOR SHARE", [postId]);
     if (!post.rowCount) throw notFound('post_not_found');
@@ -49,6 +50,7 @@ export async function rate(db: Db, userId: string, postId: string, input: RateIn
  */
 export async function editRating(db: Db, userId: string, postId: string, input: RateInput): Promise<{ editsLeft: number }> {
   const reason = (input.reason ?? '').trim().slice(0, MAX_REASON);
+  if (containsBlockedWords(reason)) throw badRequest('content_blocked');
   return withTx(db, async (tx) => {
     const r = (
       await tx.query<{ id: string; tier: Tier; reason_text: string; edited_count: number; season: string }>(
