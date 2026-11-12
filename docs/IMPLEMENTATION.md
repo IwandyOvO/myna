@@ -60,11 +60,28 @@ across `e2e/01-core`, `02-community`, `03-replies-notifications` (web build agai
 Docker image build (no Docker daemon in this environment), push delivery to a real device (needs an EAS project id and a
 physical phone), and native builds.
 
+## Pre-launch round (done)
+
+| Area | What | Where |
+|---|---|---|
+| Own content | Edit (title, description, cover, photos) and delete your posts; "edited" marker | `PATCH/DELETE /posts/:id`, publish screen `?edit=` |
+| Location privacy | Coordinates snapped to a 0.01° (~1 km) grid on write and for existing rows; distances in whole km, "<1km" | `createPost`, migration `005` |
+| Moderation | Word filter (zh + en) on posts, ratings, replies, nicknames; one report per person per target; 3 reporters auto-hide; admin console (remove / restore / dismiss / ban); banned accounts can't act or sign in | `packages/shared/src/moderation.ts`, `services/admin.ts`, `app/admin.tsx`, `npm run admin:grant -- <handle>` |
+| Age gate | "I'm 13 or older" required to create an account (stored); checked before the e-mail code is used | login screen, `findOrCreateUser` |
+| Data export | Settings → Download my data (JSON file) | `GET /me/export` |
+| Feed | For You ranked by hot score (popularity + 48 h rating velocity, time decay); search stays newest-first | `GET /feed?sort=hot` |
+| Sharing | System share sheet with a link to a landing page with link-preview tags and an "Open in Myna" deep link | `GET /p/:id`, `APP_STORE_URL`, `EXPO_PUBLIC_SHARE_URL` |
+| Onboarding | 3 slides on first launch | `components/Onboarding.tsx` |
+| CI | GitHub Actions: typecheck + tests on PostgreSQL 16 for every push/PR | `.github/workflows/ci.yml` |
+
+Verified: 17 shared unit tests, 62 server integration tests, typecheck of all packages, 37 end-to-end steps across
+`e2e/01`–`04`. The seeded demo account is an admin (dev data only).
+
 ## Deferred (spec phase 2/3, or needs credentials)
 
 - §7 system share import (iOS Share Extension / Android `ACTION_SEND`). Link Finder currently offers only the honest manual search; it never guesses.
 - Production object storage + CDN, thumbnails, and image moderation (uploads themselves are done).
-- The limited challenge's reward badge; a moderation console for `reports`/`feedback`; data export ("Download my data").
+- The limited challenge's reward badge; a viewer for `feedback` entries; crash reporting (Sentry — needs an account, see docs/DEPLOY.md).
 - Real e-mail delivery (`ConsoleMailer` → SES/Postmark), push notifications, Redis, rate limiting, moderation console.
 - Social sign-in needs real client IDs; unconfigured providers show "not set up yet" in the app and 501 on the API.
 
