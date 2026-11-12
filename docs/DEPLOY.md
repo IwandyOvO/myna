@@ -50,14 +50,18 @@ The `development` profile needs `npx expo install expo-dev-client` first — it 
 - Who moderates: grant the role with `npm run admin:grant -- <handle>`; they use Settings → 🛡️ Moderation in the app.
 - App Privacy answers: e-mail, user content (posts, ratings, photos), coarse/precise location (optional), device push token.
 
-## Crash reporting (Sentry) — optional but recommended
+## Crash reporting (Sentry) — set up
 
-1. Create a free account at https://sentry.io and an organization.
-2. Create two projects: **React Native** (the app) and **Node.js** (the API). Each shows a **DSN** (a URL like
-   `https://abc123@o123.ingest.sentry.io/456`). DSNs are not secrets — they only allow sending errors.
-3. Put them in the config: `EXPO_PUBLIC_SENTRY_DSN` (app, in `eas.json` per profile) and `SENTRY_DSN` (API).
-4. For readable stack traces in the app, create an auth token (Settings → Auth Tokens, scope `project:releases`)
-   and store it as an EAS secret: `npx eas-cli@latest secret:create --name SENTRY_AUTH_TOKEN --value <token>`.
-   Never commit it or paste it in chat.
-5. The SDK (`@sentry/react-native` via `npx expo install`, plus its config plugin) needs a development/production
-   build; Expo Go only reports JavaScript errors.
+Wired in for both sides (organization `myna-cj`):
+- App → project `myna` (`apps/mobile/src/lib/sentry.ts`, override with `EXPO_PUBLIC_SENTRY_DSN`)
+- API → project `myna-api` (`apps/server/src/instrument.ts`, override with `SENTRY_DSN`, `SENTRY_DSN=off` disables)
+
+Only errors are sent (no tracing), and no personal data: no e-mail, IP, cookies, headers, bodies or query strings —
+the app tags reports with the opaque user id only. Reports carry `environment` = development / production.
+
+Check it works: in a dev build tap Settings → 🧪 Sentry test error (app), and open `http://localhost:4000/debug/sentry`
+with `ALLOW_DEV_LOGIN=1` (API). Both test hooks exist only in development.
+
+Readable stack traces for release builds need an auth token as an EAS secret (never commit it or paste it in chat):
+`npx eas-cli@latest secret:create --name SENTRY_AUTH_TOKEN --value <token>` (Sentry → Settings → Auth Tokens, scope
+`project:releases`). Expo Go reports JavaScript errors only; native crashes need a development/production build.

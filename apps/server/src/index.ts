@@ -1,3 +1,5 @@
+import './instrument'; // must be first: starts Sentry before anything else loads
+import * as Sentry from '@sentry/node';
 import { buildApp } from './app';
 import { loadConfig, loadDotEnv } from './config';
 import { migrate } from './db/migrate';
@@ -11,7 +13,11 @@ const app = buildApp({ db, config });
 await app.listen({ port: config.port, host: '0.0.0.0' });
 
 // §6: settle last month's boards once the month is over (checks hourly; idempotent across instances).
-const settle = () => app.runSeasonJob().catch((e) => app.log.error({ err: e }, 'season job failed'));
+const settle = () =>
+  app.runSeasonJob().catch((e) => {
+    app.log.error({ err: e }, 'season job failed');
+    Sentry.captureException(e);
+  });
 void settle();
 const timer = setInterval(settle, 60 * 60_000);
 timer.unref();

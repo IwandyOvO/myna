@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
@@ -84,6 +85,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const status = (err as { statusCode?: number }).statusCode;
     if (status && status < 500) return reply.status(status).send({ error: 'bad_request', message: (err as Error).message });
     app.log.error(err);
+    Sentry.captureException(err); // only unexpected failures; 4xx above are normal client errors
     return reply.status(500).send({ error: 'internal' });
   });
 
@@ -110,7 +112,11 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   }
   const reqLocale = (req: FastifyRequest): Locale => resolveLocale(req.headers['accept-language']?.split(',')[0]);
 
-  const send = (n: NotifyInput) => notifications.notify(db, pusher, n, (e) => app.log.warn({ err: e }, 'notify failed'));
+  const send = (n: NotifyInput) =>
+    notifications.notify(db, pusher, n, (e) => {
+      app.log.warn({ err: e }, 'notify failed');
+      Sentry.captureException(e);
+    });
 
   /** Unlock newly earned badges after an action and tell the user (never fails the action). */
   async function checkBadges(userId: string) {
@@ -122,6 +128,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       for (const b of fresh) await send({ userId, type: 'badge', data: { badge: pickLang(b.name, l), icon: b.icon, key: b.key } });
     } catch (e) {
       app.log.warn({ err: e }, 'badge check failed');
+      Sentry.captureException(e);
     }
   }
 
@@ -189,6 +196,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return issue('facebook', await social.facebook(accessToken), req);
   });
   if (config.allowDevLogin) {
+    // Development only: open in a browser to check that server errors reach Sentry.
+    app.get('/debug/sentry', async () => {
+      throw new Error(`Myna API test error ${new Date().toISOString()}`);
+    });
     // Development only: sign in as a seeded user by handle (e.g. foodjudge_007).
     app.post('/auth/dev', async (req) => {
       const { handle } = z.object({ handle: z.string() }).parse(req.body);
