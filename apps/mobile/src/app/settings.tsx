@@ -239,7 +239,9 @@ export default function Settings() {
             <Row
               title="🧪 Sentry test error"
               onPress={() => {
-                Sentry.captureException(new Error(`Myna test error ${new Date().toISOString()}`));
+                // Own fingerprint per tap → a new issue each time, so "new issue" alerts fire on every test.
+                const stamp = new Date().toISOString();
+                Sentry.captureException(new Error(`Myna test error ${stamp}`), { fingerprint: ['myna-app-test', stamp] });
                 toast('Sent to Sentry');
               }}
               last

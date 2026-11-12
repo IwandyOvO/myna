@@ -197,8 +197,13 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
   if (config.allowDevLogin) {
     // Development only: open in a browser to check that server errors reach Sentry.
-    app.get('/debug/sentry', async () => {
-      throw new Error(`Myna API test error ${new Date().toISOString()}`);
+    // Each call gets its own fingerprint, so it is a *new* issue every time and triggers "new issue" alerts
+    // (Sentry otherwise groups identical stack traces into one issue and alerts only once).
+    app.get('/debug/sentry', async (_req, reply) => {
+      const stamp = new Date().toISOString();
+      const eventId = Sentry.captureException(new Error(`Myna API test error ${stamp}`), { fingerprint: ['myna-api-test', stamp] });
+      await Sentry.flush(5000);
+      return reply.status(500).send({ error: 'test_error_sent', eventId });
     });
     // Development only: sign in as a seeded user by handle (e.g. foodjudge_007).
     app.post('/auth/dev', async (req) => {
