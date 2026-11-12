@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, apiSession } from './api';
 import { registerForPush, unregisterPush } from './push';
+import { setSentryUser } from './sentry';
 import { secrets } from './storage';
 
 const TOKEN_KEY = 'myna.token';
@@ -59,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [ready, signedIn]);
 
   const meQuery = useQuery({ queryKey: ['me'], queryFn: () => api<Me>('GET', '/me'), enabled: ready && signedIn });
+
+  useEffect(() => setSentryUser(meQuery.data?.id ?? null), [meQuery.data?.id]);
 
   const value = useMemo(() => ({ ready, signedIn, me: meQuery.data, signIn, signOut }), [ready, signedIn, meQuery.data, signIn, signOut]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

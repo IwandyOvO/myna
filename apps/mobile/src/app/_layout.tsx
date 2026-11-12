@@ -1,3 +1,4 @@
+import { Sentry } from '../lib/sentry';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { router, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -37,7 +38,7 @@ function Shell() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [qc] = useState(() => new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, retry: 1 } } }));
   return (
     <SafeAreaProvider>
@@ -53,3 +54,6 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// Sentry.wrap catches render errors and measures app start.
+export default Sentry.wrap(RootLayout);

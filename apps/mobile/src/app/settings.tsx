@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { registerForPush } from '../lib/push';
+import { Sentry } from '../lib/sentry';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { brand } from '../lib/theme';
@@ -232,7 +233,18 @@ export default function Settings() {
           <Row title={t('terms')} onPress={() => router.push('/legal/terms')} />
           <Row title={t('privacy')} onPress={() => router.push('/legal/privacy')} />
           <Row title={t('feedback')} onPress={() => setFeedbackOpen(true)} />
-          <Row title={t('version')} value={`v${Constants.expoConfig?.version ?? '0.8.0'}`} last />
+          <Row title={t('version')} value={`v${Constants.expoConfig?.version ?? '0.8.0'}`} last={!__DEV__} />
+          {__DEV__ && (
+            // Development builds only: check that crash reports reach Sentry.
+            <Row
+              title="🧪 Sentry test error"
+              onPress={() => {
+                Sentry.captureException(new Error(`Myna test error ${new Date().toISOString()}`));
+                toast('Sent to Sentry');
+              }}
+              last
+            />
+          )}
         </Group>
 
         {me?.role === 'admin' && (

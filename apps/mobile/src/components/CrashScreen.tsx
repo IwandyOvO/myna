@@ -2,7 +2,9 @@ import { resolveLocale, translate } from '@myna/shared';
 import { getLocales } from 'expo-localization';
 import { router, type ErrorBoundaryProps } from 'expo-router';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { Sentry } from '../lib/sentry';
 import { brand, dark, light } from '../lib/theme';
+import { useEffect } from 'react';
 
 /**
  * Route error boundary (expo-router `ErrorBoundary` export). Deliberately independent of app
@@ -12,6 +14,9 @@ export function CrashScreen({ error, retry }: ErrorBoundaryProps) {
   const c = useColorScheme() === 'dark' ? dark : light;
   const l = resolveLocale(getLocales()[0]?.languageTag);
   const t = (k: string) => translate(l, k);
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
   if (__DEV__) console.error(error);
   const btn = { paddingVertical: 13, paddingHorizontal: 22, borderRadius: 999, alignItems: 'center' as const };
   return (

@@ -77,7 +77,15 @@
           "color": "#FF5A3C"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "@sentry/react-native",
+        {
+          "organization": "myna-cj",
+          "project": "myna",
+          "url": "https://sentry.io/"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false
