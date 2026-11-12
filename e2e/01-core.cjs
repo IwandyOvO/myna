@@ -4,6 +4,7 @@ const SP = process.argv[2];
   const browser = await chromium.launch();
   const errors = [];
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, locale: 'zh-CN' });
+  await ctx.addInitScript(() => localStorage.setItem('myna.onboarded.v1', 'true'));
   const page = await ctx.newPage();
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', (e) => errors.push('PAGEERROR ' + e.message));
@@ -31,6 +32,7 @@ const SP = process.argv[2];
   });
   await step('email login (dev code)', async () => {
     await page.getByPlaceholder('你的邮箱').fill('tester@example.com');
+    await page.getByRole('checkbox', { name: '我已年满 13 岁' }).click();
     await page.getByRole('button', { name: '发送验证码' }).click();
     await page.getByPlaceholder('6 位验证码').waitFor();
     await shot('03-login');

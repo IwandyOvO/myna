@@ -45,37 +45,38 @@ function Btn({ label, icon, onPress, disabled, dark }: { label: string; icon: st
   );
 }
 
-function GoogleButton({ onDone, onError }: { onDone: Done; onError: () => void }) {
+function GoogleButton({ onDone, onError, age }: { onDone: Done; onError: () => void; age: boolean }) {
   const { t } = useSettings();
   const [req, res, prompt] = Google.useIdTokenAuthRequest({ iosClientId: env.googleIos, androidClientId: env.googleAndroid, webClientId: env.googleWeb });
   useEffect(() => {
     if (res?.type !== 'success') return;
     const idToken = res.params.id_token;
     if (!idToken) return onError();
-    api<AuthResponse>('POST', '/auth/google', { idToken }).then(onDone, onError);
+    api<AuthResponse>('POST', '/auth/google', { idToken, ageConfirmed: age }).then(onDone, onError);
   }, [res, onDone, onError]);
   return <Btn icon="G" label={t('login_google')} onPress={() => prompt()} disabled={!req} />;
 }
 
-function FacebookButton({ onDone, onError }: { onDone: Done; onError: () => void }) {
+function FacebookButton({ onDone, onError, age }: { onDone: Done; onError: () => void; age: boolean }) {
   const { t } = useSettings();
   const [req, res, prompt] = Facebook.useAuthRequest({ clientId: env.facebook });
   useEffect(() => {
     if (res?.type !== 'success') return;
     const accessToken = res.authentication?.accessToken ?? res.params.access_token;
     if (!accessToken) return onError();
-    api<AuthResponse>('POST', '/auth/facebook', { accessToken }).then(onDone, onError);
+    api<AuthResponse>('POST', '/auth/facebook', { accessToken, ageConfirmed: age }).then(onDone, onError);
   }, [res, onDone, onError]);
   return <Btn icon="f" label={t('login_facebook')} onPress={() => prompt()} disabled={!req} />;
 }
 
-export function SocialButtons({ onDone }: { onDone: Done }) {
+export function SocialButtons({ onDone, ageConfirmed, onNeedAge }: { onDone: Done; ageConfirmed: boolean; onNeedAge: () => void }) {
   const { t, isDark } = useSettings();
   const toast = useToast();
   const onError = () => toast(t('error_generic'));
   const unavailable = () => toast(t('provider_unavailable'));
 
   const apple = async () => {
+    if (!ageConfirmed) return onNeedAge();
     if (!(await AppleAuthentication.isAvailableAsync())) return unavailable();
     try {
       const cred = await AppleAuthentication.signInAsync({
@@ -83,7 +84,7 @@ export function SocialButtons({ onDone }: { onDone: Done }) {
       });
       if (!cred.identityToken) return onError();
       const fullName = cred.fullName ? AppleAuthentication.formatFullName(cred.fullName) : undefined;
-      onDone(await api<AuthResponse>('POST', '/auth/apple', { identityToken: cred.identityToken, fullName: fullName || undefined }));
+      onDone(await api<AuthResponse>('POST', '/auth/apple', { identityToken: cred.identityToken, fullName: fullName || undefined, ageConfirmed }));
     } catch (e) {
       if ((e as { code?: string }).code !== 'ERR_REQUEST_CANCELED') onError();
     }
@@ -103,8 +104,16 @@ export function SocialButtons({ onDone }: { onDone: Done }) {
       ) : (
         <Btn icon="" label={t('login_apple')} onPress={unavailable} dark />
       )}
-      {googleConfigured ? <GoogleButton onDone={onDone} onError={onError} /> : <Btn icon="G" label={t('login_google')} onPress={unavailable} />}
-      {env.facebook ? <FacebookButton onDone={onDone} onError={onError} /> : <Btn icon="f" label={t('login_facebook')} onPress={unavailable} />}
+      {googleConfigured ? (
+        ageConfirmed ? <GoogleButton onDone={onDone} onError={onError} age={ageConfirmed} /> : <Btn icon="G" label={t('login_google')} onPress={onNeedAge} />
+      ) : (
+        <Btn icon="G" label={t('login_google')} onPress={unavailable} />
+      )}
+      {env.facebook ? (
+        ageConfirmed ? <FacebookButton onDone={onDone} onError={onError} age={ageConfirmed} /> : <Btn icon="f" label={t('login_facebook')} onPress={onNeedAge} />
+      ) : (
+        <Btn icon="f" label={t('login_facebook')} onPress={unavailable} />
+      )}
     </View>
   );
 }

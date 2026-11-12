@@ -1,7 +1,7 @@
 import { categoryName, scaleFor, timeAgo, type Comment, type ReportReason, type Tier } from '@myna/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { mediaUrl } from '../../lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../../components/headers';
@@ -10,7 +10,9 @@ import { Pills, ScoreBlock } from '../../components/post';
 import { RateSheet } from '../../components/RateSheet';
 import { Button, Card, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T, useToast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
-import { useBlock, useComments, useDeleteReply, useFavorite, usePost, useReply, useReport } from '../../lib/queries';
+import { useBlock, useComments, useDeletePost, useDeleteReply, useFavorite, usePost, useReply, useReport } from '../../lib/queries';
+import { API_URL } from '../../lib/api';
+import { errorText } from '../../lib/errors';
 import { useSettings } from '../../lib/settings';
 
 /** §5.2 detail page — also the target of every board row. */
@@ -28,6 +30,9 @@ export default function PostDetail() {
   const report = useReport();
   const block = useBlock();
   const fav = useFavorite(id);
+  const delPost = useDeletePost();
+  const [ownMenu, setOwnMenu] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean; isReply: boolean } | null>(null);
@@ -49,7 +54,7 @@ export default function PostDetail() {
           setReplyTo(null);
           toast(t('reply_sent'));
         },
-        onError: () => toast(t('error_generic')),
+        onError: (e) => toast(errorText(e, t)),
       },
     );
   };
@@ -111,11 +116,22 @@ export default function PostDetail() {
             >
               <Text style={{ fontSize: 22, color: p.favorited ? '#FFB020' : colors.faint }}>{p.favorited ? '★' : '☆'}</Text>
             </Pressable>
-            {!mine && (
-              <T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => setMenuOpen(true)}>
-                ⋯
-              </T>
-            )}
+            <Pressable
+              onPress={() => {
+                const url = `${process.env.EXPO_PUBLIC_SHARE_URL ?? API_URL}/p/${p.id}`;
+                const score = p.avg !== null && !p.locked ? `${p.avg.toFixed(1)}/5` : t('reviews_count', { n: p.total });
+                void Share.share({ message: `${t('share_text_fmt', { title: p.title, score })}\n${url}`, url, title: p.title });
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t('share')}
+              hitSlop={8}
+              style={{ paddingHorizontal: 6 }}
+            >
+              <Text style={{ fontSize: 19, color: colors.ink }}>⤴</Text>
+            </Pressable>
+            <T style={{ fontSize: 22, paddingHorizontal: 6 }} onPress={() => (mine ? setOwnMenu(true) : setMenuOpen(true))}>
+              ⋯
+            </T>
           </View>
         }
       />
@@ -147,6 +163,7 @@ export default function PostDetail() {
           {!!p.body && <T style={{ fontSize: 14.5, lineHeight: 22, marginTop: 8, color: colors.body }}>{p.body}</T>}
           <T muted style={{ fontSize: 12, marginTop: 10 }} onPress={() => router.push(`/user/${p.author.id}`)}>
             {p.author.avatar} {p.author.nickname} · {timeAgo(locale, p.createdAt)}
+            {p.editedAt ? ` · ${t('edited')}` : ''}
             {p.placeName ? ` · 📍${p.placeName}` : ''}
           </T>
 
@@ -206,6 +223,48 @@ export default function PostDetail() {
         </View>
       )}
       <RateSheet post={p} visible={rateOpen} onClose={() => setRateOpen(false)} />
+      <Sheet visible={ownMenu} title="" onClose={() => setOwnMenu(false)}>
+        <Pressable
+          onPress={() => {
+            setOwnMenu(false);
+            router.push({ pathname: '/publish', params: { edit: p.id } });
+          }}
+          accessibilityRole="button"
+          style={[s.menuRow, { borderBottomColor: colors.line }]}
+        >
+          <T style={{ fontSize: 15 }}>✏️ {t('edit_post')}</T>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            setOwnMenu(false);
+            setConfirmDel(true);
+          }}
+          accessibilityRole="button"
+          style={s.menuRow}
+        >
+          <T style={{ fontSize: 15, color: '#C92A1A', fontWeight: '700' }}>🗑 {t('delete_post')}</T>
+        </Pressable>
+      </Sheet>
+      <Sheet visible={confirmDel} title={t('delete_post_t')} onClose={() => setConfirmDel(false)}>
+        <T muted style={{ marginVertical: 10 }}>{t('delete_post_b')}</T>
+        <View style={{ gap: 10 }}>
+          <Button
+            label={t('delete_post')}
+            loading={delPost.isPending}
+            onPress={() =>
+              delPost.mutate(p.id, {
+                onSuccess: () => {
+                  setConfirmDel(false);
+                  toast(t('post_deleted'));
+                  router.back();
+                },
+                onError: (e) => toast(errorText(e, t)),
+              })
+            }
+          />
+          <Button variant="ghost" label={t('cancel')} onPress={() => setConfirmDel(false)} />
+        </View>
+      </Sheet>
       <Sheet visible={menuOpen || !!commentMenu} title={commentMenu?.mine ? '' : t('report_title')} onClose={closeMenus}>
         {commentMenu?.mine && commentMenu.isReply && (
           <Pressable

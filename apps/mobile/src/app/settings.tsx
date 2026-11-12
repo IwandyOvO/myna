@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { registerForPush } from '../lib/push';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { brand } from '../lib/theme';
 import { PageHeader } from '../components/headers';
 import { Button, Card, Seg, Sheet, T, useToast } from '../components/ui';
@@ -68,6 +70,27 @@ export default function Settings() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const exportData = async () => {
+    try {
+      const data = await api<unknown>('GET', '/me/export');
+      const json = JSON.stringify(data, null, 2);
+      if (Platform.OS === 'web') {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+        a.download = 'myna-data.json';
+        a.click();
+      } else {
+        const file = new File(Paths.cache, 'myna-data.json');
+        if (file.exists) file.delete();
+        file.create();
+        await file.write(json);
+        await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: t('download_data') });
+      }
+      toast(t('export_ready'));
+    } catch {
+      toast(t('error_generic'));
+    }
+  };
   const sendFeedback = async () => {
     try {
       await api('POST', '/feedback', { body: feedback.trim(), appVersion: Constants.expoConfig?.version, platform: Platform.OS });
@@ -201,6 +224,7 @@ export default function Settings() {
             </Row>
           )}
           {signedIn && <Row title={t('block_list')} value={t('blocked_fmt', { n: blocks.data?.items.length ?? 0 })} onPress={() => router.push('/blocked')} />}
+          {signedIn && <Row title={t('download_data')} onPress={exportData} />}
           <Row title={t('clear_cache')} onPress={clearCache} last />
         </Group>
 
@@ -210,6 +234,12 @@ export default function Settings() {
           <Row title={t('feedback')} onPress={() => setFeedbackOpen(true)} />
           <Row title={t('version')} value={`v${Constants.expoConfig?.version ?? '0.8.0'}`} last />
         </Group>
+
+        {me?.role === 'admin' && (
+          <Group title={t('admin_title')}>
+            <Row title={`🛡️ ${t('admin_title')}`} onPress={() => router.push('/admin')} last />
+          </Group>
+        )}
 
         {signedIn && (
           <Group title={t('grp_account')}>

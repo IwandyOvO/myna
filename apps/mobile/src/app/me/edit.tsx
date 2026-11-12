@@ -5,6 +5,7 @@ import { PageHeader } from '../../components/headers';
 import { Button, T, useToast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
 import { useUpdateProfile } from '../../lib/queries';
+import { errorText } from '../../lib/errors';
 import { useSettings } from '../../lib/settings';
 import { brand } from '../../lib/theme';
 
@@ -33,7 +34,7 @@ export default function EditProfile() {
           toast(t('saved'));
           router.back();
         },
-        onError: () => toast(t('error_generic')),
+        onError: (e) => toast(errorText(e, t)),
       },
     );
 

@@ -1,12 +1,14 @@
 import type { AuthResponse } from '@myna/shared';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { PageHeader } from '../components/headers';
 import { Logo } from '../components/Logo';
 import { SocialButtons } from '../components/SocialButtons';
 import { Button, T, useToast } from '../components/ui';
 import { api, ApiFailure, API_URL } from '../lib/api';
+import { errorText } from '../lib/errors';
+import { brand } from '../lib/theme';
 import { useAuth } from '../lib/auth';
 import { useSettings } from '../lib/settings';
 
@@ -19,6 +21,7 @@ export default function Login() {
   const [code, setCode] = useState('');
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [adult, setAdult] = useState(false);
 
   const done = useCallback(
     async (r: AuthResponse) => {
@@ -52,9 +55,9 @@ export default function Login() {
   const verify = async () => {
     setBusy(true);
     try {
-      await done(await api<AuthResponse>('POST', '/auth/email', { email, code }));
-    } catch {
-      toast(t('error_generic'));
+      await done(await api<AuthResponse>('POST', '/auth/email', { email, code, ageConfirmed: adult }));
+    } catch (e) {
+      toast(errorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -96,17 +99,23 @@ export default function Login() {
             style={input}
           />
         )}
+        <Pressable onPress={() => setAdult((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: adult }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <View style={[s.box, { borderColor: adult ? brand.red : colors.line, backgroundColor: adult ? brand.red : 'transparent' }]}>
+            {adult && <Text style={{ color: '#fff', fontWeight: '900', fontSize: 13 }}>✓</Text>}
+          </View>
+          <T style={{ fontSize: 13.5 }}>{t('age_confirm')}</T>
+        </Pressable>
         {sent ? (
-          <Button label={t('verify')} onPress={verify} disabled={code.length !== 6} loading={busy} />
+          <Button label={t('verify')} onPress={verify} disabled={code.length !== 6 || !adult} loading={busy} />
         ) : (
-          <Button label={t('send_code')} onPress={send} disabled={!/\S+@\S+\.\S+/.test(email)} loading={busy} />
+          <Button label={t('send_code')} onPress={send} disabled={!/\S+@\S+\.\S+/.test(email) || !adult} loading={busy} />
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 6 }}>
           <View style={[s.rule, { backgroundColor: colors.line }]} />
           <Text style={{ color: colors.faint, fontSize: 12 }}>·</Text>
           <View style={[s.rule, { backgroundColor: colors.line }]} />
         </View>
-        <SocialButtons onDone={done} />
+        <SocialButtons onDone={done} ageConfirmed={adult} onNeedAge={() => toast(t('age_required'))} />
         <T muted style={{ fontSize: 11.5, textAlign: 'center', marginTop: 6, lineHeight: 18 }}>
           {t('agree_prefix')}{' '}
           <T style={{ fontSize: 11.5, color: colors.ink, fontWeight: '700' }} onPress={() => router.push('/legal/terms')}>
@@ -130,4 +139,5 @@ export default function Login() {
 const s = StyleSheet.create({
   input: { borderWidth: 1.5, borderRadius: 12, padding: 13, fontSize: 15 },
   rule: { flex: 1, height: 1 },
+  box: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
 });

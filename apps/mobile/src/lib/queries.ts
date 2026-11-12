@@ -10,15 +10,17 @@ import { useAuth } from './auth';
 
 export function useFeed(category: Category | undefined, langs: Locale[], q: string) {
   const langParam = langs.length === LOCALES.length ? undefined : langs.join(',');
+  // Browsing is ranked by what's hot; searching is newest-first.
+  const sort = q.trim() ? 'new' : 'hot';
   return useInfiniteQuery({
-    queryKey: ['feed', category ?? 'all', langParam ?? 'all', q],
-    queryFn: ({ pageParam }) => api<Page<PostCard>>('GET', `/feed${qs({ category, langs: langParam, q, cursor: pageParam })}`),
+    queryKey: ['feed', category ?? 'all', langParam ?? 'all', q, sort],
+    queryFn: ({ pageParam }) => api<Page<PostCard>>('GET', `/feed${qs({ category, langs: langParam, q, sort, cursor: pageParam })}`),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }
 
-export const usePost = (id: string) => useQuery({ queryKey: ['post', id], queryFn: () => api<PostCard>('GET', `/posts/${id}`) });
+export const usePost = (id: string) => useQuery({ queryKey: ['post', id], queryFn: () => api<PostCard>('GET', `/posts/${id}`), enabled: !!id });
 
 export const useComments = (postId: string, tier: Tier | null) =>
   useInfiniteQuery({
@@ -215,3 +217,19 @@ export function useMarkAllRead() {
 
 export interface SeasonAwardRow { category: string; rank: number; avg: number; total: number; post_id: string; title: string; emoji: string }
 export const useLastSeason = () => useQuery({ queryKey: ['last-season'], queryFn: () => api<{ season: string; awards: SeasonAwardRow[] }>('GET', '/seasons/last') });
+
+export function useEditPost(postId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { title?: string; body?: string; emoji?: string; imageUrls?: string[] }) => api<PostCard>('PATCH', `/posts/${postId}`, p),
+    onSuccess: (post) => refreshPost(qc, post),
+  });
+}
+
+export function useDeletePost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (postId: string) => api('DELETE', `/posts/${postId}`),
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}

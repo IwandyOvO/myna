@@ -3,6 +3,7 @@ const SP = process.argv[2];
 (async () => {
   const b = await chromium.launch();
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, locale: 'zh-CN', deviceScaleFactor: 1 });
+  await ctx.addInitScript(() => localStorage.setItem('myna.onboarded.v1', 'true'));
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
@@ -20,6 +21,7 @@ const SP = process.argv[2];
   await step('login', async () => {
     await p.goto('http://localhost:8081/login');
     await p.getByPlaceholder('你的邮箱').fill('night@example.com');
+    await p.getByRole('checkbox', { name: '我已年满 13 岁' }).click();
     await p.getByRole('button', { name: '发送验证码' }).click();
     await p.getByRole('button', { name: '验证并继续' }).click();
     await p.waitForTimeout(1500);

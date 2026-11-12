@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PageHeader } from '../components/headers';
 import { Button, Card, Chip, Seg, Sheet, T, useToast } from '../components/ui';
 import { CITIES, cityName, locate } from '../lib/location';
-import { useDeleteDraft, useDrafts, usePublish } from '../lib/queries';
+import { useDeleteDraft, useDrafts, useEditPost, usePost, usePublish } from '../lib/queries';
+import { errorText } from '../lib/errors';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
 
@@ -45,7 +46,23 @@ export default function Publish() {
   const [uploading, setUploading] = useState(0);
 
   // ---- drafts (§5.6): open ?draft=<id> to continue; leaving with unsent content saves one ----
-  const { draft: draftParam } = useLocalSearchParams<{ draft?: string }>();
+  const { draft: draftParam, edit: editId } = useLocalSearchParams<{ draft?: string; edit?: string }>();
+  // Edit mode: change the title, description, cover and photos of your own post.
+  const editing = !!editId;
+  const existing = usePost(editId ?? '');
+  const editPost = useEditPost(editId ?? '');
+  const loadedEdit = useRef(false);
+  useEffect(() => {
+    const p = existing.data;
+    if (!editing || !p || loadedEdit.current) return;
+    loadedEdit.current = true;
+    setType(p.type);
+    setCategory(p.category);
+    setTitle(p.title);
+    setBody(p.body);
+    setEmoji(p.emoji);
+    setPhotos(p.imageUrls);
+  }, [editing, existing.data]);
   const drafts = useDrafts();
   const qc = useQueryClient();
   const deleteDraft = useDeleteDraft();
@@ -83,7 +100,7 @@ export default function Publish() {
     () => () => {
       const s = latest.current;
       const hasContent = !!(s.title.trim() || s.body.trim() || s.imageUrls.length);
-      if (published.current || !dirty.current || !hasContent) return;
+      if (editing || published.current || !dirty.current || !hasContent) return;
       // The screen is gone, so call the API directly (mutation callbacks don't fire after unmount).
       api('POST', '/drafts', { id: draftId.current, payload: { ...s, title: s.title.slice(0, 120), body: s.body.slice(0, 2000) } })
         .then(() => {
@@ -136,6 +153,20 @@ export default function Publish() {
 
   const submit = () => {
     if (!title.trim()) return toast(t('need_title'));
+    if (editing) {
+      editPost.mutate(
+        { title: title.trim(), body: body.trim(), emoji: emoji ?? CATEGORY_EMOJI[category], imageUrls: photos },
+        {
+          onSuccess: () => {
+            published.current = true;
+            toast(t('saved'));
+            router.back();
+          },
+          onError: (e) => toast(errorText(e, t)),
+        },
+      );
+      return;
+    }
     publish.mutate(
       {
         category,
@@ -154,7 +185,7 @@ export default function Publish() {
           toast(t('published'));
           router.replace(`/post/${p.id}`);
         },
-        onError: () => toast(t('error_generic')),
+        onError: (e) => toast(errorText(e, t)),
       },
     );
   };
@@ -163,18 +194,22 @@ export default function Publish() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <PageHeader title={t('pub_head')} />
+      <PageHeader title={editing ? t('edit_post') : t('pub_head')} />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
-        <Seg value={type} onChange={switchType} options={[{ value: 'product', label: t('type_product') }, { value: 'event', label: t('type_event') }]} />
+        {!editing && (
+          <Seg value={type} onChange={switchType} options={[{ value: 'product', label: t('type_product') }, { value: 'event', label: t('type_event') }]} />
+        )}
 
-        <View>
-          <T style={s.label}>{t('pub_cat')}</T>
-          <View style={s.wrap}>
-            {categoriesOf(type).map((c) => (
-              <Chip key={c} label={`${CATEGORY_EMOJI[c]} ${categoryName(c, locale)}`} on={category === c} onPress={() => setCategory(c)} />
-            ))}
+        {!editing && (
+          <View>
+            <T style={s.label}>{t('pub_cat')}</T>
+            <View style={s.wrap}>
+              {categoriesOf(type).map((c) => (
+                <Chip key={c} label={`${CATEGORY_EMOJI[c]} ${categoryName(c, locale)}`} on={category === c} onPress={() => setCategory(c)} />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         <View>
           <T style={s.label}>{t('pub_title_l')}</T>
@@ -237,45 +272,51 @@ export default function Publish() {
           </View>
         </View>
 
-        <View>
-          <T style={s.label}>{t('content_langs')}</T>
-          <View style={s.wrap}>
-            {LOCALES.map((l) => (
-              <Chip key={l} label={LANG_TAG[l]} on={lang === l} onPress={() => setLang(l)} />
-            ))}
+        {!editing && (
+          <View>
+            <T style={s.label}>{t('content_langs')}</T>
+            <View style={s.wrap}>
+              {LOCALES.map((l) => (
+                <Chip key={l} label={LANG_TAG[l]} on={lang === l} onPress={() => setLang(l)} />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
+        {!editing && (
         <Card style={{ padding: 14, gap: 10 }}>
-          <T style={{ fontWeight: '700' }} numberOfLines={1}>
-            📍 {loc ? loc.placeName : t('loc_add')}
-          </T>
-          <View style={s.wrap}>
-            {loc ? (
-              <Chip label={t('loc_clear')} onPress={() => setLoc(null)} />
-            ) : (
-              <>
-                <Chip label={locating ? t('loc_locating') : '🛰️ GPS'} onPress={gps} />
-                <Chip label={t('loc_manual')} onPress={() => setCityOpen(true)} />
-              </>
+            <T style={{ fontWeight: '700' }} numberOfLines={1}>
+              📍 {loc ? loc.placeName : t('loc_add')}
+            </T>
+            <View style={s.wrap}>
+              {loc ? (
+                <Chip label={t('loc_clear')} onPress={() => setLoc(null)} />
+              ) : (
+                <>
+                  <Chip label={locating ? t('loc_locating') : '🛰️ GPS'} onPress={gps} />
+                  <Chip label={t('loc_manual')} onPress={() => setCityOpen(true)} />
+                </>
+              )}
+            </View>
+            {!loc && (
+              <T muted style={{ fontSize: 12 }}>
+                {t('loc_none')}
+              </T>
             )}
-          </View>
-          {!loc && (
-            <T muted style={{ fontSize: 12 }}>
-              {t('loc_none')}
-            </T>
-          )}
-        </Card>
+          </Card>
+        )}
 
+        {!editing && (
         <Card style={{ padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ flex: 1 }}>
-            <T style={{ fontWeight: '800' }}>{t('blind')}</T>
-            <T muted style={{ fontSize: 12, marginTop: 3 }}>
-              {t('blind_sub', { h: BLIND_HOURS })}
-            </T>
-          </View>
-          <Switch value={blind} onValueChange={setBlind} trackColor={{ true: brand.red }} />
-        </Card>
+            <View style={{ flex: 1 }}>
+              <T style={{ fontWeight: '800' }}>{t('blind')}</T>
+              <T muted style={{ fontSize: 12, marginTop: 3 }}>
+                {t('blind_sub', { h: BLIND_HOURS })}
+              </T>
+            </View>
+            <Switch value={blind} onValueChange={setBlind} trackColor={{ true: brand.red }} />
+          </Card>
+        )}
 
         <View style={[s.hint, { backgroundColor: colors.soft }]}>
           <T muted style={{ fontSize: 12 }}>
@@ -283,7 +324,7 @@ export default function Publish() {
           </T>
         </View>
 
-        <Button label={uploading ? t('uploading') : t('publish')} onPress={submit} loading={publish.isPending} disabled={!title.trim() || uploading > 0} />
+        <Button label={uploading ? t('uploading') : editing ? t('save_changes') : t('publish')} onPress={submit} loading={publish.isPending || editPost.isPending} disabled={!title.trim() || uploading > 0} />
       </ScrollView>
 
       <Sheet visible={cityOpen} title={t('loc_manual')} onClose={() => setCityOpen(false)}>

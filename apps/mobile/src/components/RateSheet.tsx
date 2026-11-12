@@ -1,7 +1,7 @@
 import { scaleFor, type PostCard, type Tier } from '@myna/shared';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { ApiFailure } from '../lib/api';
+import { errorText } from '../lib/errors';
 import { useRate } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
@@ -33,7 +33,7 @@ export function RateSheet({ post, visible, onClose }: { post: PostCard; visible:
           toast(editing ? t('edit_ok_fmt', { x: p.myRating?.editsLeft ?? 0 }) : t('rate_ok'));
           onClose();
         },
-        onError: (e) => toast(e instanceof ApiFailure && e.code === 'edit_limit_reached' ? t('edit_limit') : t('error_generic')),
+        onError: (e) => toast(errorText(e, t)),
       },
     );
   };

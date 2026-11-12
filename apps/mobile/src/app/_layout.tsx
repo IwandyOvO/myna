@@ -6,6 +6,7 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DrawerHost } from '../components/Drawer';
 import { OfflineBanner } from '../components/OfflineBanner';
+import { Onboarding } from '../components/Onboarding';
 import { CrashScreen } from '../components/CrashScreen';
 
 export { CrashScreen as ErrorBoundary };
@@ -31,6 +32,7 @@ function Shell() {
         </Stack>
       </DrawerHost>
       <OfflineBanner />
+      <Onboarding />
     </View>
   );
 }

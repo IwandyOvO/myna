@@ -13,7 +13,7 @@ ALLOW_DEV_LOGIN=1 DEV_EXPOSE_EMAIL_CODES=1 npm run server &
 node e2e/static-server.cjs /tmp/myna-web 8081 &
 # 3. run (the argument is a folder for screenshots; it needs a shots/ subfolder)
 mkdir -p /tmp/myna-e2e/shots
-node e2e/03-replies-notifications.cjs /tmp/myna-e2e && node e2e/02-community.cjs /tmp/myna-e2e && node e2e/01-core.cjs /tmp/myna-e2e
+node e2e/04-own-posts-moderation.cjs /tmp/myna-e2e && node e2e/03-replies-notifications.cjs /tmp/myna-e2e && node e2e/02-community.cjs /tmp/myna-e2e && node e2e/01-core.cjs /tmp/myna-e2e
 ```
 
 Each script prints `ok`/`FAIL` per step and saves a screenshot for every failure.

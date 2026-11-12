@@ -68,7 +68,7 @@ export function Pills({ post }: { post: PostCard }) {
 export function PostCardView({ post, showDistance }: { post: PostCard; showDistance?: boolean }) {
   const { colors, t, locale } = useSettings();
   const open = () => router.push(`/post/${post.id}`);
-  const where = showDistance && post.distanceKm !== undefined ? `${post.distanceKm}km` : post.placeName;
+  const where = showDistance && post.distanceKm !== undefined ? (post.distanceKm < 1 ? t('km_lt1') : `${post.distanceKm}km`) : post.placeName;
   return (
     <Card onPress={open} style={{ marginHorizontal: 16, marginBottom: 12 }}>
       <View style={[s.cover, { backgroundColor: colors.soft }]}>
