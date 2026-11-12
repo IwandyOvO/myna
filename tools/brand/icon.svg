@@ -1,17 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
-  <radialGradient id="bg" cx="38%" cy="28%" r="85%"><stop offset="0" stop-color="#FBFAF7"/><stop offset="1" stop-color="#EFEBE3"/></radialGradient>
-  <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#34343A"/><stop offset="1" stop-color="#101012"/></linearGradient>
-  <linearGradient id="inkDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FAF8F4"/><stop offset="1" stop-color="#D8D3CA"/></linearGradient>
-  <linearGradient id="yel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD866"/><stop offset="1" stop-color="#FFB21E"/></linearGradient>
-  <radialGradient id="sh" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".16"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
-  <mask id="eyeHole"><rect width="1024" height="1024" fill="#fff"/><circle cx="648" cy="440" r="46" fill="#000"/></mask>
-</defs><rect width="1024" height="1024" fill="url(#bg)"/><g transform="translate(512 512) scale(1.08) translate(-584 -540)">
-    <ellipse cx="510" cy="826" rx="270" ry="34" fill="url(#sh)"/>
-    <path d="M392 300 H612 A168 168 0 0 1 780 468 V516 A168 168 0 0 1 612 684 H470
-  C430 684 392 700 362 728 C338 750 312 768 282 778 C300 752 310 724 312 694
-  C266 664 224 604 224 516 V468 A168 168 0 0 1 392 300 Z" fill="url(#ink)"/>
-    <path d="M772 418 C820 420 866 432 902 450 C866 462 822 470 776 470 Z" fill="url(#yel)"/><path d="M776 482 C812 484 846 494 872 508 C842 516 808 518 772 512 Z" fill="#E9A000"/>
-    <circle cx="648" cy="440" r="46" fill="url(#yel)"/><circle cx="659" cy="437" r="21" fill="#17171A"/>
-    <circle cx="667" cy="428" r="7" fill="#fff" opacity=".9"/>
-    <circle cx="930" cy="404" r="27" fill="#FF5A3C"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#FFFFFF"/><g transform="translate(512 512) scale(0.879) translate(-627.5 -627.5)">
+    <path d="M500 605 C560 560 600 500 630 452 C680 380 740 345 800 345 C860 345 905 368 930 393
+    C980 388 1030 395 1065 410 C1010 440 940 475 915 545 C930 600 935 650 925 700
+    C900 820 780 905 620 928 C540 905 470 905 410 925 C340 948 270 980 205 995
+    C188 996 182 988 192 975 C230 925 275 885 315 855 C290 850 250 842 218 834
+    C205 830 207 822 220 818 C330 735 420 660 500 605 Z" fill="#111111"/>
+    <path d="M492 610 C580 566 650 556 702 574 C764 596 764 694 722 764 C672 836 520 862 314 858 L214 832 Z" fill="#FFFFFF"/>
+    <path d="M222 830 C335 745 470 642 578 627 C638 620 652 655 634 690 C590 770 432 836 302 840 C268 840 240 836 222 830 Z" fill="#111111"/>
+    <path d="M606 922 L652 1016 L708 1016 L644 932 Z" fill="#111111"/><path d="M528 1050 C540 1026 590 1014 662 1014 C740 1014 800 1026 815 1050 Z" fill="#111111"/>
+    <path d="M736 476 C741 430 770 404 800 404 C830 404 854 424 860 452" fill="none" stroke="#FFFFFF" stroke-width="24" stroke-linecap="round"/>
+    <path d="M968 226 L952 300 M1086 270 L1026 330" fill="none" stroke="#111111" stroke-width="34" stroke-linecap="round"/>
   </g></svg>
