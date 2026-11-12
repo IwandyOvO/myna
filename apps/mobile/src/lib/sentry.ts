@@ -13,6 +13,8 @@ Sentry.init({
   sendDefaultPii: false,
   // Errors only for now (free tier); turn on tracing later if needed.
   tracesSampleRate: 0,
+  // EXPO_PUBLIC_SENTRY_DEBUG=1 prints what the SDK does to the Metro console.
+  debug: process.env.EXPO_PUBLIC_SENTRY_DEBUG === '1',
 });
 
 export { Sentry };

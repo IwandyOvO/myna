@@ -238,11 +238,14 @@ export default function Settings() {
             // Development builds only: check that crash reports reach Sentry.
             <Row
               title="🧪 Sentry test error"
-              onPress={() => {
+              onPress={async () => {
                 // Own fingerprint per tap → a new issue each time, so "new issue" alerts fire on every test.
+                // Reports the outcome so delivery problems are visible on the phone.
+                if (!Sentry.getClient()) return toast('Sentry ✗ not initialised');
                 const stamp = new Date().toISOString();
-                Sentry.captureException(new Error(`Myna test error ${stamp}`), { fingerprint: ['myna-app-test', stamp] });
-                toast('Sent to Sentry');
+                const id = Sentry.captureException(new Error(`Myna test error ${stamp}`), { fingerprint: ['myna-app-test', stamp] });
+                const delivered = await Sentry.flush();
+                toast(delivered ? `Sentry ✓ sent ${id.slice(0, 8)}` : 'Sentry ✗ not delivered (network?)');
               }}
               last
             />
