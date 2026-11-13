@@ -94,7 +94,11 @@ export async function api<T>(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   if (res.status === 204) return undefined as T;
   const data = (await res.json().catch(() => ({}))) as T & ApiError;
   if (!res.ok) {
-    if (res.status === 401 && token && (data.error === 'invalid_token' || data.error === 'user_not_found')) onUnauthorized?.();
+    if (res.status === 401 && token && (data.error === 'invalid_token' || data.error === 'user_not_found')) {
+      // Drop the dead token before notifying, so requests made during sign-out don't 401 again and loop.
+      token = null;
+      onUnauthorized?.();
+    }
     throw new ApiFailure(res.status, data.error ?? 'unknown');
   }
   return data;

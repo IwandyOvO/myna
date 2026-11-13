@@ -1,6 +1,6 @@
 import type { AuthResponse, Me } from '@myna/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, apiSession } from './api';
 import { registerForPush, unregisterPush } from './push';
 import { setSentryUser } from './sentry';
@@ -23,12 +23,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
 
+  const signingOut = useRef(false);
   const signOut = useCallback(async () => {
-    await unregisterPush();
-    apiSession.setToken(null);
-    await secrets.set(TOKEN_KEY, null);
-    setSignedIn(false);
-    qc.clear();
+    if (signingOut.current) return;
+    signingOut.current = true;
+    try {
+      await unregisterPush();
+    } finally {
+      apiSession.setToken(null);
+      await secrets.set(TOKEN_KEY, null);
+      setSignedIn(false);
+      // Reset (not clear) so screens on display refetch as a guest instead of spinning on removed queries.
+      await qc.resetQueries();
+      signingOut.current = false;
+    }
   }, [qc]);
 
   useEffect(() => {
