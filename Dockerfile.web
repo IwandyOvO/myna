@@ -1,0 +1,27 @@
+# Myna web app — the Expo app exported for browsers and served as static files.
+#   docker build -f Dockerfile.web --build-arg EXPO_PUBLIC_API_URL=https://your-api.example.com -t myna-web .
+# On Railway: set RAILWAY_DOCKERFILE_PATH=Dockerfile.web and EXPO_PUBLIC_API_URL on the web service
+# (Railway passes service variables to ARGs at build time).
+FROM node:22-slim AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/server/package.json apps/server/
+COPY apps/mobile/package.json apps/mobile/
+RUN npm ci -w @myna/mobile -w @myna/shared --include-workspace-root=false
+COPY packages/shared ./packages/shared
+COPY apps/mobile ./apps/mobile
+ARG EXPO_PUBLIC_API_URL
+RUN test -n "$EXPO_PUBLIC_API_URL" || (echo "EXPO_PUBLIC_API_URL must be set (the API's public https URL)" && exit 1)
+WORKDIR /app/apps/mobile
+ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL CI=1
+RUN npx expo export --platform web --output-dir /app/web
+
+FROM node:22-alpine
+WORKDIR /app
+COPY --from=build /app/web ./web
+COPY apps/mobile/serve-web.cjs ./
+USER node
+ENV PORT=8080
+EXPOSE 8080
+CMD ["node", "serve-web.cjs", "web"]

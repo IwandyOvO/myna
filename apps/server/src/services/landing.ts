@@ -4,14 +4,20 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 
 /**
  * Share landing page for https://<api>/p/<postId>. Messaging apps read the Open Graph tags for the
- * link preview; people tap "Open in Myna" (myna:// deep link) or go to the store. Blind scores stay hidden.
+ * link preview; people tap "Open in Myna" (myna:// deep link), open it in the web app, or go to the store. Blind scores stay hidden.
  */
-export function landingPage(post: PostCard | null, locale: Locale, appStoreUrl: string | null): string {
+export interface LandingLinks {
+  appStoreUrl: string | null;
+  webAppUrl: string | null;
+}
+
+export function landingPage(post: PostCard | null, locale: Locale, { appStoreUrl, webAppUrl }: LandingLinks): string {
   const t = (k: string, v?: Record<string, string | number>) => translate(locale, k, v);
   const title = post ? post.title : 'Myna';
   const score = post && post.avg !== null && !post.locked ? `${post.avg.toFixed(1)} / 5 · ${t('reviews_count', { n: post.total })}` : post ? t('reviews_count', { n: post.total }) : '';
   const desc = post ? `${categoryName(post.category, locale)} · ${score}` : t('slogan');
   const deepLink = post ? `myna://post/${post.id}` : 'myna://';
+  const webLink = webAppUrl ? (post ? `${webAppUrl}/post/${post.id}` : webAppUrl) : null;
   return `<!doctype html>
 <html lang="${locale}">
 <head>
@@ -42,6 +48,7 @@ export function landingPage(post: PostCard | null, locale: Locale, appStoreUrl: 
   ${post && post.avg !== null && !post.locked ? `<div class="score">${post.avg.toFixed(1)}</div>` : ''}
   <p>${esc(desc)}</p>
   <a class="btn" href="${deepLink}">${esc(t('open_in_app'))}</a>
+  ${webLink ? `<a class="btn ghost" href="${esc(webLink)}">${esc(t('open_on_web'))}</a>` : ''}
   ${appStoreUrl ? `<a class="btn ghost" href="${esc(appStoreUrl)}">${esc(t('get_app'))}</a>` : ''}
   <p style="margin-top:18px;font-size:12px">${esc(t('slogan'))}</p>
 </div>

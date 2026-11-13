@@ -1,7 +1,10 @@
 node_modules
 **/node_modules
-apps/mobile
-!apps/mobile/package.json
+apps/mobile/.expo
+apps/mobile/dist
+apps/mobile/.env
+apps/mobile/ios
+apps/mobile/android
 apps/server/uploads
 apps/server/.env
 apps/server/dev.log

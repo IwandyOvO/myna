@@ -29,6 +29,24 @@ or locally, production-like: `JWT_SECRET=$(openssl rand -hex 32) docker compose 
 - Behind a proxy set `TRUST_PROXY=1`; for a web client set `CORS_ORIGINS`.
 - Logs are JSON on stdout; tokens and codes are redacted.
 
+## Web app
+
+The same Expo app, exported for browsers (`Dockerfile.web`) and served by a tiny static server
+(`apps/mobile/serve-web.cjs`: SPA fallback, gzip, long-cache hashed bundles, `GET /health`).
+
+```bash
+docker build -f Dockerfile.web --build-arg EXPO_PUBLIC_API_URL=https://api.example.com -t myna-web .
+docker run -p 8080:8080 myna-web
+```
+
+On Railway: add a second service from the same GitHub repo with the variables
+`RAILWAY_DOCKERFILE_PATH=Dockerfile.web` and `EXPO_PUBLIC_API_URL=https://<api domain>`, then generate a domain
+on port 8080. The API URL is baked in at build time, so changing it needs a redeploy.
+
+- On the API, set `WEB_APP_URL=https://<web domain>`: share pages (`/p/:id`) then offer "View on the web".
+- Optionally lock the API to the web origin with `CORS_ORIGINS=https://<web domain>` (native apps send no Origin, so they're unaffected).
+- On the web, e-mail sign-in works out of the box; push notifications are app-only, and social sign-in needs each provider's web client set up.
+
 ## Mobile app
 
 ```bash

@@ -11,6 +11,7 @@ import { loadConfig } from '../src/config';
 import { createPool, type Db } from '../src/db/pool';
 import { seed, synthDistribution } from '../src/db/seed';
 import { HttpError } from '../src/lib/errors';
+import { landingPage } from '../src/services/landing';
 import { clearBoardCache } from '../src/services/boards';
 import { LocalDiskStorage } from '../src/lib/storage';
 import type { PushMessage } from '../src/services/notify';
@@ -883,5 +884,9 @@ describe('own posts, privacy, moderation, age gate, export, hot feed, share page
     const b = await app.inject({ method: 'GET', url: `/p/${blind.id}`, headers: { 'accept-language': 'en' } });
     expect(b.body).not.toMatch(/class="score"/);
     expect((await app.inject({ method: 'GET', url: '/p/not-a-post' })).statusCode).toBe(200); // generic page
+    expect(r.body).not.toMatch(/https?:\/\/[^"]*\/post\//); // no web app configured → no web link
+    const withWeb = landingPage(p, 'en', { appStoreUrl: null, webAppUrl: 'https://web.example.com' });
+    expect(withWeb).toContain(`href="https://web.example.com/post/${p.id}"`);
+    expect(withWeb).toContain('View on the web');
   });
 });

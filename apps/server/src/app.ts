@@ -154,7 +154,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       /* unknown or removed: render the generic page */
     }
     reply.header('content-type', 'text/html; charset=utf-8').header('cache-control', 'public, max-age=300');
-    return landingPage(post, resolveLocale(req.headers['accept-language']?.split(',')[0]), config.appStoreUrl);
+    return landingPage(post, resolveLocale(req.headers['accept-language']?.split(',')[0]), { appStoreUrl: config.appStoreUrl, webAppUrl: config.webAppUrl });
   });
   /** Readiness: the database answers. Use for load-balancer health checks. */
   app.get('/ready', async (_req, reply) => {
