@@ -5,11 +5,12 @@ import { Button, Card, SectionTitle, T } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
 import { useBadges, useWeekly } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
+import { TasteCard } from '../../components/Taste';
 import { brand } from '../../lib/theme';
 
 const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k` : String(n));
 
-/** §5.6 Me: profile card with reputation, tappable stats, badge showcase, weekly report, quick access grid. */
+/** §5.6 Me: profile card with taste profile (no reputation score — it made people "play nice"), tappable stats, badge showcase, weekly report, quick access grid. */
 export default function MeTab() {
   const { t, colors } = useSettings();
   const { me, signedIn } = useAuth();
@@ -52,16 +53,12 @@ export default function MeTab() {
                 @{me?.handle} · ✏️ {t('edit_profile')}
               </T>
             </View>
-            <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: 26, fontWeight: '900', color: brand.red }}>{me?.reputation ?? '–'}</Text>
-              <T muted style={{ fontSize: 11 }}>
-                {t('rep')}
-              </T>
-            </View>
           </Pressable>
-          <T muted style={{ fontSize: 11.5, marginTop: 10 }}>
-            {t('rep_note')}
-          </T>
+          {me?.taste && (
+            <View style={{ marginTop: 14 }}>
+              <TasteCard taste={me.taste} />
+            </View>
+          )}
           <View style={[s.stats, { borderTopColor: colors.line }]}>
             {[
               { n: me?.stats.posts ?? 0, label: t('stat_posts'), go: () => router.push('/me/posts') },
@@ -101,7 +98,6 @@ export default function MeTab() {
           {[
             { n: week.data?.ratings ?? 0, label: t('weekly_rates') },
             { n: week.data?.newBadges ?? 0, label: t('new_badges') },
-            { n: week.data ? `${week.data.reputationDelta >= 0 ? '+' : ''}${week.data.reputationDelta}` : '0', label: t('rep_change') },
           ].map((x) => (
             <View key={x.label} style={{ flex: 1, alignItems: 'center' }}>
               <T style={{ fontSize: 22, fontWeight: '900' }}>{x.n}</T>

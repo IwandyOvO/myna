@@ -6,11 +6,14 @@ import { useAuth } from '../lib/auth';
 import { useLike, useReplies } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { TierBadge } from './post';
+import { Translatable } from './Translatable';
 import { T } from './ui';
 
 export interface CommentActions {
   onMenu: (c: Comment) => void;
   onReply: (c: Comment) => void;
+  /** The post is in another language: offer translation on comments. */
+  foreign?: boolean;
 }
 
 function Row({ c, category, actions, small }: { c: Comment; category: Category; actions: CommentActions; small?: boolean }) {
@@ -28,20 +31,17 @@ function Row({ c, category, actions, small }: { c: Comment; category: Category; 
           {c.mine ? `${c.author.nickname} (${t('my_name')})` : c.author.nickname}
         </T>
         {!c.parentId && <TierBadge category={category} tier={c.tier} locale={locale} />}
-        {/* Nothing to do on your own rating comment (edit it via the rating); replies can be deleted. */}
-        {!(c.mine && !c.parentId) && (
         <Pressable
           onPress={() => actions.onMenu(c)}
           accessibilityRole="button"
-          accessibilityLabel={t('report')}
+          accessibilityLabel={c.mine ? t('edit_comment') : t('report')}
           hitSlop={8}
           style={{ marginLeft: 'auto', paddingHorizontal: 6, paddingVertical: 4 }}
         >
           <T style={{ fontSize: 14, color: colors.faint }}>⋯</T>
         </Pressable>
-        )}
         <Pressable
-          style={{ paddingVertical: 4, paddingLeft: 4, marginLeft: c.mine && !c.parentId ? 'auto' : 0 }}
+          style={{ paddingVertical: 4, paddingLeft: 4 }}
           accessibilityRole="button"
           accessibilityState={{ selected: c.likedByMe }}
           onPress={() => (signedIn ? like.mutate({ commentId: c.id, like: !c.likedByMe }) : router.push('/login'))}
@@ -51,7 +51,11 @@ function Row({ c, category, actions, small }: { c: Comment; category: Category; 
           </T>
         </Pressable>
       </View>
-      {!!c.body && <T style={{ fontSize: small ? 13.5 : 14, lineHeight: small ? 20 : 22, marginTop: 6, color: colors.body }}>{c.body}</T>}
+      {!!c.body && (
+        <View style={{ marginTop: 6 }}>
+          <Translatable text={c.body} show={!!actions.foreign} style={{ fontSize: small ? 13.5 : 14, lineHeight: small ? 20 : 22, color: colors.body }} />
+        </View>
+      )}
       <View style={{ flexDirection: 'row', gap: 12, marginTop: 5, alignItems: 'center' }}>
         <T style={{ fontSize: 11, color: colors.faint }}>{timeAgo(locale, c.createdAt)}</T>
         {c.edited && <T style={{ fontSize: 11, color: colors.faint }}>{t('edited')}</T>}

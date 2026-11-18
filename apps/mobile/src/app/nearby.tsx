@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { TabHeader } from '../../components/headers';
-import { PostCardView } from '../../components/post';
-import { Button, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T } from '../../components/ui';
-import { CITIES, cityName, locate } from '../../lib/location';
-import { useNearby } from '../../lib/queries';
-import { useSettings } from '../../lib/settings';
+import { PageHeader } from '../components/headers';
+import { PostCardView } from '../components/post';
+import { Button, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T } from '../components/ui';
+import { CITIES, cityName, locate } from '../lib/location';
+import { useNearby } from '../lib/queries';
+import { useSettings } from '../lib/settings';
 
 const RADII: (number | null)[] = [1, 5, 10, null]; // null = whole city
 
@@ -30,7 +30,7 @@ export default function Nearby() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TabHeader title={t('disc_title')} />
+      <PageHeader title={t('disc_title')} />
       {!coords ? (
         <View style={{ padding: 24, gap: 12 }}>
           <Empty emoji="📍" text={failed ? t('loc_failed') : t('nearby_perm')} />

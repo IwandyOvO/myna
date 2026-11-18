@@ -1,4 +1,5 @@
 import type {
+  CommentSort, DailyQuestion, FeedSort, RateResult,
   Draft, DraftPayload, LeaderboardRow, LikeReceived, Notification, UserProfile, WeeklyChallenge,
   Badge, Board, BoardCategory, BoardDirection, BoardPeriod, Category, Comment, CreatePostInput, Locale,
   Me, Page, PostCard, ReportReason, Tier, UserSummary, Weekly,
@@ -8,24 +9,25 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type QueryClie
 import { api, qs } from './api';
 import { useAuth } from './auth';
 
-export function useFeed(category: Category | undefined, langs: Locale[], q: string) {
+export function useFeed(category: Category | undefined, langs: Locale[], q: string, browse: FeedSort = 'hot', enabled = true) {
   const langParam = langs.length === LOCALES.length ? undefined : langs.join(',');
-  // Browsing is ranked by what's hot; searching is newest-first.
-  const sort = q.trim() ? 'new' : 'hot';
+  // Browsing uses the chosen ranking (hot by default); searching is newest-first.
+  const sort: FeedSort = q.trim() ? 'new' : browse;
   return useInfiniteQuery({
     queryKey: ['feed', category ?? 'all', langParam ?? 'all', q, sort],
     queryFn: ({ pageParam }) => api<Page<PostCard>>('GET', `/feed${qs({ category, langs: langParam, q, sort, cursor: pageParam })}`),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
+    enabled,
   });
 }
 
 export const usePost = (id: string) => useQuery({ queryKey: ['post', id], queryFn: () => api<PostCard>('GET', `/posts/${id}`), enabled: !!id });
 
-export const useComments = (postId: string, tier: Tier | null) =>
+export const useComments = (postId: string, tier: Tier | null, sort: CommentSort = 'top') =>
   useInfiniteQuery({
-    queryKey: ['comments', postId, tier ?? 'all'],
-    queryFn: ({ pageParam }) => api<Page<Comment>>('GET', `/posts/${postId}/comments${qs({ tier, cursor: pageParam })}`),
+    queryKey: ['comments', postId, tier ?? 'all', sort],
+    queryFn: ({ pageParam }) => api<Page<Comment>>('GET', `/posts/${postId}/comments${qs({ tier, sort, cursor: pageParam })}`),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
@@ -78,8 +80,39 @@ export function useRate(postId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (v: { tier: Tier; reason: string; editing: boolean }) =>
-      api<PostCard>(v.editing ? 'PATCH' : 'POST', v.editing ? `/posts/${postId}/ratings/me` : `/posts/${postId}/ratings`, { tier: v.tier, reason: v.reason }),
-    onSuccess: (post) => refreshPost(qc, post),
+      api<RateResult>(v.editing ? 'PATCH' : 'POST', v.editing ? `/posts/${postId}/ratings/me` : `/posts/${postId}/ratings`, { tier: v.tier, reason: v.reason }),
+    onSuccess: (r) => {
+      const { crowd: _crowd, ...post } = r;
+      refreshPost(qc, post);
+    },
+  });
+}
+
+/** Rate any post by id (quick-rate deck); doesn't refetch the deck itself. */
+export function useQuickRate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { postId: string; tier: Tier; reason: string }) => api<RateResult>('POST', `/posts/${v.postId}/ratings`, { tier: v.tier, reason: v.reason }),
+    onSuccess: (r) => {
+      const { crowd: _crowd, ...post } = r;
+      qc.setQueryData(['post', post.id], post);
+      for (const k of ['feed', 'my-ratings', 'me', 'daily', 'challenge', 'weekly', 'badges']) qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
+}
+
+export const useDeck = (enabled: boolean) =>
+  useQuery({ queryKey: ['deck'], queryFn: () => api<{ items: PostCard[] }>('GET', '/deck?limit=30'), enabled, staleTime: Infinity });
+
+export const useDaily = () => useQuery({ queryKey: ['daily'], queryFn: () => api<DailyQuestion>('GET', '/daily') });
+
+export function useEditComment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { commentId: string; body: string }) => api<{ ok: true }>('PATCH', `/comments/${v.commentId}`, { body: v.body }),
+    onSuccess: () => {
+      for (const k of ['comments', 'replies', 'post', 'feed']) qc.invalidateQueries({ queryKey: [k] });
+    },
   });
 }
 
@@ -233,3 +266,10 @@ export function useDeletePost() {
     onSuccess: () => qc.invalidateQueries(),
   });
 }
+
+/** Optional server features (e.g. translation needs an API key on the server). */
+export const useFeatures = () =>
+  useQuery({ queryKey: ['features'], queryFn: () => api<{ translate: boolean }>('GET', '/features'), staleTime: 60 * 60_000 });
+
+export const useTranslate = () =>
+  useMutation({ mutationFn: (v: { text: string; target: Locale }) => api<{ text: string }>('POST', '/translate', v) });

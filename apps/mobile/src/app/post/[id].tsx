@@ -1,4 +1,4 @@
-import { categoryName, scaleFor, timeAgo, type Comment, type ReportReason, type Tier } from '@myna/shared';
+import { categoryName, scaleFor, timeAgo, VERDICT_EMOJI, type Comment, type CommentSort, type ReportReason, type Tier } from '@myna/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
@@ -8,12 +8,14 @@ import { PageHeader } from '../../components/headers';
 import { CommentThread } from '../../components/comments';
 import { Pills, ScoreBlock } from '../../components/post';
 import { RateSheet } from '../../components/RateSheet';
+import { Translatable } from '../../components/Translatable';
 import { Button, Card, Chip, ChipRow, Empty, ErrorView, Loading, Sheet, T, useToast } from '../../components/ui';
 import { useAuth } from '../../lib/auth';
-import { useBlock, useComments, useDeletePost, useDeleteReply, useFavorite, usePost, useReply, useReport } from '../../lib/queries';
+import { useBlock, useComments, useDeletePost, useDeleteReply, useEditComment, useFavorite, usePost, useReply, useReport } from '../../lib/queries';
 import { API_URL } from '../../lib/api';
 import { errorText } from '../../lib/errors';
 import { useSettings } from '../../lib/settings';
+import { brand } from '../../lib/theme';
 
 /** §5.2 detail page — also the target of every board row. */
 export default function PostDetail() {
@@ -25,7 +27,10 @@ export default function PostDetail() {
   const toast = useToast();
   const post = usePost(id);
   const [filter, setFilter] = useState<Tier | null>(null);
-  const comments = useComments(id, filter);
+  const [sort, setSort] = useState<CommentSort>('top');
+  const comments = useComments(id, filter, sort);
+  const editComment = useEditComment();
+  const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
   const commentItems = comments.data?.pages.flatMap((pg) => pg.items) ?? [];
   const report = useReport();
   const block = useBlock();
@@ -35,14 +40,15 @@ export default function PostDetail() {
   const [confirmDel, setConfirmDel] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean; isReply: boolean } | null>(null);
+  const [commentMenu, setCommentMenu] = useState<{ id: string; authorId: string; mine: boolean; isReply: boolean; body: string } | null>(null);
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
   const [replyText, setReplyText] = useState('');
   const sendReply = useReply();
   const deleteReply = useDeleteReply();
   const commentActions = {
-    onMenu: (c: Comment) => setCommentMenu({ id: c.id, authorId: c.author.id, mine: c.mine, isReply: !!c.parentId }),
+    onMenu: (c: Comment) => setCommentMenu({ id: c.id, authorId: c.author.id, mine: c.mine, isReply: !!c.parentId, body: c.body }),
     onReply: (c: Comment) => (signedIn ? setReplyTo({ id: c.id, name: c.author.nickname }) : router.push('/login')),
+    foreign: post.data ? post.data.lang !== locale : false,
   };
   const submitReply = () => {
     if (!replyTo || !replyText.trim()) return;
@@ -119,8 +125,12 @@ export default function PostDetail() {
             <Pressable
               onPress={() => {
                 const url = `${process.env.EXPO_PUBLIC_SHARE_URL ?? API_URL}/p/${p.id}`;
-                const score = p.avg !== null && !p.locked ? `${p.avg.toFixed(1)}/5` : t('reviews_count', { n: p.total });
-                void Share.share({ message: `${t('share_text_fmt', { title: p.title, score })}\n${url}`, url, title: p.title });
+                const message =
+                  p.verdict && p.split && !p.locked && p.total > 0
+                    ? t('share_verdict_fmt', { title: p.title, verdict: `${VERDICT_EMOJI[p.verdict]} ${t(`v_${p.verdict}`)}`, high: p.split.high, low: p.split.low })
+                    : t('share_text_fmt', { title: p.title, score: t('reviews_count', { n: p.total }) });
+                const roast = p.topComment && !p.locked ? `\n🔥 “${p.topComment.body}”` : '';
+                void Share.share({ message: `${message}${roast}\n${url}`, url, title: p.title });
               }}
               accessibilityRole="button"
               accessibilityLabel={t('share')}
@@ -159,8 +169,12 @@ export default function PostDetail() {
           </View>
         )}
         <View style={{ padding: 16 }}>
-          <T style={{ fontSize: 20, fontWeight: '900', lineHeight: 27 }}>{p.title}</T>
-          {!!p.body && <T style={{ fontSize: 14.5, lineHeight: 22, marginTop: 8, color: colors.body }}>{p.body}</T>}
+          <Translatable text={p.title} show={p.lang !== locale} style={{ fontSize: 20, fontWeight: '900', lineHeight: 27 }} />
+          {!!p.body && (
+            <View style={{ marginTop: 8 }}>
+              <Translatable text={p.body} show={p.lang !== locale} style={{ fontSize: 14.5, lineHeight: 22, color: colors.body }} />
+            </View>
+          )}
           <T muted style={{ fontSize: 12, marginTop: 10 }} onPress={() => router.push(`/user/${p.author.id}`)}>
             {p.author.avatar} {p.author.nickname} · {timeAgo(locale, p.createdAt)}
             {p.editedAt ? ` · ${t('edited')}` : ''}
@@ -171,7 +185,24 @@ export default function PostDetail() {
             <ScoreBlock post={p} />
           </Card>
 
-          <T style={{ fontSize: 16, fontWeight: '800', marginTop: 22 }}>{t('comments_title')}</T>
+          {p.topComment && (
+            <Card style={{ padding: 16, marginTop: 12 }}>
+              <T style={{ fontSize: 13, fontWeight: '900', color: brand.red }}>{t('best_roast')}</T>
+              <T style={{ fontSize: 17, fontWeight: '800', lineHeight: 24, marginTop: 8 }}>“{p.topComment.body}”</T>
+              <T muted style={{ fontSize: 12, marginTop: 8 }} onPress={() => router.push(`/user/${p.topComment!.author.id}`)}>
+                {p.topComment.author.avatar} {p.topComment.author.nickname} · ♥ {p.topComment.likeCount}
+              </T>
+            </Card>
+          )}
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 22 }}>
+            <T style={{ fontSize: 16, fontWeight: '800', flex: 1 }}>{t('comments_title')}</T>
+            {(['top', 'new'] as const).map((k) => (
+              <Pressable key={k} onPress={() => setSort(k)} accessibilityRole="button" accessibilityState={{ selected: sort === k }} hitSlop={6} style={{ paddingHorizontal: 8 }}>
+                <T style={{ fontSize: 13, fontWeight: sort === k ? '900' : '600', color: sort === k ? colors.ink : colors.muted }}>{t(`sort_${k}`)}</T>
+              </Pressable>
+            ))}
+          </View>
         </View>
         {!p.locked && (
           <ChipRow>
@@ -266,6 +297,31 @@ export default function PostDetail() {
         </View>
       </Sheet>
       <Sheet visible={menuOpen || !!commentMenu} title={commentMenu?.mine ? '' : t('report_title')} onClose={closeMenus}>
+        {commentMenu?.mine && (
+          <Pressable
+            onPress={() => {
+              const c = commentMenu;
+              closeMenus();
+              setEditing({ id: c.id, text: c.body });
+            }}
+            accessibilityRole="button"
+            style={[s.menuRow, { borderBottomColor: colors.line }]}
+          >
+            <T style={{ fontSize: 15 }}>✏️ {t('edit_comment')}</T>
+          </Pressable>
+        )}
+        {commentMenu?.mine && !commentMenu.isReply && mr && mr.editsLeft > 0 && (
+          <Pressable
+            onPress={() => {
+              closeMenus();
+              setRateOpen(true);
+            }}
+            accessibilityRole="button"
+            style={[s.menuRow, { borderBottomColor: colors.line }]}
+          >
+            <T style={{ fontSize: 15 }}>🎚 {cta}</T>
+          </Pressable>
+        )}
         {commentMenu?.mine && commentMenu.isReply && (
           <Pressable
             onPress={() => {
@@ -290,11 +346,37 @@ export default function PostDetail() {
           </Pressable>
         )}
       </Sheet>
+      <Sheet visible={!!editing} title={t('edit_comment_title')} onClose={() => setEditing(null)}>
+        <TextInput
+          value={editing?.text ?? ''}
+          onChangeText={(text) => setEditing((e) => (e ? { ...e, text } : e))}
+          multiline
+          autoFocus
+          maxLength={500}
+          placeholder={t('rate_ph')}
+          placeholderTextColor={colors.faint}
+          style={[s.editInput, { borderColor: colors.line, backgroundColor: colors.card, color: colors.ink }]}
+        />
+        <View style={{ marginTop: 14 }}>
+          <Button
+            label={t('save_changes')}
+            loading={editComment.isPending}
+            onPress={() =>
+              editing &&
+              editComment.mutate(
+                { commentId: editing.id, body: editing.text },
+                { onSuccess: () => { setEditing(null); toast(t('comment_saved')); }, onError: (e) => toast(errorText(e, t)) },
+              )
+            }
+          />
+        </View>
+      </Sheet>
     </View>
   );
 }
 
 const s = StyleSheet.create({
+  editInput: { borderWidth: 1.5, borderRadius: 12, padding: 11, fontSize: 14, minHeight: 90, textAlignVertical: 'top', marginTop: 12 },
   cover: { height: 180, alignItems: 'center', justifyContent: 'center' },
   counter: { position: 'absolute', right: 12, bottom: 12, backgroundColor: 'rgba(0,0,0,0.55)', paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999 },
   comment: { paddingVertical: 13, borderBottomWidth: StyleSheet.hairlineWidth },

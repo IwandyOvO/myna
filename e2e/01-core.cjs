@@ -19,11 +19,11 @@ const SP = process.argv[2];
   await step('category chip filters', async () => {
     await page.getByRole('button', { name: '零食' }).first().click();
     await page.getByText('螺蛳粉味薯片').first().waitFor();
-    await page.getByRole('button', { name: '推荐' }).first().click();
+    await page.getByRole('button', { name: '🔥 热门' }).first().click();
   });
   await step('blind detail is locked', async () => {
     await page.getByText('樱花白桃味可乐（新口味）').first().click();
-    await page.getByText('?.?').waitFor();
+    await page.getByText('先评一次，解锁大家的真实均分', { exact: false }).waitFor();
     await shot('02-detail-blind');
   });
   await step('rate requires login', async () => {
@@ -37,7 +37,7 @@ const SP = process.argv[2];
     await page.getByPlaceholder('6 位验证码').waitFor();
     await shot('03-login');
     await page.getByRole('button', { name: '验证并继续' }).click();
-    await page.getByText('?.?').waitFor({ timeout: 10000 });
+    await page.getByText('先评一次，解锁大家的真实均分', { exact: false }).waitFor({ timeout: 10000 });
   });
   await step('rate blind post unlocks distribution', async () => {
     await page.getByRole('button', { name: '我也要评价' }).click();
@@ -45,7 +45,11 @@ const SP = process.argv[2];
     await page.getByPlaceholder('说说为什么给这个分…（可选）').fill('冰镇后真的好喝');
     await shot('04-rate-sheet');
     await page.getByRole('button', { name: '提交评价' }).click();
-    await page.getByText('褒贬不一').waitFor({ timeout: 10000 });
+    // Crowd reveal: "you're with N% of people" / "hot take!"
+    await page.getByText(/你和 \d+% 的人站在一边|少数派/).waitFor({ timeout: 10000 });
+    await shot('04b-crowd-reveal');
+    await page.getByRole('button', { name: '完成' }).click();
+    await page.getByText('🔥 最佳吐槽').waitFor({ timeout: 10000 });
     await page.getByText('冰镇后真的好喝').first().waitFor();
     await page.getByRole('button', { name: '修改评价（还可改 3 次）' }).waitFor();
     await shot('05-detail-unlocked');
@@ -54,6 +58,7 @@ const SP = process.argv[2];
     await page.getByRole('button', { name: '修改评价（还可改 3 次）' }).click();
     await page.getByRole('radio', { name: '好喝' }).click();
     await page.getByRole('button', { name: '保存修改' }).click();
+    await page.getByRole('button', { name: '完成' }).click();
     await page.getByText('已编辑').first().waitFor();
     await page.getByRole('button', { name: '修改评价（还可改 2 次）' }).waitFor();
   });
@@ -74,13 +79,15 @@ const SP = process.argv[2];
     await shot('08-settings-en-dark');
     await page.locator('[aria-label="Back"]:visible').click();
   });
-  await step('boards tab (EN, dark)', async () => {
-    await page.getByRole('tab', { name: 'Rankings' }).click();
-    await page.getByText('蜜桃乌龙气泡水').first().waitFor();
+  await step('boards via home chip (EN, dark)', async () => {
+    await page.getByRole('button', { name: '🏆 Monthly' }).click();
+    await page.getByText('蜜桃乌龙气泡水').filter({ visible: true }).first().waitFor();
     await shot('09-boards');
-    await page.getByRole('button', { name: /Food/ }).click();
-    await page.getByRole('button', { name: /Worst Top 20/ }).click();
-    await page.getByText('草莓炒肉').first().waitFor();
+    // The home screen stays mounted behind this page: only click what's visible.
+    await page.getByRole('button', { name: /Food/ }).filter({ visible: true }).first().click();
+    await page.getByRole('button', { name: /Worst Top 20/ }).filter({ visible: true }).first().click();
+    await page.getByText('草莓炒肉').filter({ visible: true }).first().waitFor();
+    await page.locator('[aria-label="Back"]:visible').click();
   });
   await step('publish flow', async () => {
     await page.getByRole('button', { name: 'Ask a Question' }).click();

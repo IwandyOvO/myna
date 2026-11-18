@@ -4,6 +4,7 @@ import {
 } from '@myna/shared';
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
+import { EmojiInput } from '../components/EmojiInput';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { api, mediaUrl, uploadImage } from '../lib/api';
@@ -35,7 +36,8 @@ export default function Publish() {
   const [type, setType] = useState<PostType>('product');
   const [category, setCategory] = useState<Category>('drinks');
   const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const { draft: draftParam, edit: editId, theme } = useLocalSearchParams<{ draft?: string; edit?: string; theme?: string }>();
+  const [body, setBody] = useState(theme ? `#${theme} ` : '');
   const [emoji, setEmoji] = useState<string | null>(null);
   const [blind, setBlind] = useState(false);
   const [lang, setLang] = useState<Locale>(locale);
@@ -46,7 +48,6 @@ export default function Publish() {
   const [uploading, setUploading] = useState(0);
 
   // ---- drafts (§5.6): open ?draft=<id> to continue; leaving with unsent content saves one ----
-  const { draft: draftParam, edit: editId } = useLocalSearchParams<{ draft?: string; edit?: string }>();
   // Edit mode: change the title, description, cover and photos of your own post.
   const editing = !!editId;
   const existing = usePost(editId ?? '');
@@ -270,6 +271,7 @@ export default function Publish() {
               );
             })}
           </View>
+          <EmojiInput value={emoji} presets={COVER_EMOJIS[type]} onChange={setEmoji} />
         </View>
 
         {!editing && (

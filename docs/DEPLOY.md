@@ -29,6 +29,18 @@ or locally, production-like: `JWT_SECRET=$(openssl rand -hex 32) docker compose 
 - Behind a proxy set `TRUST_PROXY=1`; for a web client set `CORS_ORIGINS`.
 - Logs are JSON on stdout; tokens and codes are redacted.
 
+## Optional features & switches (API)
+
+| Variable | Effect |
+|---|---|
+| `ANTHROPIC_API_KEY` | Turns on the **Translate** button (`POST /translate`, cached in the `translations` table). Without it the button is hidden. |
+| `TRANSLATE_MODEL` | Model used for translation (default `claude-opus-5-5`, low effort). |
+| `SEED_CATALOG=0` | Disables the starter catalog. By default, when the community has fewer than 20 active posts, the API posts ~85 well-known products from the official `@myna` account at startup so new users have something to rate. |
+| `WEB_APP_URL` | Share pages link to the web app. |
+
+Share links (`/p/:id`) carry an `og:image` (`/p/:id/card.png`): a 1200×630 card with the verdict, vote split and
+best roast, rendered with system fonts — the Docker image installs a CJK font for it.
+
 ## Web app
 
 The same Expo app, exported for browsers (`Dockerfile.web`) and served by a tiny static server

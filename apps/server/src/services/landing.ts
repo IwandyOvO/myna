@@ -9,13 +9,16 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 export interface LandingLinks {
   appStoreUrl: string | null;
   webAppUrl: string | null;
+  /** Absolute URL of the preview image (og:image). */
+  imageUrl?: string;
 }
 
-export function landingPage(post: PostCard | null, locale: Locale, { appStoreUrl, webAppUrl }: LandingLinks): string {
+export function landingPage(post: PostCard | null, locale: Locale, { appStoreUrl, webAppUrl, imageUrl }: LandingLinks): string {
   const t = (k: string, v?: Record<string, string | number>) => translate(locale, k, v);
   const title = post ? post.title : 'Myna';
   const score = post && post.avg !== null && !post.locked ? `${post.avg.toFixed(1)} / 5 · ${t('reviews_count', { n: post.total })}` : post ? t('reviews_count', { n: post.total }) : '';
-  const desc = post ? `${categoryName(post.category, locale)} · ${score}` : t('slogan');
+  const verdict = post && post.verdict && !post.locked && post.total > 0 ? `${t(`v_${post.verdict}`)} · ` : '';
+  const desc = post ? `${verdict}${categoryName(post.category, locale)} · ${score}` : t('slogan');
   const deepLink = post ? `myna://post/${post.id}` : 'myna://';
   const webLink = webAppUrl ? (post ? `${webAppUrl}/post/${post.id}` : webAppUrl) : null;
   return `<!doctype html>
@@ -29,7 +32,11 @@ export function landingPage(post: PostCard | null, locale: Locale, { appStoreUrl
 <meta property="og:site_name" content="Myna">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
-<meta name="twitter:card" content="summary">
+${imageUrl ? `<meta property="og:image" content="${esc(imageUrl)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:image" content="${esc(imageUrl)}">` : ''}
+<meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}">
 <style>
   :root { color-scheme: light dark; }
   body { margin: 0; font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; background: #F6F5F2; color: #1A1A1A; display: grid; place-items: center; min-height: 100vh; }

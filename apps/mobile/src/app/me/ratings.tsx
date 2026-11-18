@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { FlatList, View } from 'react-native';
 import { PageHeader } from '../../components/headers';
-import { AvgBadge, TierBadge } from '../../components/post';
+import { TierBadge, VerdictBadge } from '../../components/post';
 import { Card, Empty, Loading, T } from '../../components/ui';
 import { useMyRatings } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
@@ -26,11 +26,8 @@ export default function MyRatings() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <TierBadge category={p.category} tier={p.myRating?.tier ?? null} locale={locale} />
               {!!p.myRating?.editedCount && <T style={{ fontSize: 11, color: colors.faint }}>{t('edited')}</T>}
-              <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <T muted style={{ fontSize: 12 }}>
-                  {t('post_avg')}
-                </T>
-                <AvgBadge post={p} />
+              <View style={{ marginLeft: 'auto' }}>
+                <VerdictBadge post={p} />
               </View>
             </View>
             {!!p.myRating?.reason && <T style={{ fontSize: 13.5, color: colors.body }}>{p.myRating.reason}</T>}

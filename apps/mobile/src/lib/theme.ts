@@ -1,3 +1,5 @@
+import type { VerdictKey } from '@myna/shared';
+
 /** Design tokens from the v0.8 prototype (spec §2). Light and dark map 1:1. */
 export const brand = {
   red: '#FF5A3C',
@@ -26,6 +28,19 @@ export function avgColors(avg: number | null, p: Palette): { bg: string; fg: str
   if (avg >= 4) return { bg: '#E6F9ED', fg: '#078043' };
   if (avg >= 2.5) return { bg: '#FFF3C4', fg: '#8A6D00' };
   return { bg: '#FFE8E2', fg: '#C92A1A' };
+}
+
+/** Badge colours per verdict (readable in light and dark). */
+export function verdictColors(v: VerdictKey, p: Palette): { bg: string; fg: string } {
+  switch (v) {
+    case 'controversial': return { bg: '#F1E6FF', fg: '#6A1FB0' };
+    case 'legend': return { bg: '#FFF1C2', fg: '#7A5200' };
+    case 'loved': return { bg: '#E6F9ED', fg: '#078043' };
+    case 'flop': return { bg: '#FFE8E2', fg: '#C92A1A' };
+    case 'hated': return { bg: '#1A1A1A', fg: '#FFC93C' };
+    case 'mid': return { bg: p.soft, fg: p.sub };
+    default: return { bg: '#E7F0FF', fg: '#1F5BD8' };
+  }
 }
 
 export const shadow = {

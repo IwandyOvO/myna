@@ -8,7 +8,7 @@ import { useMarkAllRead, useNotifications } from '../lib/queries';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
 
-const ICON: Record<Notification['type'], string> = { reply: '💬', like: '♥', follow: '👤', badge: '🏅', season: '🏆' };
+const ICON: Record<Notification['type'], string> = { reply: '💬', like: '♥', follow: '👤', badge: '🏅', season: '🏆', milestone: '📈' };
 
 /** In-app notification center (also where push notifications land). Opening it marks everything read. */
 export default function Notifications() {

@@ -3,12 +3,15 @@ import * as Sentry from '@sentry/node';
 import { buildApp } from './app';
 import { loadConfig, loadDotEnv } from './config';
 import { migrate } from './db/migrate';
+import { seedCatalog } from './db/catalog';
 import { createPool } from './db/pool';
 
 loadDotEnv();
 const config = loadConfig();
 const db = createPool(config.databaseUrl, config.dbPoolMax);
 await migrate(db);
+// Cold start: give an (almost) empty community something to rate. Set SEED_CATALOG=0 to turn off.
+if (process.env.SEED_CATALOG !== '0') await seedCatalog(db, (m) => console.info(m));
 const app = buildApp({ db, config });
 await app.listen({ port: config.port, host: '0.0.0.0' });
 

@@ -2,12 +2,12 @@ import { BOARD_CATEGORIES, BOARD_EMOJI, boardCategoryName, type BoardCategory, t
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { TabHeader } from '../../components/headers';
-import { AvgBadge } from '../../components/post';
-import { Chip, Empty, ErrorView, Loading, Seg, Sheet, T } from '../../components/ui';
-import { useBoard, useLastSeason } from '../../lib/queries';
-import { useSettings } from '../../lib/settings';
-import { brand } from '../../lib/theme';
+import { PageHeader } from '../components/headers';
+import { AvgBadge } from '../components/post';
+import { Chip, Empty, ErrorView, Loading, Seg, Sheet, T } from '../components/ui';
+import { useBoard, useLastSeason } from '../lib/queries';
+import { useSettings } from '../lib/settings';
+import { brand } from '../lib/theme';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -25,7 +25,7 @@ export default function Boards() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <TabHeader title={t('rank_title')} />
+      <PageHeader title={t('rank_title')} />
       <View style={{ paddingHorizontal: 16, gap: 10 }}>
         <Seg value={period} onChange={setPeriod} options={[{ value: 'monthly', label: t('month') }, { value: 'all', label: t('alltime') }]} />
         <View style={{ flexDirection: 'row', gap: 8 }}>

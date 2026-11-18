@@ -9,6 +9,8 @@ COPY apps/mobile/package.json apps/mobile/
 RUN npm ci --omit=dev -w @myna/server -w @myna/shared --include-workspace-root=false
 
 FROM node:22-alpine
+# Fonts for the share preview card (CJK + Latin). Never fail the build over fonts: the card still renders.
+RUN apk add --no-cache fontconfig font-noto-cjk font-noto || apk add --no-cache fontconfig font-wqy-zenhei || true
 WORKDIR /app
 ENV NODE_ENV=production PORT=4000 UPLOAD_DIR=/data/uploads
 COPY --from=deps /app/node_modules ./node_modules

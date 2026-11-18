@@ -5,6 +5,7 @@ import { Animated, Dimensions, PanResponder, Pressable, StyleSheet, Text, View }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
 import { useSettings } from '../lib/settings';
+import { tasteLabel } from './Taste';
 import { T } from './ui';
 
 const Ctx = createContext<{ open: () => void; close: () => void }>({ open: () => {}, close: () => {} });
@@ -96,11 +97,14 @@ function DrawerContent({ close }: { close: () => void }) {
             {me?.nickname ?? t('login_t')}
           </T>
           <T muted style={{ fontSize: 12, marginTop: 3 }} numberOfLines={1}>
-            {me ? `@${me.handle} · ${t('rep')} ${me.reputation}` : t('login_sub')}
+            {me ? `@${me.handle} · ${tasteLabel(me.taste, t)}` : t('login_sub')}
           </T>
         </View>
       </Pressable>
       <View style={{ paddingTop: 8 }}>
+        <Item icon="🔍" label={t('search_title')} onPress={() => go('/search')} />
+        <Item icon="📍" label={t('disc_title')} onPress={() => go('/nearby')} />
+        <Item icon="🏆" label={t('rank_title')} onPress={() => go('/boards')} />
         <Item icon="🔗" label={t('nav_scan')} onPress={() => go('/link-finder')} />
         <Item icon="⚙️" label={t('settings')} onPress={() => go('/settings')} />
       </View>

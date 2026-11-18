@@ -134,7 +134,7 @@ const LOW_SHARE = `((s.c1 + s.c2)::float / greatest(s.total, 1))`;
 const HIGH_SHARE = `((s.c4 + s.c5)::float / greatest(s.total, 1))`;
 const RANKINGS: Record<Exclude<FeedSort, 'new'>, { order: string; filter?: string }> = {
   hot: { order: `${HOT_SCORE} DESC, p.created_at DESC` },
-  controversial: { order: `least(${LOW_SHARE}, ${HIGH_SHARE}) DESC, s.total DESC`, filter: `least(${LOW_SHARE}, ${HIGH_SHARE}) >= 0.2` },
+  controversial: { order: `least(${LOW_SHARE}, ${HIGH_SHARE}) DESC, s.total DESC`, filter: `least(${LOW_SHARE}, ${HIGH_SHARE}) >= 0.3` }, // same threshold as the "controversial" verdict
   top: { order: `s.avg DESC, s.total DESC` },
   flop: { order: `s.avg ASC, s.total DESC`, filter: `s.avg < 3` },
 };

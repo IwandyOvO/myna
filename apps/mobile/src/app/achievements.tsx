@@ -76,7 +76,7 @@ export default function Achievements() {
                     {r.user.nickname}
                     {r.isMe ? ` (${t('my_name')})` : ''}
                   </T>
-                  <T muted style={{ fontSize: 12 }}>🏅 {r.badges} · {t('rep')} {r.reputation}</T>
+                  <T muted style={{ fontSize: 12 }}>🏅 {r.badges}</T>
                 </Pressable>
               ))}
             </View>

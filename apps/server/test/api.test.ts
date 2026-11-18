@@ -10,6 +10,7 @@ import type { SocialVerifier } from '../src/auth/providers';
 import { loadConfig } from '../src/config';
 import { createPool, type Db } from '../src/db/pool';
 import { seed, synthDistribution } from '../src/db/seed';
+import { CATALOG, seedCatalog } from '../src/db/catalog';
 import { HttpError } from '../src/lib/errors';
 import { landingPage } from '../src/services/landing';
 import { clearBoardCache } from '../src/services/boards';
@@ -25,6 +26,9 @@ let app: FastifyInstance;
 let demoToken: string;
 const pushed: PushMessage[] = [];
 const deadTokens = new Set<string>();
+/** Fake translator: records calls, "translates" by tagging the text. */
+const translations: string[] = [];
+const translator = { translate: async (text: string, target: string) => { translations.push(text); return `[${target}] ${text}`; } };
 const pusher = { send: async (m: PushMessage[]) => { pushed.push(...m); return m.map((x) => x.to).filter((t) => deadTokens.has(t)); } };
 
 const social: SocialVerifier = {
@@ -63,7 +67,7 @@ beforeAll(async () => {
   db = createPool(url);
   await seed(db);
   const config = { ...loadConfig({ NODE_ENV: 'test', ALLOW_DEV_LOGIN: '1', DEV_EXPOSE_EMAIL_CODES: '1' } as NodeJS.ProcessEnv), databaseUrl: url };
-  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} }, storage: new LocalDiskStorage(mkdtempSync(join(tmpdir(), 'myna-uploads-'))), pusher });
+  app = buildApp({ db, config, social, mailer: { sendLoginCode: async () => {} }, storage: new LocalDiskStorage(mkdtempSync(join(tmpdir(), 'myna-uploads-'))), pusher, translator });
   await app.ready();
   demoToken = (await call('POST', '/auth/dev', { body: { handle: 'foodjudge_007' } })).body.token;
 });
@@ -1034,5 +1038,65 @@ describe('fun layer: verdicts, roasts, sorts, deck, daily, taste, milestones', (
     expect((await call('POST', '/posts', { token: me, body: { category: 'life', title: 'Emoji bad', lang: 'en', emoji: 'abc' } })).status).toBe(400);
     expect((await call('PUT', '/me/profile', { token: me, body: { avatar: '🦩' } })).status).toBe(200);
     expect((await call('PUT', '/me/profile', { token: me, body: { avatar: 'xx' } })).status).toBe(400);
+  });
+});
+
+describe('share preview card', () => {
+  it('landing page links an og:image that renders as PNG', async () => {
+    const t = await newUserToken('card@example.com');
+    const p = (await call<PostCard>('POST', '/posts', { token: t, body: { category: 'drinks', title: 'Card cola 🌸', lang: 'en' } })).body;
+    const page = await app.inject({ method: 'GET', url: `/p/${p.id}`, headers: { host: 'api.example.com' } });
+    expect(page.body).toContain(`<meta property="og:image" content="http://api.example.com/p/${p.id}/card.png">`);
+    expect(page.body).toContain('summary_large_image');
+    const img = await app.inject({ method: 'GET', url: `/p/${p.id}/card.png` });
+    expect(img.statusCode).toBe(200);
+    expect(img.headers['content-type']).toBe('image/png');
+    expect(img.rawPayload.subarray(1, 4).toString()).toBe('PNG');
+    const generic = await app.inject({ method: 'GET', url: '/p/nope/card.png' });
+    expect(generic.statusCode).toBe(200);
+  });
+});
+
+describe('translation', () => {
+  it('is advertised, needs login, and caches each text per language', async () => {
+    expect((await call('GET', '/features')).body).toEqual({ translate: true });
+    expect((await call('POST', '/translate', { body: { text: 'hola', target: 'en' } })).status).toBe(401);
+    const me = await newUserToken('translate-me@example.com');
+    const first = await call<{ text: string }>('POST', '/translate', { token: me, body: { text: '好吃到哭', target: 'en' } });
+    expect(first.body.text).toBe('[en] 好吃到哭');
+    const before = translations.length;
+    await call('POST', '/translate', { token: me, body: { text: '好吃到哭', target: 'en' } });
+    expect(translations.length).toBe(before); // served from cache
+    await call('POST', '/translate', { token: me, body: { text: '好吃到哭', target: 'ja' } });
+    expect(translations.length).toBe(before + 1);
+    expect((await call('POST', '/translate', { token: me, body: { text: 'x', target: 'pt' } })).status).toBe(400);
+  });
+});
+
+describe('starter catalog (cold start)', () => {
+  it('only seeds an almost-empty community, once, with valid posts', async () => {
+    expect(await seedCatalog(db)).toBe(0); // the test DB is full of posts already
+    const emptyUrl = url.replace(/\/[^/]*$/, '/myna_catalog_test');
+    const admin = createPool(url);
+    await admin.query('DROP DATABASE IF EXISTS myna_catalog_test');
+    await admin.query('CREATE DATABASE myna_catalog_test');
+    await admin.end();
+    const fresh = createPool(emptyUrl);
+    try {
+      const { migrate } = await import('../src/db/migrate');
+      await migrate(fresh);
+      expect(await seedCatalog(fresh)).toBe(CATALOG.length);
+      expect(await seedCatalog(fresh)).toBe(0);
+      const n = Number((await fresh.query("SELECT count(*) AS n FROM posts WHERE status = 'active'")).rows[0].n);
+      expect(n).toBe(CATALOG.length);
+      const titles = new Set(CATALOG.map((c) => c[1]));
+      expect(titles.size).toBe(CATALOG.length); // no duplicate titles
+    } finally {
+      await fresh.end();
+    }
+  });
+  it('catalog emojis are single emoji', async () => {
+    const { isSingleEmoji } = await import('@myna/shared');
+    for (const c of CATALOG) expect(isSingleEmoji(c[3]), c[1]).toBe(true);
   });
 });

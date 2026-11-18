@@ -30,6 +30,9 @@ export interface Config {
   appStoreUrl: string | null;
   /** Public URL of the web app (Dockerfile.web); the share page links there for people without the app. */
   webAppUrl: string | null;
+  /** Machine translation (POST /translate) is enabled when an Anthropic API key is set. */
+  anthropicApiKey: string | null;
+  translateModel: string;
 }
 
 /** Loads apps/server/.env into process.env if it exists (npm workspace scripts run from apps/server). */
@@ -65,6 +68,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     dbPoolMax: num(env.DB_POOL_MAX, 10),
     appStoreUrl: env.APP_STORE_URL || null,
     webAppUrl: env.WEB_APP_URL ? env.WEB_APP_URL.replace(/\/+$/, '') : null,
+    anthropicApiKey: env.ANTHROPIC_API_KEY || null,
+    translateModel: env.TRANSLATE_MODEL || 'claude-opus-5-5',
     autoTags: {
       newPostDays: num(env.TAG_NEW_POST_DAYS, DEFAULT_AUTO_TAG_CONFIG.newPostDays),
       potentialMinTotal: num(env.TAG_POTENTIAL_MIN_TOTAL, DEFAULT_AUTO_TAG_CONFIG.potentialMinTotal),

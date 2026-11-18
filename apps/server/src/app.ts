@@ -26,8 +26,10 @@ import * as posts from './services/posts';
 import * as community from './services/social';
 import * as admin from './services/admin';
 import { landingPage } from './services/landing';
+import { renderCard } from './services/card';
 import { editRating, rate } from './services/ratings';
 import { claimMilestone, dailyQuestion, deck, recordDailyAnswer } from './services/game';
+import { ClaudeTranslator, translateCached, type Translator } from './services/translate';
 import * as users from './services/users';
 
 export interface AppDeps {
@@ -37,6 +39,7 @@ export interface AppDeps {
   social?: SocialVerifier;
   storage?: Storage;
   pusher?: Pusher;
+  translator?: Translator;
 }
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -59,6 +62,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const mailer = deps.mailer ?? new ConsoleMailer();
   const social = deps.social ?? createSocialVerifier(config);
   const storage = deps.storage ?? new LocalDiskStorage(config.uploadDir);
+  const translator = deps.translator ?? (config.anthropicApiKey ? new ClaudeTranslator(config.anthropicApiKey, config.translateModel) : null);
   const pusher = deps.pusher ?? (process.env.NODE_ENV === 'test' ? new NoopPusher() : new ExpoPusher(process.env.EXPO_ACCESS_TOKEN));
   const tagCfg = { tags: config.autoTags, blindHours: config.blindHours };
   /** Rating responses also say how the viewer's vote compares with everyone else's. */
@@ -150,16 +154,31 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get('/health', async () => ({ ok: true }));
 
   // Share landing page (spec: growth). Link previews read its Open Graph tags; the button opens the app.
+  /** Public origin as the client saw it (behind Railway's proxy when TRUST_PROXY=1). */
+  const origin = (req: FastifyRequest) => `${req.protocol}://${req.host}`;
+  async function sharedPost(id: string) {
+    try {
+      return await posts.getPost(db, tagCfg, null, id);
+    } catch {
+      return null; // unknown or removed: generic page / card
+    }
+  }
   app.get('/p/:id', async (req, reply) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    let post = null;
-    try {
-      post = await posts.getPost(db, tagCfg, null, id);
-    } catch {
-      /* unknown or removed: render the generic page */
-    }
-    reply.header('content-type', 'text/html; charset=utf-8').header('cache-control', 'public, max-age=300');
-    return landingPage(post, resolveLocale(req.headers['accept-language']?.split(',')[0]), { appStoreUrl: config.appStoreUrl, webAppUrl: config.webAppUrl });
+    const post = await sharedPost(id);
+    reply.type('text/html; charset=utf-8').header('cache-control', 'public, max-age=300');
+    return landingPage(post, reqLocale(req), {
+      appStoreUrl: config.appStoreUrl,
+      webAppUrl: config.webAppUrl,
+      imageUrl: `${origin(req)}/p/${encodeURIComponent(id)}/card.png`,
+    });
+  });
+  // Share preview image (og:image): verdict, vote split, best roast.
+  app.get('/p/:id/card.png', async (req, reply) => {
+    const { id } = z.object({ id: z.string() }).parse(req.params);
+    const png = renderCard(await sharedPost(id), reqLocale(req));
+    reply.type('image/png').header('cache-control', 'public, max-age=600');
+    return png;
   });
   /** Readiness: the database answers. Use for load-balancer health checks. */
   app.get('/ready', async (_req, reply) => {
@@ -356,6 +375,15 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     return { items: await deck(db, tagCfg, userId, q.limit) };
   });
   app.get('/daily', async (req) => dailyQuestion(db, tagCfg, await viewer(req)));
+
+  /** What optional features this server has, so the app can hide what isn't there. */
+  app.get('/features', async () => ({ translate: !!translator }));
+  app.post('/translate', limit(30), async (req) => {
+    await requireUser(req);
+    if (!translator) throw new HttpError(503, 'translate_unavailable');
+    const b = z.object({ text: z.string().min(1).max(2000), target: locale }).parse(req.body);
+    return { text: await translateCached(db, translator, b.text, b.target) };
+  });
   app.put('/comments/:id/like', async (req) => {
     const userId = await requireUser(req);
     const { id } = z.object({ id: uuid }).parse(req.params);

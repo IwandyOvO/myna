@@ -6,9 +6,10 @@ import { Card, Empty, ErrorView, Loading, T, useToast } from '../../components/u
 import { useAuth } from '../../lib/auth';
 import { useFollow, useProfile } from '../../lib/queries';
 import { useSettings } from '../../lib/settings';
+import { TasteCard } from '../../components/Taste';
 import { brand } from '../../lib/theme';
 
-/** Public profile: avatar, reputation, counts, follow button, their posts. */
+/** Public profile: avatar, taste profile, counts, follow button, their posts. */
 export default function UserProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, colors } = useSettings();
@@ -45,7 +46,7 @@ export default function UserProfile() {
                 <View style={{ flex: 1 }}>
                   <T style={{ fontSize: 18, fontWeight: '900' }}>{p.user.nickname}</T>
                   <T muted style={{ fontSize: 12, marginTop: 3 }}>
-                    @{p.user.handle} · {t('rep')} {p.reputation}
+                    @{p.user.handle}
                   </T>
                 </View>
                 {!p.isMe && (
@@ -57,6 +58,9 @@ export default function UserProfile() {
                     <Text style={{ fontWeight: '800', fontSize: 13, color: p.followedByMe ? colors.muted : '#fff' }}>{p.followedByMe ? t('followed') : t('follow')}</Text>
                   </Pressable>
                 )}
+              </View>
+              <View style={{ marginTop: 14 }}>
+                <TasteCard taste={p.taste} />
               </View>
               <View style={[s.stats, { borderTopColor: colors.line }]}>
                 {[

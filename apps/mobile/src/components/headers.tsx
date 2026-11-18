@@ -1,7 +1,7 @@
 import { LOCALES, LOCALE_LABELS, type Locale } from '@myna/shared';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/auth';
 import { useUnread, useUpdateProfileSettings } from '../lib/queries';
@@ -26,7 +26,7 @@ function RoundButton({ label, onPress, children, badge }: { label: string; onPre
 }
 
 /** §3 Home top bar: ☰ | Logo | search | 🌐 | 🔔 */
-export function HomeTopBar({ query, onQuery }: { query: string; onQuery: (q: string) => void }) {
+export function HomeTopBar() {
   const { colors, t, contentLangs, update } = useSettings();
   const { signedIn } = useAuth();
   const sync = useUpdateProfileSettings();
@@ -49,18 +49,17 @@ export function HomeTopBar({ query, onQuery }: { query: string; onQuery: (q: str
         <T style={{ fontSize: 17 }}>☰</T>
       </RoundButton>
       <Logo variant="mark" width={40} />
-      <View style={[s.search, { backgroundColor: colors.card, borderColor: colors.line }]}>
+      <Pressable
+        onPress={() => router.push('/search')}
+        accessibilityRole="search"
+        accessibilityLabel={t('search_title')}
+        style={[s.search, { backgroundColor: colors.card, borderColor: colors.line }]}
+      >
         <Text style={{ fontSize: 13 }}>🔍</Text>
-        <TextInput
-          value={query}
-          onChangeText={onQuery}
-          placeholder={t('search_ph')}
-          placeholderTextColor={colors.faint}
-          returnKeyType="search"
-          style={{ flex: 1, fontSize: 14, color: colors.ink, paddingVertical: 0, minWidth: 0 }}
-          accessibilityLabel={t('search_ph')}
-        />
-      </View>
+        <Text style={{ flex: 1, fontSize: 14, color: colors.faint }} numberOfLines={1}>
+          {t('search_ph')}
+        </Text>
+      </Pressable>
       <RoundButton label={t('content_langs')} onPress={() => setLangOpen(true)} badge={contentLangs.length < LOCALES.length ? contentLangs.length : undefined}>
         <Text style={{ fontSize: 17 }}>🌐</Text>
       </RoundButton>

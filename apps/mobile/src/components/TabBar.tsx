@@ -7,12 +7,12 @@ import { brand } from '../lib/theme';
 
 const TABS: Record<string, { icon: string; label: string }> = {
   index: { icon: '🏠', label: 'nav_home' },
-  nearby: { icon: '📍', label: 'nav_discover' },
-  boards: { icon: '🏆', label: 'nav_rank' },
+  play: { icon: '🎴', label: 'nav_play' },
+  daily: { icon: '🔥', label: 'nav_daily' },
   me: { icon: '👤', label: 'nav_me' },
 };
 
-/** §3 bottom nav: Home / Nearby / (raised + Publish) / Rankings / Me. */
+/** Bottom nav: Home / Quick rate / (raised + Publish) / Daily / Me. */
 export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   const { colors, t } = useSettings();
   const { signedIn } = useAuth();

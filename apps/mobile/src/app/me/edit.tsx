@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/auth';
 import { useUpdateProfile } from '../../lib/queries';
 import { errorText } from '../../lib/errors';
 import { useSettings } from '../../lib/settings';
+import { EmojiInput } from '../../components/EmojiInput';
 import { brand } from '../../lib/theme';
 
 const AVATARS = ['🐦', '🦜', '🐧', '🦉', '🐤', '🦩', '🦚', '🕊️', '🍚', '🧋', '🍜', '🍰', '🍿', '🥑', '🌸', '🌿', '🐱', '🐶', '🦊', '🐼', '🐻', '🐰', '🐸', '🐙'];
@@ -73,6 +74,7 @@ export default function EditProfile() {
               </Pressable>
             ))}
           </View>
+          <EmojiInput value={avatar} presets={AVATARS} onChange={setAvatar} />
         </View>
         <Button label={t('save_changes')} onPress={submit} disabled={!valid} loading={save.isPending} />
       </ScrollView>
