@@ -57,13 +57,13 @@ const SP = process.argv[2];
     await vis(p.getByPlaceholder('一句话吐槽（可选）')).waitFor();
     await vis(p.getByText(/本次已评 1 个/)).waitFor();
   });
-  await step('daily question answered → streak 1', async () => {
-    await vis(p.getByRole('tab', { name: '每日一题' })).click();
+  await step('today's drop rated → streak 1', async () => {
+    await vis(p.getByRole('tab', { name: '今日开评' })).click();
     await vis(p.getByText('本周主题')).waitFor({ timeout: 10000 });
     await p.screenshot({ path: `${SP}/shots/f6-daily.png` });
     // The deck may already have served today's question — then it's answered and the streak is running.
-    if (!(await p.getByText('今天已答 ✓').filter({ visible: true }).count())) {
-      await vis(p.getByText('今天答题，开始连胜')).waitFor();
+    if (!(await p.getByText('今天已评 ✓').filter({ visible: true }).count())) {
+      await vis(p.getByText('今天评一下，开始连胜')).waitFor();
       await vis(p.getByRole('radio')).click();
       await vis(p.getByText(/你和 \d+% 的人站在一边|少数派|你是第一个评的/)).waitFor({ timeout: 10000 });
     }
