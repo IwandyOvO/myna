@@ -2,7 +2,7 @@
  * End-to-end API tests against a real Postgres (TEST_DATABASE_URL, default
  * postgres://myna:myna@localhost:5432/myna_test). The DB is reseeded first.
  */
-import type { Board, Comment, PostCard } from '@myna/shared';
+import type { Board, Comment, DailyQuestion, PostCard } from '@myna/shared';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app';
@@ -888,5 +888,151 @@ describe('own posts, privacy, moderation, age gate, export, hot feed, share page
     const withWeb = landingPage(p, 'en', { appStoreUrl: null, webAppUrl: 'https://web.example.com' });
     expect(withWeb).toContain(`href="https://web.example.com/post/${p.id}"`);
     expect(withWeb).toContain('View on the web');
+  });
+});
+
+describe('fun layer: verdicts, roasts, sorts, deck, daily, taste, milestones', () => {
+  /** A fresh post by a new author, rated by new users with the given tiers (and reasons). */
+  async function ratedPost(title: string, tiers: number[], opts: { blind?: boolean; reasons?: string[] } = {}) {
+    const author = await newUserToken(`${title.replace(/\W/g, '').toLowerCase()}-author@example.com`);
+    const p = (await call<PostCard>('POST', '/posts', { token: author, body: { category: 'snacks', title, lang: 'en', blind: !!opts.blind } })).body;
+    const raters: string[] = [];
+    for (let i = 0; i < tiers.length; i++) {
+      const t = await newUserToken(`${title.replace(/\W/g, '').toLowerCase()}-r${i}@example.com`);
+      raters.push(t);
+      await call('POST', `/posts/${p.id}/ratings`, { token: t, body: { tier: tiers[i], reason: opts.reasons?.[i] ?? '' } });
+    }
+    return { p, author, raters };
+  }
+
+  it('cards lead with a verdict and a real vote split; blind posts hide both', async () => {
+    const { p } = await ratedPost('Love it or hate it chips', [1, 1, 5, 5, 1, 5]);
+    const card = (await call<PostCard>('GET', `/posts/${p.id}`)).body;
+    expect(card.verdict).toBe('controversial');
+    expect(card.split).toEqual({ low: 50, mid: 0, high: 50 });
+    const blind = await ratedPost('Secret soda', [5, 5, 5], { blind: true });
+    const locked = (await call<PostCard>('GET', `/posts/${blind.p.id}`)).body;
+    expect(locked.locked).toBe(true);
+    expect(locked.verdict).toBeNull();
+    expect(locked.split).toBeNull();
+    expect(locked.topComment).toBeNull();
+  });
+
+  it('best roast = most-liked comment with text, and comments are not self-pinned', async () => {
+    const { p, raters } = await ratedPost('Roastable noodles', [2, 1, 3], { reasons: ['meh', 'tastes like regret', ''] });
+    const comments = (await call<{ items: { id: string; body: string }[] }>('GET', `/posts/${p.id}/comments`, { token: raters[0] })).body.items;
+    const regret = comments.find((c) => c.body === 'tastes like regret')!;
+    await call('PUT', `/comments/${regret.id}/like`, { token: raters[2] });
+    const top = (await call<PostCard>('GET', `/posts/${p.id}`)).body.topComment;
+    expect(top?.body).toBe('tastes like regret');
+    // rater 0 sees the liked roast first, not their own comment
+    const mine = (await call<{ items: { body: string; mine: boolean }[] }>('GET', `/posts/${p.id}/comments`, { token: raters[0] })).body.items;
+    expect(mine[0]!.body).toBe('tastes like regret');
+    const newest = (await call<{ items: { body: string }[] }>('GET', `/posts/${p.id}/comments?sort=new`, { token: raters[0] })).body.items;
+    expect(newest[0]!.body).toBe('');
+  });
+
+  it('you can edit your own comment text (rating reason follows), not other people’s', async () => {
+    const { p, raters } = await ratedPost('Editable gum', [4, 2], { reasons: ['nice', 'bad'] });
+    const items = (await call<{ items: { id: string; body: string; mine: boolean }[] }>('GET', `/posts/${p.id}/comments`, { token: raters[0] })).body.items;
+    const own = items.find((c) => c.mine)!;
+    const other = items.find((c) => !c.mine)!;
+    expect((await call('PATCH', `/comments/${own.id}`, { token: raters[0], body: { body: 'actually great' } })).status).toBe(200);
+    const after = (await call<PostCard>('GET', `/posts/${p.id}`, { token: raters[0] })).body;
+    expect(after.myRating?.reason).toBe('actually great');
+    expect(after.myRating?.editsLeft).toBe(3); // text edits don't use up rating edits
+    expect((await call('PATCH', `/comments/${other.id}`, { token: raters[0], body: { body: 'hijack' } })).status).toBe(404);
+    expect((await call('PATCH', `/comments/${own.id}`, { token: raters[0], body: { body: 'what the fuck' } })).status).toBe(400);
+  });
+
+  it('rating responses include the crowd reveal', async () => {
+    const { p } = await ratedPost('Crowd test cola', [5, 5, 4, 1]);
+    const me = await newUserToken('crowd-me@example.com');
+    const r = (await call<{ crowd: { first: boolean; sameSide: number; minority: boolean } }>('POST', `/posts/${p.id}/ratings`, { token: me, body: { tier: 1 } })).body;
+    expect(r.crowd).toEqual({ first: false, sameSide: 25, sameTier: 25, minority: false });
+    const solo = await ratedPost('Lonely snack', []);
+    const first = (await call<{ crowd: { first: boolean } }>('POST', `/posts/${solo.p.id}/ratings`, { token: me, body: { tier: 3 } })).body;
+    expect(first.crowd.first).toBe(true);
+  });
+
+  it('feed sorts: controversial / top / flop need 3+ votes and skip blind posts', async () => {
+    await ratedPost('Polarizing pickles', [1, 1, 1, 5, 5, 5]);
+    await ratedPost('Two votes only', [1, 5]);
+    await ratedPost('Hidden blind fight', [1, 1, 5, 5], { blind: true });
+    const contro = (await call<{ items: PostCard[] }>('GET', '/feed?sort=controversial')).body.items;
+    expect(contro.some((x) => x.title === 'Polarizing pickles')).toBe(true);
+    expect(contro.some((x) => x.title === 'Two votes only' || x.title === 'Hidden blind fight')).toBe(false);
+    expect(contro.every((x) => x.total >= 3)).toBe(true);
+    const top = (await call<{ items: PostCard[] }>('GET', '/feed?sort=top')).body.items;
+    for (let i = 1; i < top.length; i++) expect(top[i - 1]!.avg!).toBeGreaterThanOrEqual(top[i]!.avg!);
+    const flop = (await call<{ items: PostCard[] }>('GET', '/feed?sort=flop')).body.items;
+    expect(flop.every((x) => (x.avg ?? 5) < 3)).toBe(true);
+  });
+
+  it('deck = posts I have not rated and did not write', async () => {
+    const me = await newUserToken('deck-me@example.com');
+    const mine = (await call<PostCard>('POST', '/posts', { token: me, body: { category: 'drinks', title: 'My own deck post', lang: 'en' } })).body;
+    const first = (await call<{ items: PostCard[] }>('GET', '/deck', { token: me })).body.items;
+    expect(first.length).toBeGreaterThan(0);
+    expect(first.some((x) => x.id === mine.id)).toBe(false);
+    await call('POST', `/posts/${first[0]!.id}/ratings`, { token: me, body: { tier: 4 } });
+    const second = (await call<{ items: PostCard[] }>('GET', '/deck?limit=50', { token: me })).body.items;
+    expect(second.some((x) => x.id === first[0]!.id)).toBe(false);
+    expect((await call('GET', '/deck')).status).toBe(401);
+  });
+
+  it('daily question: same pick all day, answering starts a streak', async () => {
+    const me = await newUserToken('daily-me@example.com');
+    const d1 = (await call<DailyQuestion>('GET', '/daily', { token: me })).body;
+    expect(d1.post).not.toBeNull();
+    expect(d1.answered).toBe(false);
+    expect(d1.streak).toBe(0);
+    expect((await call<DailyQuestion>('GET', '/daily')).body.post?.id).toBe(d1.post!.id);
+    await call('POST', `/posts/${d1.post!.id}/ratings`, { token: me, body: { tier: 2 } });
+    const d2 = (await call<DailyQuestion>('GET', '/daily', { token: me })).body;
+    expect(d2.answered).toBe(true);
+    expect(d2.streak).toBe(1);
+    // yesterday answered too → 2-day streak
+    const meId = (await call<{ id: string }>('GET', '/me', { token: me })).body.id;
+    await db.query("INSERT INTO daily_answers (user_id, day) VALUES ($1, (now() AT TIME ZONE 'UTC')::date - 1)", [meId]);
+    expect((await call<DailyQuestion>('GET', '/daily', { token: me })).body.streak).toBe(2);
+  });
+
+  it('taste profile replaces reputation on profiles', async () => {
+    const me = await newUserToken('taste-me@example.com');
+    const meRes = (await call<{ taste: { key: string; rated: number } }>('GET', '/me', { token: me })).body;
+    expect(meRes.taste).toMatchObject({ key: 'newbie', rated: 0 });
+    // Contrarian: rate 5 crowd favourites as terrible.
+    for (let i = 0; i < 5; i++) {
+      const { p } = await ratedPost(`Crowd favourite ${i}`, [5, 5, 4]);
+      await call('POST', `/posts/${p.id}/ratings`, { token: me, body: { tier: 1 } });
+    }
+    const t = (await call<{ taste: { key: string; rated: number; agreement: number; hotTakes: number } }>('GET', '/me', { token: me })).body.taste;
+    expect(t).toMatchObject({ key: 'contrarian', rated: 5, agreement: 0, hotTakes: 5 });
+    const id = (await call<{ id: string }>('GET', '/me', { token: me })).body.id;
+    expect((await call<{ taste: { key: string } }>('GET', `/users/${id}`)).body.taste.key).toBe('contrarian');
+  });
+
+  it('authors hear about milestones (with the verdict) exactly once', async () => {
+    pushed.length = 0;
+    const { p, author } = await ratedPost('Milestone mints', [5, 5, 5, 4, 5]);
+    const box = (await call<{ items: { type: string; data: Record<string, unknown> }[] }>('GET', '/notifications', { token: author })).body.items;
+    const ms = box.filter((n) => n.type === 'milestone');
+    expect(ms).toHaveLength(1);
+    expect(ms[0]!.data).toMatchObject({ n: 5, verdict: 'legend', title: 'Milestone mints' });
+    await db.query('DELETE FROM ratings WHERE post_id = $1 AND tier = 4', [p.id]);
+    await db.query('UPDATE post_stats SET c4 = 0 WHERE post_id = $1', [p.id]);
+    const extra = await newUserToken('milestone-extra@example.com');
+    await call('POST', `/posts/${p.id}/ratings`, { token: extra, body: { tier: 5 } }); // back to 5
+    const again = (await call<{ items: { type: string }[] }>('GET', '/notifications', { token: author })).body.items.filter((n) => n.type === 'milestone');
+    expect(again).toHaveLength(1);
+  });
+
+  it('any single emoji is accepted for posts and avatars; text is not', async () => {
+    const me = await newUserToken('emoji-me@example.com');
+    expect((await call('POST', '/posts', { token: me, body: { category: 'life', title: 'Emoji ok', lang: 'en', emoji: '👩‍💻' } })).status).toBe(201);
+    expect((await call('POST', '/posts', { token: me, body: { category: 'life', title: 'Emoji bad', lang: 'en', emoji: 'abc' } })).status).toBe(400);
+    expect((await call('PUT', '/me/profile', { token: me, body: { avatar: '🦩' } })).status).toBe(200);
+    expect((await call('PUT', '/me/profile', { token: me, body: { avatar: 'xx' } })).status).toBe(400);
   });
 });

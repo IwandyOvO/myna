@@ -1,4 +1,5 @@
 import { createHash, randomInt } from 'node:crypto';
+import { tasteProfile } from './taste';
 import { LOCALES, containsBlockedWords, isLocale, type AuthProvider, type Locale, type Me, type UserSummary, type Visibility } from '@myna/shared';
 import type { Queryable } from '../db/pool';
 import { HttpError, badRequest, notFound, unauthorized } from '../lib/errors';
@@ -99,6 +100,7 @@ export async function getMe(db: Queryable, userId: string): Promise<Me> {
     handle: row.handle,
     avatar: row.avatar,
     reputation: row.reputation,
+    taste: await tasteProfile(db, row.id),
     role: row.role === 'admin' ? 'admin' : 'user',
     locale: isLocale(row.locale) ? row.locale : null,
     stats: { posts: row.posts, ratings: row.ratings, likes: Number(row.likes) },

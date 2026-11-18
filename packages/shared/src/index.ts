@@ -3,6 +3,7 @@ export * from './categories';
 export * from './scales';
 export * from './placeholders';
 export * from './rating';
+export * from './game';
 export * from './api';
 export * from './notifications';
 export * from './moderation';

@@ -1,6 +1,6 @@
 import {
-  containsBlockedWords, autoTags, editsLeft, isLocale, typeOfCategory, CATEGORY_EMOJI,
-  type AutoTagConfig, type Category, type Comment, type CreatePostInput, type Distribution, type Locale,
+  containsBlockedWords, autoTags, editsLeft, isLocale, typeOfCategory, verdictOf, voteSplit, CATEGORY_EMOJI, VERDICT_MIN_RATINGS,
+  type AutoTagConfig, type Category, type Comment, type CommentSort, type CreatePostInput, type Distribution, type FeedSort, type Locale,
   type Page, type PostCard, type Tier,
 } from '@myna/shared';
 import type { Queryable } from '../db/pool';
@@ -16,12 +16,21 @@ export const CARD_SELECT = `
          p.created_at, p.author_id, ${userSummarySql('u')} AS author,
          s.c1, s.c2, s.c3, s.c4, s.c5, s.total, s.avg,
          r.tier AS my_tier, r.reason_text AS my_reason, r.edited_count AS my_edited,
-         EXISTS (SELECT 1 FROM favorites fv WHERE fv.post_id = p.id AND fv.user_id = $1::uuid) AS favorited`;
+         EXISTS (SELECT 1 FROM favorites fv WHERE fv.post_id = p.id AND fv.user_id = $1::uuid) AS favorited,
+         top.id AS top_id, top.body AS top_body, top.like_count AS top_likes, top.author AS top_author`;
 export const CARD_FROM = `
   FROM posts p
   JOIN post_stats s ON s.post_id = p.id
   JOIN users u ON u.id = p.author_id
-  LEFT JOIN ratings r ON r.post_id = p.id AND r.user_id = $1::uuid`;
+  LEFT JOIN ratings r ON r.post_id = p.id AND r.user_id = $1::uuid
+  LEFT JOIN LATERAL (
+    -- "Best roast": the most-liked rating comment with text, from someone whose ratings are public.
+    SELECT tc.id, tc.body, tc.like_count, ${userSummarySql('tu')} AS author
+    FROM comments tc JOIN users tu ON tu.id = tc.user_id
+    WHERE tc.post_id = p.id AND tc.parent_id IS NULL AND tc.status = 'active' AND tc.body <> '' AND tu.visibility = 'everyone'
+      AND NOT EXISTS (SELECT 1 FROM blocks bt WHERE bt.user_id = $1::uuid AND bt.blocked_user_id = tc.user_id)
+    ORDER BY tc.like_count DESC, tc.created_at DESC LIMIT 1
+  ) top ON true`;
 const NOT_BLOCKED = `NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uuid AND b.blocked_user_id = p.author_id)`;
 
 /** Read-side rules every PostCard depends on. */
@@ -63,6 +72,9 @@ export function toCard(row: any, cfg: CardRules, now = new Date()): PostCard {
     myRating,
     favorited: !!row.favorited,
     editedAt: row.edited_at ? row.edited_at.toISOString() : null,
+    verdict: locked ? null : verdictOf(dist),
+    split: locked || !row.total ? null : voteSplit(dist),
+    topComment: !locked && row.top_id ? { id: row.top_id, body: row.top_body, likeCount: row.top_likes, author: row.top_author } : null,
   };
   // Whole kilometres only (coordinates are on a ~1 km grid); 0 means "under 1 km".
   if (row.distance_km !== undefined && row.distance_km !== null) card.distanceKm = Math.round(row.distance_km);
@@ -71,8 +83,11 @@ export function toCard(row: any, cfg: CardRules, now = new Date()): PostCard {
 
 export interface FeedQuery {
   viewer: string | null;
-  /** hot = popularity + recent rating velocity with time decay; new = newest first (default). */
-  sort?: 'hot' | 'new';
+  /**
+   * hot = popularity + recent rating velocity with time decay; new = newest first (default);
+   * controversial / top / flop rank posts with at least VERDICT_MIN_RATINGS ratings by polarisation / average.
+   */
+  sort?: FeedSort;
   category?: Category;
   langs?: Locale[];
   q?: string;
@@ -87,7 +102,7 @@ const HOT_SCORE = `((ln(1 + s.total) + 2 * (SELECT count(*) FROM ratings rr WHER
   / power(extract(epoch FROM now() - p.created_at) / 3600 + 2, 1.2))`;
 
 export async function feed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Page<PostCard>> {
-  if (f.sort === 'hot' && !f.q?.trim()) return hotFeed(db, cfg, f);
+  if (f.sort && f.sort !== 'new' && !f.q?.trim()) return rankedFeed(db, cfg, f, f.sort);
   const cur = decodeCursor(f.cursor);
   const params: unknown[] = [f.viewer];
   const where = [`p.status = 'active'`, NOT_BLOCKED];
@@ -114,10 +129,27 @@ export async function feed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise
   return { items, nextCursor: more && last ? encodeCursor(last.created_at, last.id) : null };
 }
 
-async function hotFeed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Page<PostCard>> {
+/** Share of low (1–2) and high (4–5) votes; "controversial" = both sides big. */
+const LOW_SHARE = `((s.c1 + s.c2)::float / greatest(s.total, 1))`;
+const HIGH_SHARE = `((s.c4 + s.c5)::float / greatest(s.total, 1))`;
+const RANKINGS: Record<Exclude<FeedSort, 'new'>, { order: string; filter?: string }> = {
+  hot: { order: `${HOT_SCORE} DESC, p.created_at DESC` },
+  controversial: { order: `least(${LOW_SHARE}, ${HIGH_SHARE}) DESC, s.total DESC`, filter: `least(${LOW_SHARE}, ${HIGH_SHARE}) >= 0.2` },
+  top: { order: `s.avg DESC, s.total DESC` },
+  flop: { order: `s.avg ASC, s.total DESC`, filter: `s.avg < 3` },
+};
+
+async function rankedFeed(db: Queryable, cfg: CardRules, f: FeedQuery, sort: Exclude<FeedSort, 'new'>): Promise<Page<PostCard>> {
   const offset = f.cursor ? Number.parseInt(f.cursor, 10) || 0 : 0;
   const params: unknown[] = [f.viewer];
   const where = [`p.status = 'active'`, NOT_BLOCKED];
+  const rank = RANKINGS[sort];
+  if (sort !== 'hot') {
+    // Ranked lists need enough votes and must not reveal blind posts that are still in their window.
+    params.push(cfg.blindHours);
+    where.push(`s.total >= ${VERDICT_MIN_RATINGS}`, `NOT (p.blind AND p.created_at > now() - $${params.length} * interval '1 hour')`);
+  }
+  if (rank.filter) where.push(rank.filter);
   if (f.category) {
     params.push(f.category);
     where.push(`p.category = $${params.length}`);
@@ -128,7 +160,7 @@ async function hotFeed(db: Queryable, cfg: CardRules, f: FeedQuery): Promise<Pag
   }
   params.push(offset);
   const rows = (
-    await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE ${where.join(' AND ')} ORDER BY ${HOT_SCORE} DESC, p.created_at DESC OFFSET $${params.length} LIMIT ${PAGE + 1}`, params)
+    await db.query(`${CARD_SELECT} ${CARD_FROM} WHERE ${where.join(' AND ')} ORDER BY ${rank.order} OFFSET $${params.length} LIMIT ${PAGE + 1}`, params)
   ).rows;
   return { items: rows.slice(0, PAGE).map((r) => toCard(r, cfg)), nextCursor: rows.length > PAGE ? String(offset + PAGE) : null };
 }
@@ -222,6 +254,7 @@ async function postLock(db: Queryable, viewer: string | null, postId: string, bl
 
 export async function listComments(
   db: Queryable, viewer: string | null, postId: string, tier: Tier | undefined, cursor: string | undefined, blindHours: number,
+  sort: CommentSort = 'top',
 ): Promise<Page<Comment>> {
   const locked = await postLock(db, viewer, postId, blindHours);
   const offset = cursor ? Number.parseInt(cursor, 10) || 0 : 0;
@@ -234,7 +267,7 @@ export async function listComments(
          -- Hidden ratings still count in the averages; only the comment is withheld.
          AND (c.user_id = $1::uuid OR u.visibility = 'everyone'
               OR (u.visibility = 'following' AND EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = c.user_id AND f.followee_id = $1::uuid)))
-       ORDER BY mine DESC, c.like_count DESC, c.created_at DESC
+       ORDER BY ${sort === 'new' ? 'c.created_at DESC' : "c.like_count DESC, (c.body <> '') DESC, c.created_at DESC"}
        OFFSET $4 LIMIT ${PAGE + 1}`,
       // Tier filtering would reveal tiers on a locked blind post, so it is ignored there.
       [viewer, postId, locked ? null : (tier ?? null), offset],
@@ -290,6 +323,25 @@ export async function createReply(db: Queryable, userId: string, commentId: stri
     [target.post_id, userId, threadId, text],
   );
   return { id: r.rows[0]!.id, postId: target.post_id, threadId, recipientId: target.user_id, text };
+}
+
+/**
+ * Authors can edit the text of their own comments. For a rating comment this also updates the rating's
+ * reason (the tier is changed through the rating, which has its own edit limit).
+ */
+export async function editComment(db: Queryable, userId: string, commentId: string, body: string): Promise<void> {
+  const text = body.trim().slice(0, MAX_REPLY);
+  if (containsBlockedWords(text)) throw badRequest('content_blocked');
+  const c = (
+    await db.query<{ rating_id: string | null; parent_id: string | null }>(
+      "SELECT rating_id, parent_id FROM comments WHERE id = $1 AND user_id = $2 AND status = 'active'",
+      [commentId, userId],
+    )
+  ).rows[0];
+  if (!c) throw notFound('comment_not_found');
+  if (!text && c.parent_id) throw badRequest('empty_reply');
+  await db.query('UPDATE comments SET body = $2, edited = true WHERE id = $1', [commentId, text]);
+  if (c.rating_id) await db.query('UPDATE ratings SET reason_text = $2, updated_at = now() WHERE id = $1', [c.rating_id, text]);
 }
 
 /** Authors can delete their own replies. Rating comments are changed through the rating itself. */

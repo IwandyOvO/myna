@@ -1,4 +1,5 @@
 import type { Page, PostCard, UserProfile, LikeReceived, Draft } from '@myna/shared';
+import { tasteProfile } from './taste';
 import type { Queryable } from '../db/pool';
 import { badRequest, notFound } from '../lib/errors';
 import { CARD_FROM, CARD_SELECT, toCard, type CardRules } from './posts';
@@ -125,6 +126,7 @@ export async function profile(db: Queryable, cfg: CardRules, viewer: string | nu
   return {
     user: { id: u.id, nickname: u.nickname, handle: u.handle, avatar: u.avatar },
     reputation: u.reputation,
+    taste: await tasteProfile(db, u.id),
     stats: { posts: u.posts, ratings: u.ratings, followers: u.followers, following: u.following },
     followedByMe: u.followed_by_me,
     blockedByMe: u.blocked_by_me,

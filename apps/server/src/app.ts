@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import multipart from '@fastify/multipart';
 import {
   BOARD_CATEGORIES, CATEGORIES, LOCALES, isLocale, resolveLocale,
-  type AuthProvider, type Locale,
+  crowdReveal, isSingleEmoji, type AuthProvider, type Locale, type PostCard, type RateResult,
 } from '@myna/shared';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { z, ZodError } from 'zod';
@@ -27,6 +27,7 @@ import * as community from './services/social';
 import * as admin from './services/admin';
 import { landingPage } from './services/landing';
 import { editRating, rate } from './services/ratings';
+import { claimMilestone, dailyQuestion, deck, recordDailyAnswer } from './services/game';
 import * as users from './services/users';
 
 export interface AppDeps {
@@ -45,6 +46,8 @@ const tier = z.coerce.number().int().min(1).max(5);
 const uuid = z.string().uuid();
 const locale = z.enum(LOCALES);
 const category = z.enum(CATEGORIES);
+/** Any single emoji (posts and avatars). */
+const emoji = z.string().max(16).refine(isSingleEmoji, 'invalid_emoji');
 const langList = z
   .string()
   .optional()
@@ -58,6 +61,8 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   const storage = deps.storage ?? new LocalDiskStorage(config.uploadDir);
   const pusher = deps.pusher ?? (process.env.NODE_ENV === 'test' ? new NoopPusher() : new ExpoPusher(process.env.EXPO_ACCESS_TOKEN));
   const tagCfg = { tags: config.autoTags, blindHours: config.blindHours };
+  /** Rating responses also say how the viewer's vote compares with everyone else's. */
+  const withCrowd = (p: PostCard): RateResult => ({ ...p, crowd: p.myRating && p.dist ? crowdReveal(p.dist, p.myRating.tier) : null });
 
   const app = Fastify({
     logger: process.env.NODE_ENV !== 'test' && {
@@ -217,7 +222,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // ---- feed / posts ---------------------------------------------------------------
   app.get('/feed', async (req) => {
     const q = z
-      .object({ category: category.optional(), langs: langList, q: z.string().max(100).optional(), cursor: z.string().optional(), sort: z.enum(['hot', 'new']).default('new') })
+      .object({ category: category.optional(), langs: langList, q: z.string().max(100).optional(), cursor: z.string().optional(), sort: z.enum(['hot', 'new', 'controversial', 'top', 'flop']).default('new') })
       .parse(req.query);
     return posts.feed(db, tagCfg, { viewer: await viewer(req), ...q });
   });
@@ -243,7 +248,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
         category,
         title: z.string().min(1).max(120),
         body: z.string().max(2000).optional(),
-        emoji: z.string().max(8).optional(),
+        emoji: emoji.optional(),
         imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional(),
         blind: z.boolean().optional(),
         lang: locale,
@@ -295,7 +300,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const userId = await requireUser(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
     const b = z
-      .object({ title: z.string().max(120).optional(), body: z.string().max(2000).optional(), emoji: z.string().max(8).optional(), imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional() })
+      .object({ title: z.string().max(120).optional(), body: z.string().max(2000).optional(), emoji: emoji.optional(), imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional() })
       .parse(req.body);
     for (const u of b.imageUrls ?? []) if (!(await storage.exists(u))) throw badRequest('unknown_image');
     await posts.editPost(db, userId, id, b);
@@ -316,23 +321,41 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const b = rateBody.parse(req.body);
     await rate(db, userId, id, { tier: b.tier as 1 | 2 | 3 | 4 | 5, reason: b.reason });
     await checkBadges(userId);
+    await recordDailyAnswer(db, userId, id);
+    const m = await claimMilestone(db, id, config.blindHours);
+    if (m) await send({ userId: m.authorId, type: 'milestone', postId: id, data: { n: m.n, verdict: m.verdict, title: m.title } });
     reply.status(201);
-    return posts.getPost(db, tagCfg, userId, id);
+    return withCrowd(await posts.getPost(db, tagCfg, userId, id));
   });
   app.patch('/posts/:id/ratings/me', async (req) => {
     const userId = await requireUser(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
     const b = rateBody.parse(req.body);
     await editRating(db, userId, id, { tier: b.tier as 1 | 2 | 3 | 4 | 5, reason: b.reason });
-    return posts.getPost(db, tagCfg, userId, id);
+    return withCrowd(await posts.getPost(db, tagCfg, userId, id));
   });
 
   // ---- comments (§4.6) ---------------------------------------------------------------
   app.get('/posts/:id/comments', async (req) => {
     const { id } = z.object({ id: uuid }).parse(req.params);
-    const q = z.object({ tier: tier.optional(), cursor: z.string().optional() }).parse(req.query);
-    return posts.listComments(db, await viewer(req), id, q.tier as 1 | 2 | 3 | 4 | 5 | undefined, q.cursor, config.blindHours);
+    const q = z.object({ tier: tier.optional(), cursor: z.string().optional(), sort: z.enum(['top', 'new']).default('top') }).parse(req.query);
+    return posts.listComments(db, await viewer(req), id, q.tier as 1 | 2 | 3 | 4 | 5 | undefined, q.cursor, config.blindHours, q.sort);
   });
+  app.patch('/comments/:id', async (req) => {
+    const userId = await requireUser(req);
+    const { id } = z.object({ id: uuid }).parse(req.params);
+    const b = z.object({ body: z.string().max(500) }).parse(req.body);
+    await posts.editComment(db, userId, id, b.body);
+    return { ok: true };
+  });
+
+  // ---- fun layer: quick-rate deck, daily question ---------------------------------------
+  app.get('/deck', async (req) => {
+    const userId = await requireUser(req);
+    const q = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) }).parse(req.query);
+    return { items: await deck(db, tagCfg, userId, q.limit) };
+  });
+  app.get('/daily', async (req) => dailyQuestion(db, tagCfg, await viewer(req)));
   app.put('/comments/:id/like', async (req) => {
     const userId = await requireUser(req);
     const { id } = z.object({ id: uuid }).parse(req.params);
@@ -399,7 +422,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   });
   app.put('/me/profile', async (req) => {
     const userId = await requireUser(req);
-    const b = z.object({ nickname: z.string().max(60).optional(), avatar: z.string().max(16).optional() }).parse(req.body);
+    const b = z.object({ nickname: z.string().max(60).optional(), avatar: emoji.optional() }).parse(req.body);
     await users.updateProfile(db, userId, b);
     return users.getMe(db, userId);
   });
@@ -457,7 +480,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       category: category.optional(),
       title: z.string().max(120).optional(),
       body: z.string().max(2000).optional(),
-      emoji: z.string().max(8).nullable().optional(),
+      emoji: emoji.nullable().optional(),
       imageUrls: z.array(z.string().regex(UPLOAD_PATH)).max(MAX_IMAGES).optional(),
       blind: z.boolean().optional(),
       lang: locale.optional(),

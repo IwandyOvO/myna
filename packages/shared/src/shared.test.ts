@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   containsBlockedWords, CATEGORIES, CATEGORY_SCALES, DICTIONARIES, LOCALES, addVote, genericScale, autoTags, average, categoryName,
   moveVote, placeholderFor, resolveLocale, scaleFor, scaleForBoard, timeAgo, translate,
+  crowdReveal, isSingleEmoji, tasteKey, verdictOf, voteSplit, weeklyThemeIndex, WEEKLY_THEME_COUNT,
 } from './index';
+import { GAME_STRINGS } from './i18n/game';
 import { OVERRIDES } from './i18n/overrides';
 
 describe('scales', () => {
@@ -58,6 +60,15 @@ describe('i18n', () => {
     const keys = Object.keys(OVERRIDES.en).sort();
     for (const l of LOCALES) expect(Object.keys(OVERRIDES[l]).sort()).toEqual(keys);
   });
+  it('every game key exists in all 7 languages, with the same placeholders', () => {
+    const keys = Object.keys(GAME_STRINGS.en).sort();
+    const vars = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join();
+    for (const l of LOCALES) {
+      expect(Object.keys(GAME_STRINGS[l]).sort(), l).toEqual(keys);
+      for (const k of keys) expect(vars(GAME_STRINGS[l][k]!), `${l}.${k}`).toBe(vars(GAME_STRINGS.en[k]!));
+    }
+    for (let i = 0; i < WEEKLY_THEME_COUNT; i++) expect(GAME_STRINGS.en[`theme_${i}`]).toBeTruthy();
+  });
   it('every base key exists in all 7 languages', () => {
     const keys = Object.keys(DICTIONARIES.en);
     for (const l of LOCALES) for (const k of keys) expect(DICTIONARIES[l][k], `${l}.${k}`).toBeTruthy();
@@ -81,6 +92,47 @@ describe('i18n', () => {
   it('placeholders follow category for zh/en, type for others (§5.4)', () => {
     expect(placeholderFor('work', 'en').title).toBe('e.g. Team outing is a hike — should I go?');
     expect(placeholderFor('work', 'fr').title).toBe("Ex. : cet événement, j'y vais ?");
+  });
+});
+
+describe('fun layer', () => {
+  it('verdicts read like people talk', () => {
+    expect(verdictOf([0, 1, 0, 0, 0])).toBe('fresh');
+    expect(verdictOf([40, 5, 5, 10, 40])).toBe('controversial');
+    expect(verdictOf([0, 1, 4, 20, 75])).toBe('legend');
+    expect(verdictOf([70, 20, 5, 3, 2])).toBe('hated');
+    expect(verdictOf([2, 3, 20, 50, 25])).toBe('loved');
+    expect(verdictOf([30, 40, 20, 5, 5])).toBe('flop');
+    expect(verdictOf([10, 15, 50, 15, 10])).toBe('mid');
+  });
+  it('vote split sums to 100', () => {
+    expect(voteSplit([1, 1, 1, 0, 0])).toEqual({ low: 67, mid: 33, high: 0 });
+    const s = voteSplit([3, 3, 3, 3, 3]);
+    expect(s.low + s.mid + s.high).toBe(100);
+    expect(voteSplit([0, 0, 0, 0, 0])).toEqual({ low: 0, mid: 0, high: 0 });
+  });
+  it('crowd reveal excludes your own vote', () => {
+    expect(crowdReveal([0, 0, 0, 0, 1], 5)).toEqual({ first: true, sameSide: 0, sameTier: 0, minority: false });
+    expect(crowdReveal([1, 0, 0, 6, 4], 5)).toEqual({ first: false, sameSide: 90, sameTier: 30, minority: false });
+    expect(crowdReveal([9, 0, 0, 0, 2], 5).minority).toBe(true);
+  });
+  it('taste labels', () => {
+    expect(tasteKey(3, 90, 4)).toBe('newbie');
+    expect(tasteKey(20, 30, 3)).toBe('contrarian');
+    expect(tasteKey(20, 60, 1.8)).toBe('harsh');
+    expect(tasteKey(20, 60, 4.5)).toBe('sweet');
+    expect(tasteKey(20, 80, 3)).toBe('mainstream');
+    expect(tasteKey(20, 60, 3)).toBe('independent');
+  });
+  it('single emoji validation (no \\p{} regex, Hermes-safe)', () => {
+    for (const e of ['🍜', '❤️', '👍🏽', '👩‍💻', '👨‍👩‍👧', '🇯🇵', '#️⃣', '☕', '🏳️‍🌈']) expect(isSingleEmoji(e), e).toBe(true);
+    for (const e of ['', 'a', '中', '🍜🍜', 'ab', '1', '🍜x', '<script>']) expect(isSingleEmoji(e), e).toBe(false);
+  });
+  it('weekly theme rotates', () => {
+    const a = weeklyThemeIndex(new Date('2026-11-16T00:00:00Z'));
+    const b = weeklyThemeIndex(new Date('2026-11-23T00:00:00Z'));
+    expect(b).toBe((a + 1) % WEEKLY_THEME_COUNT);
+    expect(weeklyThemeIndex(new Date('2026-11-22T23:59:59Z'))).toBe(a);
   });
 });
 

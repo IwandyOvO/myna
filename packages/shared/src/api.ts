@@ -1,5 +1,6 @@
 import type { BoardCategory, Category, PostType } from './categories';
 import type { Locale } from './locales';
+import type { CrowdReveal, TasteProfile, VerdictKey, VoteSplit } from './game';
 import type { AutoTag, Distribution } from './rating';
 import type { Tier } from './scales';
 
@@ -15,7 +16,9 @@ export interface UserSummary {
 }
 
 export interface Me extends UserSummary {
+  /** Kept for badges/leaderboard internals; profiles show the taste profile instead. */
   reputation: number;
+  taste: TasteProfile;
   role: 'user' | 'admin';
   locale: Locale | null;
   stats: { posts: number; ratings: number; likes: number };
@@ -73,6 +76,19 @@ export interface PostCard {
   favorited: boolean;
   /** Set when the author edited the title/description/images. */
   editedAt: string | null;
+  /** What the ratings mean ("controversial", "legend"…); null while locked (blind). Leads the card. */
+  verdict: VerdictKey | null;
+  /** Low / mid / high vote shares in %; null while locked or unrated. */
+  split: VoteSplit | null;
+  /** Most-liked comment with text ("best roast"); null while locked or when there is none. */
+  topComment: TopComment | null;
+}
+
+export interface TopComment {
+  id: string;
+  body: string;
+  likeCount: number;
+  author: UserSummary;
 }
 
 export interface Comment {
@@ -159,6 +175,7 @@ export interface ApiError {
 export interface UserProfile {
   user: UserSummary;
   reputation: number;
+  taste: TasteProfile;
   stats: { posts: number; ratings: number; followers: number; following: number };
   followedByMe: boolean;
   blockedByMe: boolean;
@@ -213,11 +230,11 @@ export interface LeaderboardRow {
 
 export interface Notification {
   id: string;
-  type: 'reply' | 'like' | 'follow' | 'badge' | 'season';
+  type: 'reply' | 'like' | 'follow' | 'badge' | 'season' | 'milestone';
   actor: UserSummary | null;
   postId: string | null;
   postTitle: string | null;
-  /** reply/like: { text }; badge: { badge, icon }; season: { season, board, rank, title } */
+  /** reply/like: { text }; badge: { badge, icon }; season: { season, board, rank, title }; milestone: { n, verdict, title } */
   data: Record<string, string | number>;
   read: boolean;
   /** In-app route to open. */
@@ -237,4 +254,23 @@ export interface ReportItem {
   reasons: Record<string, number>;
   reporters: number;
   lastReportedAt: string;
+}
+
+export type FeedSort = 'hot' | 'new' | 'controversial' | 'top' | 'flop';
+export type CommentSort = 'top' | 'new';
+
+/** Response of rating endpoints: the updated post plus how your vote compares with everyone else's. */
+export interface RateResult extends PostCard {
+  crowd: CrowdReveal | null;
+}
+
+/** One featured post per UTC day; answering on the day keeps your streak alive. */
+export interface DailyQuestion {
+  day: string; // YYYY-MM-DD (UTC)
+  post: PostCard | null;
+  answered: boolean;
+  streak: number;
+  /** When the next question appears (next UTC midnight). */
+  endsAt: string;
+  yesterday: PostCard | null;
 }

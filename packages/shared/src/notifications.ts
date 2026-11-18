@@ -1,6 +1,7 @@
 import { boardCategoryName, BOARD_CATEGORIES, type BoardCategory } from './categories';
 import type { Locale } from './locales';
 import type { Notification } from './api';
+import { VERDICT_EMOJI, type VerdictKey } from './game';
 import { translate } from './i18n';
 
 /** Title/body for a notification, used by both the push message (server) and the in-app inbox (app). */
@@ -24,5 +25,9 @@ export function notificationText(
       return { title: translate(locale, 'notif_badge_t', v), body: `${d.icon ?? ''} ${d.badge ?? ''}`.trim() };
     case 'season':
       return { title: translate(locale, 'notif_season_t', v), body: translate(locale, 'notif_season_b', v) };
+    case 'milestone': {
+      const verdict = d.verdict ? `${VERDICT_EMOJI[d.verdict as VerdictKey] ?? ''} ${translate(locale, `v_${d.verdict}`)}`.trim() : '';
+      return { title: translate(locale, 'notif_milestone_t', v), body: translate(locale, 'notif_milestone_b', { ...v, verdict }) };
+    }
   }
 }
