@@ -32,7 +32,13 @@ export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPr
 
 export function ChipRow({ children }: { children: ReactNode }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingVertical: 10 }}>
+    // flexGrow 0: outside a list, a horizontal ScrollView would otherwise stretch to fill the screen height (iOS).
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0, flexShrink: 0 }}
+      contentContainerStyle={{ gap: 8, paddingHorizontal: 16, paddingVertical: 10, alignItems: 'center' }}
+    >
       {children}
     </ScrollView>
   );
