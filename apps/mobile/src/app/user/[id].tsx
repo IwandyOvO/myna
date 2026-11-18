@@ -59,9 +59,11 @@ export default function UserProfile() {
                   </Pressable>
                 )}
               </View>
-              <View style={{ marginTop: 14 }}>
-                <TasteCard taste={p.taste} />
-              </View>
+              {p.taste && (
+                <View style={{ marginTop: 14 }}>
+                  <TasteCard taste={p.taste} />
+                </View>
+              )}
               <View style={[s.stats, { borderTopColor: colors.line }]}>
                 {[
                   [p.stats.posts, t('stat_posts')],

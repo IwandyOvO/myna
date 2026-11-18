@@ -97,7 +97,7 @@ function DrawerContent({ close }: { close: () => void }) {
             {me?.nickname ?? t('login_t')}
           </T>
           <T muted style={{ fontSize: 12, marginTop: 3 }} numberOfLines={1}>
-            {me ? `@${me.handle} · ${tasteLabel(me.taste, t)}` : t('login_sub')}
+            {me ? (me.taste ? `@${me.handle} · ${tasteLabel(me.taste, t)}` : `@${me.handle}`) : t('login_sub')}
           </T>
         </View>
       </Pressable>
