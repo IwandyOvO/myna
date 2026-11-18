@@ -21,6 +21,11 @@ const CATS = CATEGORIES.filter((c) => c !== 'other');
 
 /** Dedicated search: type to search everything, or narrow by category; categories are browsable before typing. */
 export default function Search() {
+  return <SearchScreen />;
+}
+
+/** Also the Search tab (`tab`: no back button, no auto-focused keyboard). */
+export function SearchScreen({ tab }: { tab?: boolean }) {
   const { t, locale, contentLangs, colors } = useSettings();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
@@ -33,15 +38,17 @@ export default function Search() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={[s.bar, { paddingTop: insets.top + 8 }]}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('back')} hitSlop={8} style={[s.back, { backgroundColor: colors.card, borderColor: colors.line }]}>
-          <T style={{ fontSize: 16 }}>‹</T>
-        </Pressable>
+        {!tab && (
+          <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel={t('back')} hitSlop={8} style={[s.back, { backgroundColor: colors.card, borderColor: colors.line }]}>
+            <T style={{ fontSize: 16 }}>‹</T>
+          </Pressable>
+        )}
         <View style={[s.input, { backgroundColor: colors.card, borderColor: colors.line }]}>
           <Text style={{ fontSize: 13 }}>🔍</Text>
           <TextInput
             value={query}
             onChangeText={setQuery}
-            autoFocus
+            autoFocus={!tab}
             placeholder={t('search_hint')}
             placeholderTextColor={colors.faint}
             returnKeyType="search"

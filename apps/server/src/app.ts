@@ -340,7 +340,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
     const b = rateBody.parse(req.body);
     await rate(db, userId, id, { tier: b.tier as 1 | 2 | 3 | 4 | 5, reason: b.reason });
     await checkBadges(userId);
-    await recordDailyAnswer(db, userId, id);
+    await recordDailyAnswer(db, userId);
     const m = await claimMilestone(db, id, config.blindHours);
     if (m) await send({ userId: m.authorId, type: 'milestone', postId: id, data: { n: m.n, verdict: m.verdict, title: m.title } });
     reply.status(201);
@@ -371,8 +371,13 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // ---- fun layer: quick-rate deck, daily question ---------------------------------------
   app.get('/deck', async (req) => {
     const userId = await requireUser(req);
-    const q = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) }).parse(req.query);
-    return { items: await deck(db, tagCfg, userId, q.limit) };
+    const q = z
+      .object({
+        limit: z.coerce.number().int().min(1).max(50).default(20),
+        exclude: z.string().max(8000).optional().transform((s) => (s ? s.split(',').filter((x) => /^[0-9a-f-]{36}$/i.test(x)).slice(0, 200) : [])),
+      })
+      .parse(req.query);
+    return { items: await deck(db, tagCfg, userId, q.limit, q.exclude) };
   });
   app.get('/daily', async (req) => dailyQuestion(db, tagCfg, await viewer(req)));
 

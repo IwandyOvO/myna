@@ -7,12 +7,12 @@ import { brand } from '../lib/theme';
 
 const TABS: Record<string, { icon: string; label: string }> = {
   index: { icon: '🏠', label: 'nav_home' },
-  play: { icon: '🎴', label: 'nav_play' },
-  daily: { icon: '🔥', label: 'nav_daily' },
+  play: { icon: '🔥', label: 'nav_play' },
+  discover: { icon: '🔍', label: 'search_title' },
   me: { icon: '👤', label: 'nav_me' },
 };
 
-/** Bottom nav: Home / Quick rate / (raised + Publish) / Daily / Me. */
+/** Bottom nav: Home / 开评 / (raised + Publish) / Search / Me. */
 export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   const { colors, t } = useSettings();
   const { signedIn } = useAuth();

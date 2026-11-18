@@ -10,14 +10,15 @@ const NOT_BLOCKED = `NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uu
  * Posts the viewer hasn't rated (and didn't write), most active first with a little shuffle so the
  * deck feels fresh. Blind posts are included: rating them is exactly what unlocks them.
  */
-export async function deck(db: Queryable, cfg: CardRules, viewer: string, limit = 20): Promise<PostCard[]> {
+export async function deck(db: Queryable, cfg: CardRules, viewer: string, limit = 20, exclude: string[] = []): Promise<PostCard[]> {
   const rows = (
     await db.query(
       `${CARD_SELECT} ${CARD_FROM}
        WHERE p.status = 'active' AND p.author_id <> $1::uuid AND r.id IS NULL AND ${NOT_BLOCKED}
+         AND NOT (p.id = ANY($3::uuid[])) -- already shown this session (skipped)
        ORDER BY (ln(2 + s.total) + 3 * (SELECT count(*) FROM ratings rr WHERE rr.post_id = p.id AND rr.created_at > now() - interval '72 hours')) * (0.6 + random() * 0.8) DESC
        LIMIT $2`,
-      [viewer, limit],
+      [viewer, limit, exclude],
     )
   ).rows;
   return rows.map((r) => toCard(r, cfg));
@@ -48,7 +49,7 @@ async function ensurePick(db: Queryable, day: string, blindHours: number): Promi
   return (await db.query<{ post_id: string }>('SELECT post_id FROM daily_picks WHERE day = $1', [day])).rows[0]!.post_id;
 }
 
-/** Consecutive answered days ending today (or yesterday, if today isn't answered yet). */
+/** Consecutive days with at least one rating, ending today (or yesterday, if nothing rated yet today). */
 async function streak(db: Queryable, userId: string, today: string): Promise<number> {
   const days = (
     await db.query<{ day: string }>(
@@ -67,14 +68,9 @@ async function streak(db: Queryable, userId: string, today: string): Promise<num
   return n;
 }
 
-/** Records today's answer when `postId` is today's pick (called after a rating). */
-export async function recordDailyAnswer(db: Queryable, userId: string, postId: string, now = new Date()): Promise<void> {
-  await db.query(
-    `INSERT INTO daily_answers (user_id, day)
-     SELECT $1, day FROM daily_picks WHERE day = $3::date AND post_id = $2
-     ON CONFLICT DO NOTHING`,
-    [userId, postId, utcDay(now)],
-  );
+/** Any rating today keeps the streak alive (called after every new rating). */
+export async function recordDailyAnswer(db: Queryable, userId: string, now = new Date()): Promise<void> {
+  await db.query('INSERT INTO daily_answers (user_id, day) VALUES ($1, $2::date) ON CONFLICT DO NOTHING', [userId, utcDay(now)]);
 }
 
 export async function dailyQuestion(db: Queryable, cfg: CardRules, viewer: string | null, now = new Date()): Promise<DailyQuestion> {
@@ -89,8 +85,6 @@ export async function dailyQuestion(db: Queryable, cfg: CardRules, viewer: strin
   };
   const post = await card(postId);
   const yPick = (await db.query<{ post_id: string }>('SELECT post_id FROM daily_picks WHERE day = $1', [yesterdayDay])).rows[0];
-  // Rated it before it was featured? That counts as today's answer once you open the question.
-  if (viewer && post?.myRating) await recordDailyAnswer(db, viewer, post.id, now);
   return {
     day,
     post,

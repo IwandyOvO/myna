@@ -1,4 +1,5 @@
 import {
+  weeklyThemeIndex,
   BLIND_HOURS, CATEGORY_EMOJI, LANG_TAG, LOCALES, categoriesOf, categoryName, placeholderFor, scaleFor,
   type Category, type Locale, type PostType,
 } from '@myna/shared';
@@ -38,6 +39,7 @@ export default function Publish() {
   const [title, setTitle] = useState('');
   const { draft: draftParam, edit: editId, theme } = useLocalSearchParams<{ draft?: string; edit?: string; theme?: string }>();
   const [body, setBody] = useState(theme ? `#${theme} ` : '');
+  const weeklyTheme = t(`theme_${weeklyThemeIndex()}`);
   const [emoji, setEmoji] = useState<string | null>(null);
   const [blind, setBlind] = useState(false);
   const [lang, setLang] = useState<Locale>(locale);
@@ -198,6 +200,24 @@ export default function Publish() {
       <PageHeader title={editing ? t('edit_post') : t('pub_head')} />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 40 + insets.bottom }} keyboardShouldPersistTaps="handled">
         {!editing && (
+          // Weekly theme: a prompt for people who want to post but don't know what about. Tap to tag the post.
+          <Pressable
+            onPress={() => {
+              const tag = `#${weeklyTheme} `;
+              if (!body.includes(tag.trim())) setBody(tag + body);
+            }}
+            accessibilityRole="button"
+            style={[s.theme, { backgroundColor: colors.card, borderColor: colors.line }]}
+          >
+            <Text style={{ fontSize: 22 }}>🗓</Text>
+            <View style={{ flex: 1 }}>
+              <T muted style={{ fontSize: 11, fontWeight: '700' }}>{t('theme_label')}</T>
+              <T style={{ fontSize: 15, fontWeight: '900', marginTop: 1 }}>{weeklyTheme}</T>
+            </View>
+            <T style={{ fontSize: 12.5, fontWeight: '800', color: brand.red }}>{body.includes(`#${weeklyTheme}`) ? '✓' : `+ ${t('theme_cta')}`}</T>
+          </Pressable>
+        )}
+        {!editing && (
           <Seg value={type} onChange={switchType} options={[{ value: 'product', label: t('type_product') }, { value: 'event', label: t('type_event') }]} />
         )}
 
@@ -348,6 +368,7 @@ export default function Publish() {
 }
 
 const s = StyleSheet.create({
+  theme: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, borderWidth: 1 },
   label: { fontWeight: '800', marginBottom: 8 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   input: { borderWidth: 1.5, borderRadius: 12, padding: 12, fontSize: 14 },

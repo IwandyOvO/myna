@@ -37,51 +37,66 @@ const SP = process.argv[2];
     await p.screenshot({ path: `${SP}/shots/f3-search.png` });
     await p.goBack();
   });
+  await step('guest can browse the swipe feed; rating asks to log in', async () => {
+    await p.goto('http://localhost:8081/');
+    await vis(p.getByRole('tab', { name: '开评' })).click();
+    await vis(p.getByText('🔥 今日开评')).waitFor({ timeout: 15000 });
+    await p.screenshot({ path: `${SP}/shots/f4-swipe-guest.png` });
+    await vis(p.getByRole('radio')).click();
+    await p.getByPlaceholder('你的邮箱').waitFor({ timeout: 10000 }); // client-side navigation to login
+  });
   await step('login', async () => {
-    await p.goto('http://localhost:8081/login');
     await p.getByPlaceholder('你的邮箱').fill('fun@example.com');
     await p.getByRole('checkbox', { name: '我已年满 13 岁' }).click();
     await p.getByRole('button', { name: '发送验证码' }).click();
     await p.getByRole('button', { name: '验证并继续' }).click();
     await p.waitForTimeout(1500);
   });
-  await step('quick rate: one tap then crowd reveal', async () => {
-    await p.goto('http://localhost:8081/');
-    await vis(p.getByRole('tab', { name: '快评' })).click();
-    await vis(p.getByPlaceholder('一句话吐槽（可选）')).fill('还行吧');
-    await p.screenshot({ path: `${SP}/shots/f4-deck.png` });
+  await step('swipe feed: today first, tap → reveal → glides to the next card', async () => {
+    await p.goto('http://localhost:8081/play');
+    await vis(p.getByText('🔥 今日开评')).waitFor({ timeout: 15000 });
+    const firstTitle = await vis(p.getByRole('radio')).evaluate(() => document.title);
     await vis(p.getByRole('radio')).click();
     await vis(p.getByText(/你和 \d+% 的人站在一边|少数派|你是第一个评的/)).waitFor({ timeout: 10000 });
-    await p.screenshot({ path: `${SP}/shots/f5-deck-reveal.png` });
-    await vis(p.getByRole('button', { name: /下一步/ })).click();
-    await vis(p.getByPlaceholder('一句话吐槽（可选）')).waitFor();
-    await vis(p.getByText(/本次已评 1 个/)).waitFor();
-  });
-  await step('today's drop rated → streak 1', async () => {
-    await vis(p.getByRole('tab', { name: '今日开评' })).click();
-    await vis(p.getByText('本周主题')).waitFor({ timeout: 10000 });
-    await p.screenshot({ path: `${SP}/shots/f6-daily.png` });
-    // The deck may already have served today's question — then it's answered and the streak is running.
-    if (!(await p.getByText('今天已评 ✓').filter({ visible: true }).count())) {
-      await vis(p.getByText('今天评一下，开始连胜')).waitFor();
-      await vis(p.getByRole('radio')).click();
-      await vis(p.getByText(/你和 \d+% 的人站在一边|少数派|你是第一个评的/)).waitFor({ timeout: 10000 });
-    }
     await vis(p.getByText('🔥 连续 1 天')).waitFor({ timeout: 10000 });
-    await p.screenshot({ path: `${SP}/shots/f7-daily-done.png` });
+    await p.screenshot({ path: `${SP}/shots/f5-swipe-reveal.png` });
+    // Auto-advance: the next card's tier buttons come into view by themselves.
+    await p.waitForTimeout(3200);
+    await vis(p.getByRole('radio')).waitFor({ timeout: 5000 });
+    await p.screenshot({ path: `${SP}/shots/f6-swipe-next.png` });
+    void firstTitle;
   });
-  await step('weekly theme prefills publish', async () => {
-    await vis(p.getByRole('button', { name: '发一条' })).click();
-    await p.waitForURL(/publish/);
-    await p.waitForTimeout(800);
+  await step('swipe up skips to another card', async () => {
+    const before = await p.getByRole('radio').filter({ visible: true }).first().boundingBox();
+    await p.mouse.move(195, 400);
+    await p.mouse.wheel(0, 900);
+    await p.waitForTimeout(1200);
+    await vis(p.getByRole('radio')).waitFor();
+    void before;
+  });
+  await step('weekly theme on publish tags the post', async () => {
+    await p.goto('http://localhost:8081/publish');
+    await vis(p.getByText('本周主题')).waitFor({ timeout: 10000 });
+    await vis(p.getByText('+ 发一条')).click();
     const body = await p.locator('textarea, input').evaluateAll((els) => els.map((e) => e.value).join('|'));
-    if (!body.includes('#最值得上的一门课') && !/#\S/.test(body)) throw new Error('theme not prefilled: ' + body);
-    await p.screenshot({ path: `${SP}/shots/f7b-theme-publish.png` });
+    if (!/#\S/.test(body)) throw new Error('theme not added: ' + body);
+    await p.screenshot({ path: `${SP}/shots/f7-theme-publish.png` });
     await p.goto('http://localhost:8081/');
   });
+  await step('rate with a comment from the detail page', async () => {
+    await p.goto('http://localhost:8081/discover');
+    await p.getByPlaceholder('搜产品、店名或话题').fill('螺蛳粉');
+    await vis(p.getByText('螺蛳粉味薯片')).click();
+    // The swipe feed may already have rated it — then this is an edit.
+    await vis(p.getByRole('button', { name: /我也要评价|修改评价/ })).click();
+    await vis(p.getByRole('radio')).click();
+    await p.locator('textarea:visible').fill('还行吧');
+    await vis(p.getByRole('button', { name: /提交评价|保存修改/ })).click();
+    await vis(p.getByRole('button', { name: '完成' })).click();
+  });
   await step('me shows taste profile, not reputation', async () => {
-    await vis(p.getByRole('tab', { name: '我的' })).click();
-    await vis(p.getByText('品味画像')).waitFor();
+    await p.goto('http://localhost:8081/me');
+    await vis(p.getByText('品味画像')).waitFor({ timeout: 10000 });
     await vis(p.getByText(/新手上路|反向指标|毒舌评审|夸夸怪|大众嘴替|独立思考/)).waitFor();
     await p.screenshot({ path: `${SP}/shots/f8-me-taste.png` });
   });

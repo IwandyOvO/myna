@@ -982,16 +982,26 @@ describe('fun layer: verdicts, roasts, sorts, deck, daily, taste, milestones', (
     await call('POST', `/posts/${first[0]!.id}/ratings`, { token: me, body: { tier: 4 } });
     const second = (await call<{ items: PostCard[] }>('GET', '/deck?limit=50', { token: me })).body.items;
     expect(second.some((x) => x.id === first[0]!.id)).toBe(false);
+    // Skipped cards can be excluded so the endless feed doesn't repeat them.
+    const skip = second.slice(0, 3).map((x) => x.id);
+    const third = (await call<{ items: PostCard[] }>('GET', `/deck?limit=50&exclude=${skip.join(',')}`, { token: me })).body.items;
+    expect(third.some((x) => skip.includes(x.id))).toBe(false);
     expect((await call('GET', '/deck')).status).toBe(401);
   });
 
-  it('daily question: same pick all day, answering starts a streak', async () => {
+  it('daily question: same pick all day; any rating today starts a streak', async () => {
     const me = await newUserToken('daily-me@example.com');
     const d1 = (await call<DailyQuestion>('GET', '/daily', { token: me })).body;
     expect(d1.post).not.toBeNull();
     expect(d1.answered).toBe(false);
     expect(d1.streak).toBe(0);
     expect((await call<DailyQuestion>('GET', '/daily')).body.post?.id).toBe(d1.post!.id);
+    // Rating some other post counts for the streak (but doesn't answer today's pick).
+    const other = (await call<{ items: PostCard[] }>('GET', '/deck?limit=50', { token: me })).body.items.find((x) => x.id !== d1.post!.id)!;
+    await call('POST', `/posts/${other.id}/ratings`, { token: me, body: { tier: 4 } });
+    const mid = (await call<DailyQuestion>('GET', '/daily', { token: me })).body;
+    expect(mid.streak).toBe(1);
+    expect(mid.answered).toBe(false);
     await call('POST', `/posts/${d1.post!.id}/ratings`, { token: me, body: { tier: 2 } });
     const d2 = (await call<DailyQuestion>('GET', '/daily', { token: me })).body;
     expect(d2.answered).toBe(true);
