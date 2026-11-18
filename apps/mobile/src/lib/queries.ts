@@ -101,9 +101,6 @@ export function useQuickRate() {
   });
 }
 
-export const useDeck = (enabled: boolean) =>
-  useQuery({ queryKey: ['deck'], queryFn: () => api<{ items: PostCard[] }>('GET', '/deck?limit=30'), enabled, staleTime: Infinity });
-
 export const useDaily = () => useQuery({ queryKey: ['daily'], queryFn: () => api<DailyQuestion>('GET', '/daily') });
 
 export function useEditComment() {

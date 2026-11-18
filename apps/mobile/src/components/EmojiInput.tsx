@@ -1,5 +1,5 @@
 import { isSingleEmoji } from '@myna/shared';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { useSettings } from '../lib/settings';
 import { brand } from '../lib/theme';
@@ -14,6 +14,13 @@ export function EmojiInput({ value, presets, onChange }: { value: string | null;
   const custom = value && !presets.includes(value) ? value : '';
   const [text, setText] = useState(custom);
   const [bad, setBad] = useState(false);
+  // A preset was tapped: the typed emoji is no longer the selection.
+  useEffect(() => {
+    if (value && presets.includes(value)) {
+      setText('');
+      setBad(false);
+    }
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
   const change = (raw: string) => {
     // Keep only what was just typed: replacing the field's content is the natural gesture on phones.
     const next = raw.startsWith(text) && text ? raw.slice(text.length) : raw;

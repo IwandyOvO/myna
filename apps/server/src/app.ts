@@ -154,6 +154,7 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   app.get('/health', async () => ({ ok: true }));
 
   // Share landing page (spec: growth). Link previews read its Open Graph tags; the button opens the app.
+  const cardCache = new Map<string, Buffer>();
   /** Public origin as the client saw it (behind Railway's proxy when TRUST_PROXY=1). */
   const origin = (req: FastifyRequest) => `${req.protocol}://${req.host}`;
   async function sharedPost(id: string) {
@@ -176,7 +177,16 @@ export function buildApp(deps: AppDeps): FastifyInstance {
   // Share preview image (og:image): verdict, vote split, best roast.
   app.get('/p/:id/card.png', async (req, reply) => {
     const { id } = z.object({ id: z.string() }).parse(req.params);
-    const png = renderCard(await sharedPost(id), reqLocale(req));
+    const post = await sharedPost(id);
+    const loc = reqLocale(req);
+    // Rendering is synchronous CPU work: reuse it until something on the card changes.
+    const key = `${id}|${loc}|${post ? `${post.total}|${post.verdict}|${post.locked}|${post.topComment?.id ?? ''}|${post.editedAt ?? ''}` : '-'}`;
+    let png = cardCache.get(key);
+    if (!png) {
+      png = renderCard(post, loc);
+      if (cardCache.size >= 300) cardCache.delete(cardCache.keys().next().value!);
+      cardCache.set(key, png);
+    }
     reply.type('image/png').header('cache-control', 'public, max-age=600');
     return png;
   });

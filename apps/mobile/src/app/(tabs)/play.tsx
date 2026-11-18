@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, type FlatListProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, mediaUrl, qs } from '../../lib/api';
+import { api, ApiFailure, mediaUrl, qs } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { errorText } from '../../lib/errors';
 import { useDaily, useFeed, useQuickRate } from '../../lib/queries';
@@ -93,7 +93,14 @@ export default function Play() {
             if (advance.current) clearTimeout(advance.current);
             advance.current = setTimeout(() => list.current?.scrollToIndex({ index: Math.min(i + 1, pages.length - 1), animated: true }), 2200);
           },
-          onError: (e) => toast(errorText(e, t)),
+          onError: (e) => {
+            // Rated elsewhere since this card was loaded: show the result instead of an error.
+            if (e instanceof ApiFailure && e.code === 'already_rated') {
+              void api<PostCard>('GET', `/posts/${page.post.id}`).then((post) =>
+                setResults((m) => ({ ...m, [post.id]: { post, crowd: post.myRating && post.dist ? crowdReveal(post.dist, post.myRating.tier) : null } })),
+              );
+            } else toast(errorText(e, t));
+          },
         },
       );
     },

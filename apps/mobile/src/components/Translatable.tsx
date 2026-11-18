@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type StyleProp, type TextStyle, View } from 'react-native';
 import { useAuth } from '../lib/auth';
 import { useFeatures, useTranslate } from '../lib/queries';
@@ -18,6 +18,11 @@ export function Translatable({ text, show, style, numberOfLines }: { text: strin
   const [translated, setTranslated] = useState<string | null>(null);
   const [on, setOn] = useState(false);
   const available = show && !!text.trim() && !!features.data?.translate;
+  // The text was edited: drop the old translation.
+  useEffect(() => {
+    setTranslated(null);
+    setOn(false);
+  }, [text]);
 
   const toggle = () => {
     if (!signedIn) return router.push('/login');

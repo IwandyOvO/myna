@@ -27,7 +27,8 @@ export function notificationText(
       return { title: translate(locale, 'notif_season_t', v), body: translate(locale, 'notif_season_b', v) };
     case 'milestone': {
       const verdict = d.verdict ? `${VERDICT_EMOJI[d.verdict as VerdictKey] ?? ''} ${translate(locale, `v_${d.verdict}`)}`.trim() : '';
-      return { title: translate(locale, 'notif_milestone_t', v), body: translate(locale, 'notif_milestone_b', { ...v, verdict }) };
+      // Blind posts reveal no verdict yet: show just the title rather than a dangling "verdict so far:".
+      return { title: translate(locale, 'notif_milestone_t', v), body: verdict ? translate(locale, 'notif_milestone_b', { ...v, verdict }) : String(d.title ?? '') };
     }
   }
 }
