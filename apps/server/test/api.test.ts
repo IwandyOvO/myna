@@ -987,6 +987,19 @@ describe('fun layer: verdicts, roasts, sorts, deck, daily, taste, milestones', (
     const third = (await call<{ items: PostCard[] }>('GET', `/deck?limit=50&exclude=${skip.join(',')}`, { token: me })).body.items;
     expect(third.some((x) => skip.includes(x.id))).toBe(false);
     expect((await call('GET', '/deck')).status).toBe(401);
+    // Content languages apply to the deck like the home feed.
+    const ja = (await call<{ items: PostCard[] }>('GET', '/deck?limit=50&langs=ja', { token: me })).body.items;
+    expect(ja.every((x) => x.lang === 'ja')).toBe(true);
+  });
+
+  it("today's drop is re-picked if the featured post is deleted", async () => {
+    const d = (await call<DailyQuestion>('GET', '/daily')).body;
+    expect(d.post).not.toBeNull();
+    await db.query("UPDATE posts SET status = 'removed' WHERE id = $1", [d.post!.id]);
+    const again = (await call<DailyQuestion>('GET', '/daily')).body;
+    expect(again.post).not.toBeNull();
+    expect(again.post!.id).not.toBe(d.post!.id);
+    await db.query("UPDATE posts SET status = 'active' WHERE id = $1", [d.post!.id]);
   });
 
   it('daily question: same pick all day; any rating today starts a streak', async () => {

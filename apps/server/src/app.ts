@@ -385,9 +385,10 @@ export function buildApp(deps: AppDeps): FastifyInstance {
       .object({
         limit: z.coerce.number().int().min(1).max(50).default(20),
         exclude: z.string().max(8000).optional().transform((s) => (s ? s.split(',').filter((x) => /^[0-9a-f-]{36}$/i.test(x)).slice(0, 200) : [])),
+        langs: langList,
       })
       .parse(req.query);
-    return { items: await deck(db, tagCfg, userId, q.limit, q.exclude) };
+    return { items: await deck(db, tagCfg, userId, q.limit, q.exclude, q.langs) };
   });
   app.get('/daily', async (req) => dailyQuestion(db, tagCfg, await viewer(req)));
 

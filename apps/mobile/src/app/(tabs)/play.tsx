@@ -1,4 +1,4 @@
-import { CATEGORY_EMOJI, categoryName, crowdReveal, scaleFor, VERDICT_EMOJI, type Category, type CrowdReveal, type PostCard, type Tier } from '@myna/shared';
+import { CATEGORY_EMOJI, categoryName, crowdReveal, LOCALES, scaleFor, VERDICT_EMOJI, type Category, type Locale, type CrowdReveal, type PostCard, type Tier } from '@myna/shared';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -21,12 +21,14 @@ const BG: Record<Category, string> = {
 type Page = { post: PostCard; today?: boolean };
 
 /** Endless unrated posts for signed-in users; each next page excludes everything already shown. */
-function useEndlessDeck(enabled: boolean) {
+function useEndlessDeck(enabled: boolean, langs: Locale[]) {
+  // Same rule as the home feed: all languages selected = no filter.
+  const langParam = langs.length === LOCALES.length ? undefined : langs.join(',');
   return useInfiniteQuery({
-    queryKey: ['deck'],
+    queryKey: ['deck', langParam ?? 'all'],
     enabled,
     initialPageParam: [] as string[],
-    queryFn: ({ pageParam }) => api<{ items: PostCard[] }>('GET', `/deck${qs({ limit: 20, exclude: pageParam.slice(-150).join(',') || undefined })}`),
+    queryFn: ({ pageParam }) => api<{ items: PostCard[] }>('GET', `/deck${qs({ limit: 20, langs: langParam, exclude: pageParam.slice(-150).join(',') || undefined })}`),
     getNextPageParam: (last, all) => (last.items.length ? all.flatMap((p) => p.items.map((x) => x.id)) : undefined),
     staleTime: Infinity,
   });
@@ -43,7 +45,7 @@ export default function Play() {
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const daily = useDaily();
-  const deck = useEndlessDeck(signedIn);
+  const deck = useEndlessDeck(signedIn, contentLangs);
   const guest = useFeed(undefined, contentLangs, '', 'hot', !signedIn);
   const rate = useQuickRate();
   const [height, setHeight] = useState(0);
@@ -51,6 +53,12 @@ export default function Play() {
   const [results, setResults] = useState<Record<string, { post: PostCard; crowd: CrowdReveal | null }>>({});
   const list = useRef<FlatList<Page>>(null);
   const advance = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // The first "today" card shown stays the first card; a new day's drop must not push in above what you're viewing.
+  const [todayId, setTodayId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!todayId && daily.data?.post) setTodayId(daily.data.post.id);
+  }, [daily.data, todayId]);
 
   const pages: Page[] = useMemo(() => {
     const seen = new Set<string>();
@@ -60,11 +68,11 @@ export default function Play() {
       seen.add(post.id);
       out.push({ post, today });
     };
-    if (daily.data?.post) add(daily.data.post, true);
+    if (daily.data?.post && (!todayId || daily.data.post.id === todayId)) add(daily.data.post, true);
     const src = signedIn ? deck.data?.pages.flatMap((p) => p.items) : guest.data?.pages.flatMap((p) => p.items);
     src?.forEach((p) => add(p));
     return out;
-  }, [daily.data, deck.data, guest.data, signedIn]);
+  }, [daily.data, deck.data, guest.data, signedIn, todayId]);
 
   const source = signedIn ? deck : guest;
   // Keep a few pages ahead so it never runs dry.

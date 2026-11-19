@@ -10,15 +10,16 @@ const NOT_BLOCKED = `NOT EXISTS (SELECT 1 FROM blocks b WHERE b.user_id = $1::uu
  * Posts the viewer hasn't rated (and didn't write), most active first with a little shuffle so the
  * deck feels fresh. Blind posts are included: rating them is exactly what unlocks them.
  */
-export async function deck(db: Queryable, cfg: CardRules, viewer: string, limit = 20, exclude: string[] = []): Promise<PostCard[]> {
+export async function deck(db: Queryable, cfg: CardRules, viewer: string, limit = 20, exclude: string[] = [], langs?: string[]): Promise<PostCard[]> {
   const rows = (
     await db.query(
       `${CARD_SELECT} ${CARD_FROM}
        WHERE p.status = 'active' AND p.author_id <> $1::uuid AND r.id IS NULL AND ${NOT_BLOCKED}
          AND NOT (p.id = ANY($3::uuid[])) -- already shown this session (skipped)
+         AND ($4::text[] IS NULL OR p.lang = ANY($4::text[])) -- the viewer's content languages
        ORDER BY (ln(2 + s.total) + 3 * (SELECT count(*) FROM ratings rr WHERE rr.post_id = p.id AND rr.created_at > now() - interval '72 hours')) * (0.6 + random() * 0.8) DESC
        LIMIT $2`,
-      [viewer, limit, exclude],
+      [viewer, limit, exclude, langs?.length ? langs : null],
     )
   ).rows;
   return rows.map((r) => toCard(r, cfg));
@@ -30,8 +31,15 @@ const utcDay = (d: Date) => d.toISOString().slice(0, 10);
 
 /** Picks (once) the featured post for `day`: lively, not featured in the last 30 days, not still blind. */
 async function ensurePick(db: Queryable, day: string, blindHours: number): Promise<string | null> {
-  const existing = (await db.query<{ post_id: string }>('SELECT post_id FROM daily_picks WHERE day = $1', [day])).rows[0];
-  if (existing) return existing.post_id;
+  const existing = (
+    await db.query<{ post_id: string; active: boolean }>(
+      `SELECT d.post_id, (p.status = 'active') AS active FROM daily_picks d JOIN posts p ON p.id = d.post_id WHERE d.day = $1`,
+      [day],
+    )
+  ).rows[0];
+  if (existing?.active) return existing.post_id;
+  // The featured post was deleted or hidden after it was picked: choose another one for the rest of the day.
+  if (existing) await db.query('DELETE FROM daily_picks WHERE day = $1 AND post_id = $2', [day, existing.post_id]);
   const candidate = (
     await db.query<{ id: string }>(
       `SELECT p.id FROM posts p JOIN post_stats s ON s.post_id = p.id
